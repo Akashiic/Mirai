@@ -109,6 +109,8 @@ final class MiraiLogSession implements AutoCloseable
     }
     void awaitTermination(long millis) throws InterruptedException { worker.join(millis); }
     int queued() { return queue.size(); }
+    boolean isDedicatedServer() { return "SERVER".equalsIgnoreCase(side); }
+    long elapsedMillis(long nanos) { return Math.max(0, nanos - startedNanos) / 1_000_000L; }
 
     private void run()
     {
@@ -132,6 +134,8 @@ final class MiraiLogSession implements AutoCloseable
                         + "; no uploads/chat/credentials/JVM arguments; CPU model and GPU time unavailable unless explicitly measured");
                 remember("timing.render_scope", "CLIENT_RENDER_PASS_WALL and CLIENT_DEFERRED_PASS_WALL include the whole client DH pass; queue/task/upload/LOD measurements overlap and must not be summed; all are elapsed wall time including waits, not GPU time");
                 remember("timing.upload_scope", "GL_*_UPLOAD_WALL includes buffer preparation and state restoration; GL_*_UPLOAD_BYTES is attempted input payload, not allocated VRAM; GL_UPLOAD_JAVA_FAILURES counts uploads that exit exceptionally, including partial work");
+                remember("timing.gpu_scope", "GPU_MAIN_PASS/GPU_DEFERRED_PASS and gpu_sample stages are asynchronous GL_TIMESTAMP completion intervals, not GPU busy time or whole Minecraft frame; nested stages overlap PASS, may include CPU submission gaps; absent stages omitted, zero is valid; results arrive in later windows");
+                remember("timing.gpu_observer", "GPU_SAMPLED_PASS_WALL pairs CPU wall with sampled GPU pass; GPU_OBSERVER_WALL sums individual observer calls including polling/formatting, not per-frame cost; capture is opt-in for 10-120s, every fourth invocation per pass kind, six slots; unavailable samples skipped, no forced synchronization");
                 long now = System.nanoTime(); lastSnapshot = lastFlush = lastTrace = now;
                 while (accepting || !queue.isEmpty())
                 {
@@ -269,7 +273,7 @@ final class MiraiLogSession implements AutoCloseable
         }
         output = Files.newBufferedWriter(latest, StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
         bytes = 0;
-        raw(System.nanoTime(), "session", "schema=1 id=" + sessionId + " physical_side=" + side + "; durations=elapsed wall time including waits, not GPU time; metadata may be replayed after rotation");
+        raw(System.nanoTime(), "session", "schema=2 id=" + sessionId + " physical_side=" + side + "; durations=elapsed wall time except GPU_MAIN_PASS/GPU_DEFERRED_PASS and gpu_sample completion intervals; metadata may be replayed after rotation");
         int skipped = 0;
         for (Map.Entry<String, String> entry : metadata.entrySet())
         {

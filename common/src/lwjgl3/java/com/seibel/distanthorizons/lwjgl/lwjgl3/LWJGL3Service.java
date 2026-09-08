@@ -30,6 +30,23 @@ public record LWJGL3Service(
 
     // ===================== CAPABILITIES =====================
 
+    @Override
+    public Object getCurrentContextToken() {
+        try { return GL.getCapabilities(); }
+        catch (RuntimeException noCurrentContext) { return null; }
+    }
+
+    @Override
+    public int getTimestampCounterBits() {
+        return GL15C.glGetQueryi(GL33C.GL_TIMESTAMP, GL15C.GL_QUERY_COUNTER_BITS);
+    }
+
+    @Override
+    public boolean isQueryBufferBound() {
+        GLCapabilities caps = GL.getCapabilities();
+        return (caps.OpenGL44 || caps.GL_ARB_query_buffer_object || caps.GL_AMD_query_buffer_object)
+                && GL11C.glGetInteger(0x9193 /* GL_QUERY_BUFFER_BINDING, also AMD */) != 0;
+    }
 
     @Override
     public boolean isOpenGLVersionSupported(int major, int minor) {

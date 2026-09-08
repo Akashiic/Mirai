@@ -22,12 +22,14 @@ package com.seibel.distanthorizons.common.render.openGl.glObject;
 import com.seibel.distanthorizons.api.enums.config.EDhApiGLErrorHandlingMode;
 import com.seibel.distanthorizons.api.enums.config.EDhApiGpuUploadMethod;
 import com.seibel.distanthorizons.api.enums.config.EDhApiRenderingApi;
+import com.seibel.distanthorizons.common.render.openGl.MiraiGlGpuTimerBackend;
 import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.jar.EPlatform;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiGpuProfiler;
 import com.seibel.distanthorizons.core.util.objects.GLMessages.*;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftClientWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IIrisAccessor;
@@ -238,6 +240,7 @@ public class GLProxy
 		
 		// GLProxy creation success
 		LOGGER.info(GLProxy.class.getSimpleName() + " creation successful. OpenGL smiles upon you this day.");
+		MiraiGpuProfiler.installBackendFactory(MiraiGlGpuTimerBackend::createIfSupported);
 	}
 	
 	//endregion

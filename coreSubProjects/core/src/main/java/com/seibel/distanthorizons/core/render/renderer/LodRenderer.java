@@ -20,6 +20,8 @@
 package com.seibel.distanthorizons.core.render.renderer;
 
 import com.seibel.distanthorizons.core.logging.mirai.MiraiDiagnostics;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiGpuProfiler;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiGpuQueryRing.Stage;
 import com.seibel.distanthorizons.api.enums.rendering.EDhApiTransparency;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.*;
 import com.seibel.distanthorizons.core.config.Config;
@@ -255,21 +257,27 @@ public class LodRenderer
 					if (Config.Client.Advanced.Graphics.GenericRendering.enableGenericRendering.get())
 					{
 						profiler.popPush("Custom Objects");
-						genericRenderer.render(renderParams, profiler, true);
+						int gpuStage = MiraiGpuProfiler.beginStage(Stage.GENERIC_SSAO);
+						try { genericRenderer.render(renderParams, profiler, true); }
+						finally { MiraiGpuProfiler.endStage(gpuStage); }
 					}
 
 					// SSAO
 					if (Config.Client.Advanced.Graphics.enableSsao.get())
 					{
 						profiler.popPush("LOD SSAO");
-						this.ssaoRenderer.render(renderParams);
+						int gpuStage = MiraiGpuProfiler.beginStage(Stage.SSAO);
+						try { this.ssaoRenderer.render(renderParams); }
+						finally { MiraiGpuProfiler.endStage(gpuStage); }
 					}
 
 					// custom objects without SSAO
 					if (Config.Client.Advanced.Graphics.GenericRendering.enableGenericRendering.get())
 					{
 						profiler.popPush("Custom Objects");
-						genericRenderer.render(renderParams, profiler, false);
+						int gpuStage = MiraiGpuProfiler.beginStage(Stage.GENERIC);
+						try { genericRenderer.render(renderParams, profiler, false); }
+						finally { MiraiGpuProfiler.endStage(gpuStage); }
 					}
 
 					// combined pass transparent rendering
@@ -287,7 +295,9 @@ public class LodRenderer
 					{
 						profiler.popPush("LOD Fog");
 						
-						this.fogRenderer.render(renderParams, fogRenderEventParam.getFogRenderParam());
+						int gpuStage = MiraiGpuProfiler.beginStage(Stage.FOG);
+						try { this.fogRenderer.render(renderParams, fogRenderEventParam.getFogRenderParam()); }
+						finally { MiraiGpuProfiler.endStage(gpuStage); }
 					}
 
 					// far plane clip fading
@@ -297,7 +307,9 @@ public class LodRenderer
 						// but is necessary for Anti-aliasing to apply to the sky/surrounding pixels properly
 
 						profiler.popPush("Fade Far Clip Fade");
-						this.farFadeRenderer.render(renderParams);
+						int gpuStage = MiraiGpuProfiler.beginStage(Stage.FAR_FADE);
+						try { this.farFadeRenderer.render(renderParams); }
+						finally { MiraiGpuProfiler.endStage(gpuStage); }
 					}
 
 					// Anti-Aliasing
@@ -305,7 +317,9 @@ public class LodRenderer
 						&& !shaderPackInUse) // AA should be handled by an active shaderpack
 					{
 						profiler.popPush("Anti-Aliasing");
-						this.antiAliasRenderer.render(renderParams);
+						int gpuStage = MiraiGpuProfiler.beginStage(Stage.AA);
+						try { this.antiAliasRenderer.render(renderParams); }
+						finally { MiraiGpuProfiler.endStage(gpuStage); }
 					}
 
 
@@ -348,7 +362,9 @@ public class LodRenderer
 					if (!cancelApplyShader)
 					{
 						profiler.popPush("Apply to MC");
-						this.metaRenderer.copyToMcTexture(renderParams);
+						int gpuStage = MiraiGpuProfiler.beginStage(Stage.COMPOSITE);
+						try { this.metaRenderer.copyToMcTexture(renderParams); }
+						finally { MiraiGpuProfiler.endStage(gpuStage); }
 					}
 
 				}
@@ -370,7 +386,9 @@ public class LodRenderer
 						{
 							profiler.popPush("LOD Fog");
 
-							this.fogRenderer.render(renderParams, fogRenderEventParam.getFogRenderParam());
+							int gpuStage = MiraiGpuProfiler.beginStage(Stage.FOG);
+							try { this.fogRenderer.render(renderParams, fogRenderEventParam.getFogRenderParam()); }
+							finally { MiraiGpuProfiler.endStage(gpuStage); }
 						}
 					}
 				}
@@ -407,7 +425,9 @@ public class LodRenderer
 		SortedArraySet<LodBufferContainer> lodBufferContainer = lodBufferHandler.getColumnRenderBuffers();
 		if (lodBufferContainer != null)
 		{
-			terrainRenderer.render(renderEventParam, opaquePass, lodBufferContainer, profilerWrapper);
+			int gpuStage = MiraiGpuProfiler.beginStage(opaquePass ? Stage.OPAQUE : Stage.TRANSPARENT);
+			try { terrainRenderer.render(renderEventParam, opaquePass, lodBufferContainer, profilerWrapper); }
+			finally { MiraiGpuProfiler.endStage(gpuStage); }
 		}
 	}
 	

@@ -30,6 +30,8 @@ import com.seibel.distanthorizons.core.enums.MinecraftTextFormat;
 import com.seibel.distanthorizons.core.file.structure.ClientOnlySaveStructure;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.logging.mirai.MiraiDiagnostics;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiGpuProfiler;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiGpuQueryRing.Stage;
 import com.seibel.distanthorizons.core.logging.f3.F3Screen;
 import com.seibel.distanthorizons.core.network.messages.MessageRegistry;
 import com.seibel.distanthorizons.core.network.NetworkIngressBudget;
@@ -437,9 +439,12 @@ public class ClientApi
     private void renderLodLayer(boolean renderingDeferredLayer)
     {
         long diagnosticStart = MiraiDiagnostics.startTiming();
-        try { this.renderLodLayerInternal(renderingDeferredLayer); }
+        boolean gpuPass = MiraiGpuProfiler.beginPass(renderingDeferredLayer);
+        boolean completed = false;
+        try { this.renderLodLayerInternal(renderingDeferredLayer); completed = true; }
         finally
         {
+            if (gpuPass) { MiraiGpuProfiler.endPass(completed); }
             MiraiDiagnostics.finishTiming(renderingDeferredLayer
                     ? MiraiDiagnostics.Metric.CLIENT_DEFERRED_PASS_WALL
                     : MiraiDiagnostics.Metric.CLIENT_RENDER_PASS_WALL, diagnosticStart);
@@ -500,10 +505,13 @@ public class ClientApi
 					try
 					{
 						// these tasks always need to be called, regardless of whether the renderer is enabled or not to prevent memory leaks
-						RenderThreadTaskHandler.INSTANCE.runRenderThreadTasks();
+						int gpuStage = MiraiGpuProfiler.beginStage(Stage.TASKS);
+						try { RenderThreadTaskHandler.INSTANCE.runRenderThreadTasks(); }
+						finally { MiraiGpuProfiler.endStage(gpuStage); }
 					}
 					catch (Exception e)
 					{
+						MiraiGpuProfiler.invalidatePass();
 						LOGGER.error("Unexpected issue running render thread tasks, error: [" + e.getMessage() + "].", e);
 					}
 					
@@ -738,6 +746,7 @@ public class ClientApi
 			}
 			catch (Exception e)
 			{
+				MiraiGpuProfiler.invalidatePass();
 				this.rendererDisabledBecauseOfExceptions = true;
 				LOGGER.error("Unexpected Renderer error in render pass [" + renderPass + "]. Error: " + e.getMessage(), e);
 				

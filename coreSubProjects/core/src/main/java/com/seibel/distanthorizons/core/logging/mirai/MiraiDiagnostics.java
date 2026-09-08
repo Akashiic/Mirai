@@ -13,11 +13,13 @@ public final class MiraiDiagnostics
         NETWORK_SENT, NETWORK_RECEIVED, NETWORK_FRAGMENT_BYTES, NETWORK_RATE_LIMITED,
         NETWORK_REJECTED, NETWORK_OUT_OF_RANGE, NETWORK_WRONG_POSITION, NETWORK_CANCELLED, NETWORK_QUEUE_FULL, NETWORK_QUEUE_CLOSED,
         COLD_PRESERVED_LOCAL, DB_COMMITTED, DB_FAILED, DB_CANCELLED, CHUNK_NOT_READY, CHUNK_SUBMITTED, DH_ERROR_REPORTS, SYNC_DEFERRED_OVERFLOW,
-        GL_STORAGE_UPLOAD_BYTES, GL_DATA_UPLOAD_BYTES, GL_SUB_DATA_UPLOAD_BYTES, GL_UPLOAD_JAVA_FAILURES
+        GL_STORAGE_UPLOAD_BYTES, GL_DATA_UPLOAD_BYTES, GL_SUB_DATA_UPLOAD_BYTES, GL_UPLOAD_JAVA_FAILURES,
+        GPU_SAMPLES, GPU_SAMPLES_DROPPED, GPU_QUERY_FAILURES
     }
     public enum Metric { FRAME_INTERVAL, FRAME_EVENT_SPAN, SERVER_TICK_EVENT_SPAN, LOD_RENDER_WALL, LOD_UPDATE_WALL, NETWORK_REQUEST_WALL,
         CLIENT_RENDER_PASS_WALL, CLIENT_DEFERRED_PASS_WALL, RENDER_TASK_QUEUE_WALL, RENDER_TASK_WALL,
-        GL_STORAGE_UPLOAD_WALL, GL_DATA_UPLOAD_WALL, GL_SUB_DATA_UPLOAD_WALL }
+        GL_STORAGE_UPLOAD_WALL, GL_DATA_UPLOAD_WALL, GL_SUB_DATA_UPLOAD_WALL,
+        GPU_MAIN_PASS, GPU_DEFERRED_PASS, GPU_SAMPLED_PASS_WALL, GPU_OBSERVER_WALL }
     public enum ErrorKind { RENDER, DATABASE, NETWORK, SNAPSHOT, INITIALIZATION, DH_LOG }
     private static volatile MiraiLogSession session;
     private static final AtomicInteger marks = new AtomicInteger();
@@ -43,6 +45,8 @@ public final class MiraiDiagnostics
         }
     }
     public static boolean enabled() { MiraiLogSession s = session; return s != null && s.accepting; }
+    static long elapsedMillis(long nanos)
+    { MiraiLogSession s = session; return s == null ? -1 : s.elapsedMillis(nanos); }
     public static long startTiming() { return enabled() ? System.nanoTime() : 0; }
     public static void finishTiming(Metric metric, long start)
     { if (start != 0) { duration(metric, System.nanoTime() - start); } }
@@ -105,7 +109,7 @@ public final class MiraiDiagnostics
     {
         MiraiLogSession s = session;
         if (args.length == 0 || (args.length == 1 && "status".equals(args[0])))
-        { return s == null ? "Mirai diagnostics: disabled" : "Mirai diagnostics: " + s.status + "; logs/akashic-mirai/latest.log; trace=" + s.tracing() + "; samples=" + s.stackSamples + "; dropped=" + s.dropped.get(); }
+        { return s == null ? "Mirai diagnostics: disabled" : "Mirai diagnostics: " + s.status + "; logs/akashic-mirai/latest.log; trace=" + s.tracing() + "; samples=" + s.stackSamples + "; gpu=" + MiraiGpuProfiler.status() + "; dropped=" + s.dropped.get(); }
         if (s == null || !s.accepting) { return "Mirai diagnostics unavailable. Check startup log or JVM opt-out."; }
         if ("mark".equals(args[0]) && args.length <= 2)
         {
@@ -124,8 +128,18 @@ public final class MiraiDiagnostics
             s.event("trace", "start seconds=" + seconds + "; stack samples are observations, not mod CPU attribution");
             return "Mirai trace enabled for " + seconds + " seconds. Stack sampling has additional overhead.";
         }
+        if ("gpu".equals(args[0]) && args.length <= 2)
+        {
+            if (s.isDedicatedServer()) { return "GPU capture is client-only; use /miraidiag gpu on the Minecraft client."; }
+            if (args.length == 2 && "stop".equals(args[1]))
+            { MiraiGpuProfiler.stop(); return "Mirai GPU capture stopped; baseline logging continues."; }
+            int seconds = 60;
+            try { if (args.length == 2) { seconds = Integer.parseInt(args[1]); } }
+            catch (NumberFormatException invalid) { return "GPU duration: 10-120 seconds."; }
+            return MiraiGpuProfiler.request(seconds);
+        }
         if (args.length == 1 && "stop".equals(args[0]))
-        { s.traceUntilNanos = 0; s.event("trace", "stopped_by_user; baseline_logging_continues"); return "Mirai trace stopped; baseline logging continues."; }
-        return "Mirai diagnostics: status | mark [label] | trace [10-120 seconds] | stop";
+        { s.traceUntilNanos = 0; MiraiGpuProfiler.stop(); s.event("trace", "stopped_by_user; baseline_logging_continues"); return "Mirai trace and GPU capture stopped; baseline logging continues."; }
+        return "Mirai diagnostics: status | mark [label] | trace [10-120 seconds] | gpu [10-120 seconds|stop] | stop";
     }
 }

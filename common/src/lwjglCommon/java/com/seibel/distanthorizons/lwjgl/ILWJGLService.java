@@ -15,6 +15,12 @@ public interface ILWJGLService {
 	
 	boolean isOpenGLVersionSupported(int major, int minor);
 	boolean isExtensionSupported(EGLExtension extension);
+	/** Identity of the capabilities for the current context, or null when unavailable. */
+	default Object getCurrentContextToken() { return null; }
+	/** Number of useful GL_TIMESTAMP bits; callers must first check timer-query support. */
+	default int getTimestampCounterBits() { return 0; }
+	/** Whether a query buffer would redirect client-memory query getters into a buffer. */
+	default boolean isQueryBufferBound() { return false; }
 	int getPointerSize();
 	
 	// ===================== BUFFER OPERATIONS =====================

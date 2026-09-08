@@ -1,4 +1,4 @@
-# Diagnóstico local do Akashic Mirai — 0.1.7-dev
+# Diagnóstico local do Akashic Mirai — 0.1.9-dev
 
 O registro básico começa automaticamente em `logs/akashic-mirai/latest.log`, dentro da instalação do Minecraft ou da pasta do servidor. Cada processo tem sua própria sessão. Não é necessário habilitar DEBUG global ou instalar outro mod.
 
@@ -13,7 +13,9 @@ O registro básico começa automaticamente em `logs/akashic-mirai/latest.log`, d
 
 No console do Crucible, use `dh diagnostics status`, `dh diagnostics trace 60` e `dh diagnostics mark fps_drop`. Dentro do jogo, o equivalente `/dh diagnostics ...` mantém a permissão administrativa do comando DH. Esse comando registra o servidor; não ativa a amostragem do cliente. `/miraidiag` é um comando exclusivamente local do cliente, inclusive ao entrar por proxy em um lobby sem DH.
 
-`stop` encerra a amostragem detalhada antecipadamente. `trace` aceita de 10 a 120 segundos; sem duração, usa 60. `mark` sem rótulo usa `manual`. A confirmação de um marcador informa sua entrada na fila, não garante persistência após encerramento abrupto ou falha de disco.
+`stop` encerra trace e GPU antecipadamente. `trace` aceita de 10 a 120 segundos; sem duração, usa 60. `mark` sem rótulo usa `manual`. A confirmação de um marcador informa sua entrada na fila, não garante persistência após encerramento abrupto ou falha de disco.
+
+Na 0.1.9, `/miraidiag gpu 60` solicita captura GPU temporária no cliente. É opcional, desativada por padrão e limitada a 10–120 segundos. `/miraidiag gpu stop` encerra somente GPU. Feche o chat depois do comando para observar o jogo em foco. A resposta inicial confirma o pedido; `gpu_capture` no log informa ativação efetiva ou indisponibilidade. Veja [escopos, limitações, etapas e teste comparativo](PLANO-E-DIAGNOSTICO-0.1.9.md). A captura não mede o frame inteiro nem muda qualidade gráfica.
 
 ## O que o arquivo informa
 

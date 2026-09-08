@@ -6,6 +6,7 @@ import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
 import com.seibel.distanthorizons.core.level.DhClientLevel;
 import com.seibel.distanthorizons.core.level.IDhLevel;
 import com.seibel.distanthorizons.core.logging.mirai.MiraiDiagnostics;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiGpuProfiler;
 import com.seibel.distanthorizons.core.render.RenderBufferHandler;
 import com.seibel.distanthorizons.core.world.AbstractDhWorld;
 import com.seibel.distanthorizons.core.world.DhClientWorld;
@@ -20,6 +21,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.client.ClientCommandHandler;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.Display;
 import java.util.concurrent.TimeUnit;
 
 /** Invoked on the physical client owner thread. Only scalar/string snapshots cross into the writer. */
@@ -32,7 +34,7 @@ public final class ForgeMiraiClientDiagnostics
         ClientCommandHandler.instance.registerCommand(new CommandBase()
         {
             @Override public String getCommandName() { return "miraidiag"; }
-            @Override public String getCommandUsage(ICommandSender sender) { return "/miraidiag status|mark [label]|trace [seconds]|stop"; }
+            @Override public String getCommandUsage(ICommandSender sender) { return "/miraidiag status|mark [label]|trace [seconds]|gpu [seconds|stop]|stop"; }
             @Override public int getRequiredPermissionLevel() { return 0; }
             @Override public boolean canCommandSenderUseCommand(ICommandSender sender) { return true; }
             @Override public void processCommand(ICommandSender sender, String[] args)
@@ -42,6 +44,11 @@ public final class ForgeMiraiClientDiagnostics
     }
     @SubscribeEvent public void renderTick(TickEvent.RenderTickEvent event)
     {
+        if (event.phase == TickEvent.Phase.START)
+        {
+            if (Minecraft.getMinecraft().theWorld == null) { MiraiGpuProfiler.stop(); }
+            MiraiGpuProfiler.maintenance();
+        }
         if (!MiraiDiagnostics.enabled()) { return; }
         long now = System.nanoTime();
         if (event.phase == TickEvent.Phase.START)
@@ -92,6 +99,8 @@ public final class ForgeMiraiClientDiagnostics
             ForgeMiraiDiagnostics.value("integration.shaderpack_active", iris != null && iris.isShaderPackInUse());
             World nativeWorld = mc.theWorld;
             MiraiDiagnostics.event("client", "in_world=" + (nativeWorld != null) + " gui_open=" + (mc.currentScreen != null)
+                    + " game_focus=" + mc.inGameHasFocus + " display_active=" + Display.isActive()
+                    + " display_width=" + mc.displayWidth + " display_height=" + mc.displayHeight
                     + (nativeWorld == null ? "" : " dimension=" + nativeWorld.provider.dimensionId + " native_token=" + System.identityHashCode(nativeWorld)));
             if (nativeWorld != null) { MiraiDiagnostics.event("handoff", MinecraftRenderWrapper.INSTANCE.getLegacyHandoffObservation()); }
             ForgeMiraiDiagnostics.threadPools();
