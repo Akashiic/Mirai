@@ -220,6 +220,28 @@ public class MiraiGpuProfilerTest
         assertTrue(MiraiDiagnostics.enabled());
     }
 
+    @Test public void nestedPassAfterStopOrExpiryCannotContaminateActiveOuterCapture() throws Exception
+    {
+        for (boolean expire : new boolean[]{false, true})
+        {
+            backend = new Backend(); MiraiGpuProfiler.request(10); start(false);
+            int outerToken = MiraiGpuProfiler.beginStage(Stage.OPAQUE);
+            if (expire) { set(MiraiGpuProfiler.class, "untilNanos", System.nanoTime() - 1); }
+            else { MiraiGpuProfiler.stop(); }
+            assertEquals(2, backend.stamped.size());
+            assertFalse(MiraiGpuProfiler.beginPass(true));
+            assertEquals(22, backend.deleted.size());
+            int callsAfterCleanup = backend.calls;
+            int innerToken = MiraiGpuProfiler.beginStage(Stage.SSAO);
+            assertEquals(-1, innerToken);
+            MiraiGpuProfiler.endStage(innerToken);
+            MiraiGpuProfiler.endStage(outerToken); MiraiGpuProfiler.endPass(true);
+            assertEquals(callsAfterCleanup, backend.calls);
+            assertEquals(0, backend.reads); assertEquals(0, counter(MiraiDiagnostics.Counter.GPU_SAMPLES));
+            assertEquals("off", MiraiGpuProfiler.status()); assertTrue(MiraiDiagnostics.enabled());
+        }
+    }
+
     @Test public void validSamplesAndReportingStayBoundedWhenWriterCannotDrain()
     {
         MiraiGpuProfiler.request(120);

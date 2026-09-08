@@ -68,7 +68,7 @@ public final class MiraiGpuProfiler
 
     public static boolean beginPass(boolean deferred)
     {
-        if (!requested()) { return false; }
+        if (!requested()) { maintenance(); return false; }
         long started = System.nanoTime();
         try
         {
