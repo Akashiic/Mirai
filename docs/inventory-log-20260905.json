@@ -1,0 +1,1806 @@
+{
+  "created_at": "2026-09-05T03:33:05.976142Z",
+  "gpu": "Intel UHD Graphics; driver 27.20.100.9268; OpenGL 4.6.0",
+  "java": "1.8.0_51",
+  "lwjgl": "2.9.1",
+  "minecraft": "1.7.10",
+  "mods": [
+    {
+      "state": "UCHIJA",
+      "mod_id": "mcp",
+      "declared_version": "9.05",
+      "name": "Minecraft Coder Pack",
+      "reported_jar": "minecraft.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "FML",
+      "declared_version": "7.10.99.99",
+      "name": "Forge Mod Loader",
+      "reported_jar": "modpack.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "Forge",
+      "declared_version": "10.13.4.1614",
+      "name": "Minecraft Forge",
+      "reported_jar": "modpack.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "appliedenergistics2-core",
+      "declared_version": "rv3-beta-1035-GTNH",
+      "name": "Applied Energistics 2 Core",
+      "reported_jar": "minecraft.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "CodeChickenCore",
+      "declared_version": "1.4.17",
+      "name": "CodeChicken Core",
+      "reported_jar": "minecraft.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "NotEnoughItems",
+      "declared_version": "2.8.125-GTNH",
+      "name": "NotEnoughItems",
+      "reported_jar": "NotEnoughItems-2.8.125-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "MobiusCore",
+      "declared_version": "1.4.12-mapless",
+      "name": "MobiusCore",
+      "reported_jar": "minecraft.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "PlayerAPI",
+      "declared_version": "1.5.0",
+      "name": "Player API",
+      "reported_jar": "minecraft.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "GTNHLib Core",
+      "declared_version": "0.11.41",
+      "name": "GTNHLib Core",
+      "reported_jar": "minecraft.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "ThaumicTinkerer-preloader",
+      "declared_version": "0.1",
+      "name": "Thaumic Tinkerer Core",
+      "reported_jar": "minecraft.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "OpenModsCore",
+      "declared_version": "0.10.14",
+      "name": "OpenModsCore",
+      "reported_jar": "minecraft.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "<CoFH ASM>",
+      "declared_version": "000",
+      "name": "CoFH ASM",
+      "reported_jar": "minecraft.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "PacketUnlimiter",
+      "declared_version": "1.1",
+      "name": "PacketUnlimiter",
+      "reported_jar": "minecraft.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "txloader",
+      "declared_version": "1.8.11",
+      "name": "TX Loader",
+      "reported_jar": "txloader-1.8.11.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "NettyPatch_ASM",
+      "declared_version": "0.1-Beta",
+      "name": "NettyPatch_ASM",
+      "reported_jar": "minecraft.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "gtnhlib",
+      "declared_version": "0.11.41",
+      "name": "GTNH Lib",
+      "reported_jar": "gtnhlib-0.11.41.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "backhand",
+      "declared_version": "1.8.13",
+      "name": "Backhand",
+      "reported_jar": "backhand-1.8.13.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "Baubles",
+      "declared_version": "2.2.22-GTNH",
+      "name": "Baubles",
+      "reported_jar": "BaublesExpanded-2.2.22-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "akashicthepatcher",
+      "declared_version": "1.0.5",
+      "name": "Akashic-ThePatcher",
+      "reported_jar": "!Akashic-ThePatcher-1.0.5.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "unimixins",
+      "declared_version": "0.3.1",
+      "name": "UniMixins",
+      "reported_jar": "+unimixins-all-1.7.10-0.3.1.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "unimixins-mixin",
+      "declared_version": "0.3.1",
+      "name": "UniMixins: Mixin (UniMix)",
+      "reported_jar": "+unimixins-all-1.7.10-0.3.1.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "unimixins-compat",
+      "declared_version": "0.3.1",
+      "name": "UniMixins: Compatibility",
+      "reported_jar": "+unimixins-all-1.7.10-0.3.1.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "mixingasm",
+      "declared_version": "0.3",
+      "name": "UniMixins: Mixingasm",
+      "reported_jar": "+unimixins-all-1.7.10-0.3.1.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "spongemixins",
+      "declared_version": "2.0.1",
+      "name": "UniMixins: SpongeMixins",
+      "reported_jar": "+unimixins-all-1.7.10-0.3.1.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "mixinbooterlegacy",
+      "declared_version": "1.2.1",
+      "name": "UniMixins: MixinBooterLegacy",
+      "reported_jar": "+unimixins-all-1.7.10-0.3.1.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "gtnhmixins",
+      "declared_version": "2.2.0",
+      "name": "UniMixins: GTNHMixins",
+      "reported_jar": "+unimixins-all-1.7.10-0.3.1.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "mixinextras",
+      "declared_version": "0.3.1",
+      "name": "UniMixins: MixinExtras",
+      "reported_jar": "+unimixins-all-1.7.10-0.3.1.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "appliedenergistics2",
+      "declared_version": "rv3-beta-1035-GTNH",
+      "name": "Applied Energistics 2",
+      "reported_jar": "appliedenergistics2-rv3-beta-1035-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "Thaumcraft",
+      "declared_version": "4.2.3.5",
+      "name": "Thaumcraft",
+      "reported_jar": "Thaumcraft-1.7.10-4.2.3.5.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "Waila",
+      "declared_version": "1.19.31",
+      "name": "Waila",
+      "reported_jar": "Waila-1.19.31.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "thaumicenergistics",
+      "declared_version": "1.7.58-GTNH",
+      "name": "Thaumic Energistics",
+      "reported_jar": "thaumicenergistics-1.7.58-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "ae2fc",
+      "declared_version": "1.5.104-gtnh",
+      "name": "AE2 Fluid Crafting",
+      "reported_jar": "ae2fc-1.5.104-gtnh.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "aether_legacy",
+      "declared_version": "v1.1.2.5",
+      "name": "The Aether",
+      "reported_jar": "aether-1.7.10-v1.1.2.5.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "IC2",
+      "declared_version": "2.2.828-experimental",
+      "name": "IndustrialCraft 2",
+      "reported_jar": "industrialcraft-2-2.2.828a-experimental.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "Forestry",
+      "declared_version": "4.11.36",
+      "name": "Forestry",
+      "reported_jar": "Forestry-4.11.36.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "Botania",
+      "declared_version": "r1.8-249",
+      "name": "Botania",
+      "reported_jar": "Botania+r1.8-249.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "AgriCraft",
+      "declared_version": "1.7.10-1.5.2-evernife-v1",
+      "name": "AgriCraft",
+      "reported_jar": "AgriCraft-1.5.2-evernife-v1.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "akashictome",
+      "declared_version": "1.2.7",
+      "name": "Akashic Tome",
+      "reported_jar": "akashictome-1.2.7.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "AnimationAPI",
+      "declared_version": "1.2.4",
+      "name": "AnimationAPI",
+      "reported_jar": "AnimationAPI-1.7.10-1.2.4.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "CoFHCore",
+      "declared_version": "1.7.10R3.1.4",
+      "name": "CoFH Core",
+      "reported_jar": "CoFHCore-[1.7.10]3.1.4-329.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "arsmagica2",
+      "declared_version": "1.6.7",
+      "name": "Ars Magica 2",
+      "reported_jar": "AM2.5-LTS-1.6.11-LE.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "BuildCraft|Core",
+      "declared_version": "7.1.63",
+      "name": "BuildCraft",
+      "reported_jar": "buildcraft-7.1.63.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "BuildCraft|Energy",
+      "declared_version": "7.1.63",
+      "name": "BC Energy",
+      "reported_jar": "buildcraft-7.1.63.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "Mantle",
+      "declared_version": "0.5.4",
+      "name": "Mantle",
+      "reported_jar": "Mantle-0.5.4.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "armourersWorkshop",
+      "declared_version": "1.7.10-0.48.5",
+      "name": "Armourer's Workshop",
+      "reported_jar": "Armourers-Workshop-1.7.10-0.48.5.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "AWWayofTime",
+      "declared_version": "1.9.12",
+      "name": "Blood Magic: Alchemical Wizardry",
+      "reported_jar": "BloodMagic-1.9.12.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "Avaritia",
+      "declared_version": "1.99",
+      "name": "Avaritia",
+      "reported_jar": "Avaritia-1.99.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "ThermalFoundation",
+      "declared_version": "1.7.10R1.2.6",
+      "name": "Thermal Foundation",
+      "reported_jar": "ThermalFoundation-[1.7.10]1.2.6-118.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "ImmersiveEngineering",
+      "declared_version": "0.7.9",
+      "name": "Immersive Engineering",
+      "reported_jar": "ImmersiveEngineering-1.7.10-0.7.9.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "MineFactoryReloaded",
+      "declared_version": "1.7.10R2.8.1",
+      "name": "MineFactory Reloaded",
+      "reported_jar": "MineFactoryReloaded-[1.7.10]2.8.1-174.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "ThermalExpansion",
+      "declared_version": "1.7.10R4.1.5",
+      "name": "Thermal Expansion",
+      "reported_jar": "ThermalExpansion-[1.7.10]4.1.5-248.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "TConstruct",
+      "declared_version": "1.14.102-GTNH",
+      "name": "Tinkers' Construct",
+      "reported_jar": "TConstruct-1.14.102-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "GalacticraftCore",
+      "declared_version": "4.0-Akashic",
+      "name": "Galacticraft Core",
+      "reported_jar": "Galacticraft-4.0-Akashic.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "GalacticraftMars",
+      "declared_version": "4.0-Akashic",
+      "name": "Galacticraft Planets",
+      "reported_jar": "Galacticraft-4.0-Akashic.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "IronChest",
+      "declared_version": "6.1.13",
+      "name": "Iron Chests",
+      "reported_jar": "IronChest-6.1.13.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "GalacticraftAmunRa",
+      "declared_version": "0.8.14",
+      "name": "Amun-Ra",
+      "reported_jar": "AmunRa-GC-0.8.14.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "archaicfix",
+      "declared_version": "0.8.0",
+      "name": "ArchaicFix",
+      "reported_jar": "archaicfix-0.8.0.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "hodgepodge",
+      "declared_version": "2.7.189",
+      "name": "Hodgepodge",
+      "reported_jar": "hodgepodge-2.7.189.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "angelica",
+      "declared_version": "2.2.8",
+      "name": "Angelica",
+      "reported_jar": "angelica-2.2.8.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "mcpatcherforge",
+      "declared_version": "1.0.0-alpha",
+      "name": "MCPatcherForge",
+      "reported_jar": "angelica-2.2.8.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "notfine",
+      "declared_version": "2.2.8",
+      "name": "NotFine",
+      "reported_jar": "angelica-2.2.8.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "AppleCore",
+      "declared_version": "3.3.11",
+      "name": "AppleCore",
+      "reported_jar": "AppleCore-3.3.11.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "arcane_engineering",
+      "declared_version": "0.2.7",
+      "name": "Arcane Engineering",
+      "reported_jar": "arcane_engineering-0.2.7.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "aspectrecipeindex",
+      "declared_version": "1.1.3",
+      "name": "Aspect Recipe Index",
+      "reported_jar": "aspectrecipeindex-1.1.3.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "atum",
+      "declared_version": "0.6",
+      "name": "Atum",
+      "reported_jar": "Atum-1.7.10-0.6.77.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "wanionlib",
+      "declared_version": "1.10.1",
+      "name": "WanionLib",
+      "reported_jar": "WanionLib-1.10.1.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "avaritiaddons",
+      "declared_version": "1.9.5-GTNH",
+      "name": "Avaritiaddons",
+      "reported_jar": "Avaritiaddons-1.9.5-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "bdlib",
+      "declared_version": "1.11.0-GTNH",
+      "name": "BD lib",
+      "reported_jar": "bdlib-1.11.0-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "beebetteratbees",
+      "declared_version": "0.4.7-GTNH",
+      "name": "BeeBetterAtBees",
+      "reported_jar": "beebetteratbees-0.4.7-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "FLabsBF",
+      "declared_version": "4.3",
+      "name": "Better Furnaces",
+      "reported_jar": "Better-Furnaces-Mod-1.7.10.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "betterquesting",
+      "declared_version": "3.8.79-GTNH",
+      "name": "BetterQuesting",
+      "reported_jar": "BetterQuesting-3.8.79-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "bq_standard",
+      "declared_version": "3.8.79-GTNH",
+      "name": "Standard Expansion",
+      "reported_jar": "BetterQuesting-3.8.79-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "questbook",
+      "declared_version": "3.8.79-GTNH",
+      "name": "BetterQuesting",
+      "reported_jar": "BetterQuesting-3.8.79-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "cb4bq",
+      "declared_version": "3.8.79-GTNH",
+      "name": "Command Blocks for Better Questing",
+      "reported_jar": "BetterQuesting-3.8.79-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "BiblioCraft",
+      "declared_version": "1.11.7",
+      "name": "BiblioCraft",
+      "reported_jar": "BiblioCraft[v1.11.7][MC1.7.10].jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "BigReactors",
+      "declared_version": "0.5.4A",
+      "name": "Big Reactors",
+      "reported_jar": "BigReactors-0.5.4A.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "BinnieCore",
+      "declared_version": "2.6.43",
+      "name": "Binnie Core",
+      "reported_jar": "binnie-mods-2.6.43.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "Botany",
+      "declared_version": "2.6.43",
+      "name": "Botany",
+      "reported_jar": "binnie-mods-2.6.43.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "ExtraBees",
+      "declared_version": "2.6.43",
+      "name": "Extra Bees",
+      "reported_jar": "binnie-mods-2.6.43.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "ExtraTrees",
+      "declared_version": "2.6.43",
+      "name": "Extra Trees",
+      "reported_jar": "binnie-mods-2.6.43.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "Genetics",
+      "declared_version": "2.6.43",
+      "name": "Genetics",
+      "reported_jar": "binnie-mods-2.6.43.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "ForgeMultipart",
+      "declared_version": "1.7.12",
+      "name": "Forge Multipart",
+      "reported_jar": "ForgeMultipart-1.7.12.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "ThaumicTinkerer",
+      "declared_version": "2.12.30",
+      "name": "Thaumic Tinkerer",
+      "reported_jar": "ThaumicTinkerer-2.12.30.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "ForbiddenMagic",
+      "declared_version": "0.9.17-GTNH",
+      "name": "Forbidden Magic",
+      "reported_jar": "Forbidden.Magic-0.9.17-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "BloodArsenal",
+      "declared_version": "1.5.12",
+      "name": "Blood Arsenal",
+      "reported_jar": "BloodArsenal-1.5.12.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "modularui2",
+      "declared_version": "2.3.85-1.7.10",
+      "name": "Modular UI 2",
+      "reported_jar": "modularui2-2.3.85-1.7.10.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "bogosorter",
+      "declared_version": "1.3.46-GTNH",
+      "name": "Inventory Bogo Sorter",
+      "reported_jar": "bogosorter-1.3.46-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "witchery",
+      "declared_version": "0.24.1",
+      "name": "Witchery",
+      "reported_jar": "witchery-1.7.10-0.24.1-evernife-V6.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "bugtorch",
+      "declared_version": "1.2.14-GTNH",
+      "name": "BugTorch",
+      "reported_jar": "bugtorch-1.2.14-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "BuildCraft|Builders",
+      "declared_version": "7.1.63",
+      "name": "BC Builders",
+      "reported_jar": "buildcraft-7.1.63.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "BuildCraft|Factory",
+      "declared_version": "7.1.63",
+      "name": "BC Factory",
+      "reported_jar": "buildcraft-7.1.63.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "BuildCraft|Robotics",
+      "declared_version": "7.1.63",
+      "name": "BC Robotics",
+      "reported_jar": "buildcraft-7.1.63.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "BuildCraft|Silicon",
+      "declared_version": "7.1.63",
+      "name": "BC Silicon",
+      "reported_jar": "buildcraft-7.1.63.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "BuildCraft|Transport",
+      "declared_version": "7.1.63",
+      "name": "BC Transport",
+      "reported_jar": "buildcraft-7.1.63.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "BuildCraft|Compat",
+      "declared_version": "7.1.22",
+      "name": "BuildCraft Compat",
+      "reported_jar": "buildcraft-compat-7.1.22.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "CarpentersBlocks",
+      "declared_version": "3.7.3-GTNH",
+      "name": "Carpenter's Blocks",
+      "reported_jar": "CarpentersBlocks-3.7.3-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "TwilightForest",
+      "declared_version": "2.7.39",
+      "name": "The Twilight Forest",
+      "reported_jar": "TwilightForest-2.7.39.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "chisel",
+      "declared_version": "2.17.32-GTNH",
+      "name": "Chisel",
+      "reported_jar": "chisel-2.17.32-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "chromatictooltips",
+      "declared_version": "1.0.35-GTNH",
+      "name": "ChromaticTooltips",
+      "reported_jar": "chromatictooltips-1.0.35-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "chromatictooltipscompat",
+      "declared_version": "1.0.36-GTNH",
+      "name": "ChromaticTooltipsCompat",
+      "reported_jar": "chromatictooltipscompat-1.0.36-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "cookingforblockheads",
+      "declared_version": "1.4.13-GTNH",
+      "name": "Cooking For Blockheads",
+      "reported_jar": "CookingForBlockheads-1.4.13-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "coretweaks",
+      "declared_version": "0.3.4.7-GTNH",
+      "name": "CoreTweaks",
+      "reported_jar": "coretweaks-0.3.4.7-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "CoroAI",
+      "declared_version": "v1.0",
+      "name": "CoroAI",
+      "reported_jar": "coroutil-1.7.10-1.1.6.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "BuildMod",
+      "declared_version": "v1.0",
+      "name": "Build Mod",
+      "reported_jar": "coroutil-1.7.10-1.1.6.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "CoroPets",
+      "declared_version": "v1.0",
+      "name": "CoroPets",
+      "reported_jar": "coroutil-1.7.10-1.1.6.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "ExtendedRenderer",
+      "declared_version": "v1.0",
+      "name": "Extended Renderer",
+      "reported_jar": "coroutil-1.7.10-1.1.6.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "ConfigMod",
+      "declared_version": "v1.0",
+      "name": "Extended Mod Config",
+      "reported_jar": "coroutil-1.7.10-1.1.6.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "MineTweaker3",
+      "declared_version": "3.4.8",
+      "name": "MineTweaker 3",
+      "reported_jar": "CraftTweaker-3.4.8.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "customnpcs",
+      "declared_version": "1.10.2",
+      "name": "CustomNPC+",
+      "reported_jar": "CustomNPC-Plus-1.10.2.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "dimdoors",
+      "declared_version": "2.2.6",
+      "name": "Dimensional Doors",
+      "reported_jar": "DimensionalDoors-2.2.6-1.7.10.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "DraconicEvolution",
+      "declared_version": "1.5.33-GTNH",
+      "name": "Draconic Evolution",
+      "reported_jar": "Draconic-Evolution-1.5.33-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "DummyCore",
+      "declared_version": "1.21.0",
+      "name": "DummyCore",
+      "reported_jar": "DummyCore-1.21.0.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "dsurround",
+      "declared_version": "1.0.6.4",
+      "name": "Dynamic Surroundings",
+      "reported_jar": "DynamicSurroundings-1.7.10-1.0.6.4.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "wizardry",
+      "declared_version": "1.1.6",
+      "name": "Electroblob's Wizardry",
+      "reported_jar": "Electroblob's Wizardry - 1.1.6 - MC 1.7.10.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "Eln",
+      "declared_version": "1.24.6",
+      "name": "Electrical Age - jrddunbr's build",
+      "reported_jar": "Eln-1.24.6.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "endercore",
+      "declared_version": "0.5.14",
+      "name": "EnderCore",
+      "reported_jar": "endercore-0.5.14.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "EnderIO",
+      "declared_version": "2.10.39",
+      "name": "Ender IO",
+      "reported_jar": "EnderIO-2.10.39.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "EnderStorage",
+      "declared_version": "1.8.7",
+      "name": "EnderStorage",
+      "reported_jar": "EnderStorage-1.8.7.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "entityculling",
+      "declared_version": "@VER@",
+      "name": "EntityCulling",
+      "reported_jar": "entityculling-1.6.4-mc1.7.10.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "eternalsingularity",
+      "declared_version": "1.4.3",
+      "name": "Eternal Singularity",
+      "reported_jar": "eternalsingularity-1.4.3.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "etfuturum",
+      "declared_version": "2.6.54-GTNH",
+      "name": "Et Futurum Requiem",
+      "reported_jar": "etfuturum-2.6.54-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "ExtraPlanets",
+      "declared_version": "1.7.10-2.1.4",
+      "name": "Extra Planets",
+      "reported_jar": "ExtraPlanets-1.7.10-2.1.4.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "FloodLights",
+      "declared_version": "1.5.6",
+      "name": "Flood Lights",
+      "reported_jar": "FloodLights-1.5.6.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "ForgottenRelics",
+      "declared_version": "1.7.3",
+      "name": "Forgotten Relics",
+      "reported_jar": "ForgottenRelics-1.7.3-[Final].jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "FpsReducer",
+      "declared_version": "mc1.7.10-1.10.3",
+      "name": "FPS Reducer",
+      "reported_jar": "FpsReducer-mc1.7.10-1.10.3.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "gadomancy",
+      "declared_version": "1.5.14",
+      "name": "Gadomancy",
+      "reported_jar": "gadomancy-1.5.14.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "GardenContainers",
+      "declared_version": "1.7.10-1.7.0",
+      "name": "Garden Containers",
+      "reported_jar": "GardenStuff-1.7.10-1.7.0.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "GardenCore",
+      "declared_version": "1.7.10-1.7.0",
+      "name": "Garden Core",
+      "reported_jar": "GardenStuff-1.7.10-1.7.0.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "GardenStuff",
+      "declared_version": "1.7.10-1.7.0",
+      "name": "Garden Stuff",
+      "reported_jar": "GardenStuff-1.7.10-1.7.0.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "GardenTrees",
+      "declared_version": "1.7.10-1.7.0",
+      "name": "Garden Trees",
+      "reported_jar": "GardenStuff-1.7.10-1.7.0.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "geckolib3",
+      "declared_version": "3.0.40",
+      "name": "GeckoLib",
+      "reported_jar": "geckolib-unofficial-1.7.10-1.0.4.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "MagicBees",
+      "declared_version": "2.10.12-GTNH",
+      "name": "Magic Bees",
+      "reported_jar": "magicbees-2.10.12-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "gendustry",
+      "declared_version": "1.9.12-GTNH",
+      "name": "Gendustry",
+      "reported_jar": "gendustry-1.9.12-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "industrialupgrade",
+      "declared_version": "2.5.21",
+      "name": "Industrial Upgrade",
+      "reported_jar": "IndustrialUpgrade-2.5.21.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "InfernalMobs",
+      "declared_version": "1.10.6-GTNH",
+      "name": "Infernal Mobs",
+      "reported_jar": "InfernalMobs-1.10.6-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "inventorytweaks",
+      "declared_version": "1.59-SI-release-0421137-dirty",
+      "name": "Inventory Tweaks",
+      "reported_jar": "InventoryTweaks-1.59-unofficial-asie-1.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "irondome",
+      "declared_version": "1.2.1",
+      "name": "IronDome",
+      "reported_jar": "IronDome-[1.7.10]-1.2.1.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "journeymap",
+      "declared_version": "1.7.10-6.0.2",
+      "name": "JourneyMap",
+      "reported_jar": "journeymap-forge-1.7.10-6.0.2.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "creativecore",
+      "declared_version": "1.6.42",
+      "name": "CreativeCore",
+      "reported_jar": "littletiles-1.6.42.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "littletiles",
+      "declared_version": "1.6.42",
+      "name": "LittleTiles",
+      "reported_jar": "littletiles-1.6.42.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "LunatriusCore",
+      "declared_version": "1.2.1-GTNH",
+      "name": "LunatriusCore",
+      "reported_jar": "LunatriusCore-1.2.1-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "Mekanism",
+      "declared_version": "9.10.48",
+      "name": "Mekanism",
+      "reported_jar": "Mekanism-1.7.10-9.10.48-Core.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "magicalcrops",
+      "declared_version": "4.0.0_PUBLIC_BETA_4b",
+      "name": "Magical Crops: Core",
+      "reported_jar": "magicalcrops-4.0.0_PUBLIC_BETA_5.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "malisiscore",
+      "declared_version": "1.19.11-GTNH",
+      "name": "Malisis Core",
+      "reported_jar": "malisisdoors-1.19.11-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "malisisdoors",
+      "declared_version": "1.19.11-GTNH",
+      "name": "Malisis' Doors",
+      "reported_jar": "malisisdoors-1.19.11-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "mo",
+      "declared_version": "@VERSION@",
+      "name": "MatterOverdrive: Community Edition",
+      "reported_jar": "MatterOverdrive.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "MekanismGenerators",
+      "declared_version": "9.10.48",
+      "name": "Mekanism Generators",
+      "reported_jar": "Mekanism-1.7.10-9.10.48-Generators.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "MekanismTools",
+      "declared_version": "9.10.48",
+      "name": "Mekanism Tools",
+      "reported_jar": "Mekanism-1.7.10-9.10.48-Tools.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "MineFactoryReloaded|CompatAppliedEnergistics",
+      "declared_version": "1.7.10R2.8.1",
+      "name": "MFR Compat: Applied Energistics",
+      "reported_jar": "MineFactoryReloaded-[1.7.10]2.8.1-174.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "MineFactoryReloaded|CompatBuildCraft",
+      "declared_version": "1.7.10R2.8.1",
+      "name": "MFR Compat: BuildCraft",
+      "reported_jar": "MineFactoryReloaded-[1.7.10]2.8.1-174.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "MineFactoryReloaded|CompatForestry",
+      "declared_version": "1.7.10R2.8.1",
+      "name": "MFR Compat: Forestry",
+      "reported_jar": "MineFactoryReloaded-[1.7.10]2.8.1-174.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "MineFactoryReloaded|CompatForgeMicroblock",
+      "declared_version": "1.7.10R2.8.1",
+      "name": "MFR Compat: ForgeMicroblock",
+      "reported_jar": "MineFactoryReloaded-[1.7.10]2.8.1-174.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "MineFactoryReloaded|CompatIC2",
+      "declared_version": "1.7.10R2.8.1",
+      "name": "MFR Compat: IC2",
+      "reported_jar": "MineFactoryReloaded-[1.7.10]2.8.1-174.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "MineFactoryReloaded|CompatThaumcraft",
+      "declared_version": "1.7.10R2.8.1",
+      "name": "MFR Compat: Thaumcraft",
+      "reported_jar": "MineFactoryReloaded-[1.7.10]2.8.1-174.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "MineFactoryReloaded|CompatThermalExpansion",
+      "declared_version": "1.7.10R2.8.1",
+      "name": "MFR Compat: Thermal Expansion",
+      "reported_jar": "MineFactoryReloaded-[1.7.10]2.8.1-174.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "MineFactoryReloaded|CompatTConstruct",
+      "declared_version": "1.7.10R2.8.1",
+      "name": "MFR Compat: Tinkers' Construct",
+      "reported_jar": "MineFactoryReloaded-[1.7.10]2.8.1-174.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "MineFactoryReloaded|CompatTwilightForest",
+      "declared_version": "1.7.10R2.8.1",
+      "name": "MFR Compat: TwilightForest",
+      "reported_jar": "MineFactoryReloaded-[1.7.10]2.8.1-174.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "MineFactoryReloaded|CompatVanilla",
+      "declared_version": "1.7.10R2.8.1",
+      "name": "MFR Compat: Vanilla",
+      "reported_jar": "MineFactoryReloaded-[1.7.10]2.8.1-174.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "invbutton",
+      "declared_version": "0.3",
+      "name": "invbutton",
+      "reported_jar": "mInvButton - Mod Client.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "mobsinfo",
+      "declared_version": "0.5.20-GTNH",
+      "name": "MobsInfo",
+      "reported_jar": "mobsinfo-0.5.20-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "modtweaker2",
+      "declared_version": "0.14.0",
+      "name": "Mod Tweaker 2",
+      "reported_jar": "ModTweaker2-0.14.0.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "Morpheus",
+      "declared_version": "1.7.10-1.6.21",
+      "name": "Morpheus",
+      "reported_jar": "Morpheus-1.7.10-1.6.21.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "MrTJPCoreMod",
+      "declared_version": "1.3.7",
+      "name": "MrTJPCore",
+      "reported_jar": "MrTJPCore-1.3.7.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "MTRM",
+      "declared_version": "1.0",
+      "name": "MineTweakerRecipeMaker",
+      "reported_jar": "mtrm-1.7.10-1.1.1.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "naturescompass",
+      "declared_version": "1.5.2-GTNH",
+      "name": "Nature's Compass",
+      "reported_jar": "naturescompass-1.5.2-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "necrotempus",
+      "declared_version": "2.0.0",
+      "name": "NecroTempus",
+      "reported_jar": "necrotempus-2.0.0.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "NEIAddons",
+      "declared_version": "1.18.4",
+      "name": "NEI Addons",
+      "reported_jar": "NEIAddons-1.18.4.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "NEIAddons|AppEng",
+      "declared_version": "1.18.4",
+      "name": "NEI Addons: Applied Energistics 2",
+      "reported_jar": "NEIAddons-1.18.4.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "NEIAddons|Botany",
+      "declared_version": "1.18.4",
+      "name": "NEI Addons: Botany",
+      "reported_jar": "NEIAddons-1.18.4.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "NEIAddons|CraftingTables",
+      "declared_version": "1.18.4",
+      "name": "NEI Addons: Crafting Tables",
+      "reported_jar": "NEIAddons-1.18.4.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "NEIAddons|Developer",
+      "declared_version": "1.18.4",
+      "name": "NEI Addons: Developer Tools",
+      "reported_jar": "NEIAddons-1.18.4.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "NEIAddons|ExNihilo",
+      "declared_version": "1.18.4",
+      "name": "NEI Addons: Ex Nihilo",
+      "reported_jar": "NEIAddons-1.18.4.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "NEIAddons|Forestry",
+      "declared_version": "1.18.4",
+      "name": "NEI Addons: Forestry",
+      "reported_jar": "NEIAddons-1.18.4.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "neiintegration",
+      "declared_version": "1.5.3",
+      "name": "NEIIntegration",
+      "reported_jar": "NEIIntegration-1.5.3.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "netherlicious",
+      "declared_version": "3.2.8",
+      "name": "º6Netherlicious",
+      "reported_jar": "netherlicious-3.2.8.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "NettyPatch",
+      "declared_version": "0.2",
+      "name": "NettyPatch",
+      "reported_jar": "NettyPatcher-0.2.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "neenergistics",
+      "declared_version": "1.7.39",
+      "name": "NotEnoughEnergistics",
+      "reported_jar": "NotEnoughEnergistics-1.7.39.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "npcaw",
+      "declared_version": "1.2",
+      "name": "CustomNPC-Plus-AW-Addon",
+      "reported_jar": "npcaw-1.2.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "npcgecko",
+      "declared_version": "1.3",
+      "name": "CustomNPC-Plus-Gecko-Addon",
+      "reported_jar": "npcgecko-1.3.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "omniconfig",
+      "declared_version": "1.0.1",
+      "name": "Omniconfig",
+      "reported_jar": "omniconfig-1.0.1-mc1.7.10.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "OpenMods",
+      "declared_version": "0.10.14",
+      "name": "OpenMods",
+      "reported_jar": "OpenModsLibs-0.10.14.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "OpenBlocks",
+      "declared_version": "1.12.20-GTNH",
+      "name": "OpenBlocks",
+      "reported_jar": "OpenBlocks-1.12.20-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "Opis",
+      "declared_version": "1.4.12-mapless",
+      "name": "Opis",
+      "reported_jar": "Opis-1.4.12-mapless.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "harvestcraft",
+      "declared_version": "1.7.10j",
+      "name": "Pam's HarvestCraft",
+      "reported_jar": "Pam's HarvestCraft 1.7.10Lb.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "praesidium-evolutionis",
+      "declared_version": "0.1.0-1-gb5ad5f0",
+      "name": "Praesidium Evolutionis",
+      "reported_jar": "praesidium-evolutionis-0.1.0-1-gb5ad5f0.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "runicdungeons",
+      "declared_version": "1.1.7b",
+      "name": "Runic Dungeons",
+      "reported_jar": "RunicDungeons-1.1.7b.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "tc4tweak",
+      "declared_version": "1.5.39",
+      "name": "TC4 Tweak",
+      "reported_jar": "Thaumcraft4Tweaks-1.5.39.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "salisarcana",
+      "declared_version": "1.1.67-GTNH",
+      "name": "Salis Arcana",
+      "reported_jar": "salisarcana-1.1.67-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "sampler",
+      "declared_version": "1.60.1",
+      "name": "Sampling Performance Profiler",
+      "reported_jar": "sampler-1.60.1.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "supernova",
+      "declared_version": "0.1.1",
+      "name": "Supernova",
+      "reported_jar": "supernova-0.1.1.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "SuperTic",
+      "declared_version": "1.5.6",
+      "name": "SuperTic",
+      "reported_jar": "SuperTic-1.5.6.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "TaintedMagic",
+      "declared_version": "r7.6",
+      "name": "Tainted Magic",
+      "reported_jar": "Tainted-Magic-7.7.8-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "tcnodetracker",
+      "declared_version": "1.4.6",
+      "name": "TC Node Tracker",
+      "reported_jar": "tcnodetracker-1.4.6.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "ThaumcraftMobAspects",
+      "declared_version": "1.2.1-GTNH",
+      "name": "Thaumcraft Mob Aspects",
+      "reported_jar": "ThaumcraftMobAspects-1.2.1-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "thaumcraftneiplugin",
+      "declared_version": "@VERSION@",
+      "name": "Thaumcraft NEI Plugin",
+      "reported_jar": "thaumcraftneiplugin-1.7.10-1.7a.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "thaumicbases",
+      "declared_version": "1.9.19",
+      "name": "Thaumic Bases",
+      "reported_jar": "Thaumic-Based-1.9.19.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "ThaumicExploration",
+      "declared_version": "1.5.27-GTNH",
+      "name": "Thaumic Exploration",
+      "reported_jar": "Thaumic-Exploration-1.5.27-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "thaumicboots",
+      "declared_version": "1.5.12",
+      "name": "Thaumic Boots",
+      "reported_jar": "thaumicboots-1.5.12.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "ThaumicHorizons",
+      "declared_version": "1.8.22",
+      "name": "ThaumicHorizons",
+      "reported_jar": "ThaumicHorizons-1.8.22.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "thaumicinsurgence",
+      "declared_version": "0.4.1",
+      "name": "Thaumic Insurgence",
+      "reported_jar": "thaumicinsurgence-0.4.1.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "thaumrev",
+      "declared_version": "1.2.3",
+      "name": "Thaumic Revelations",
+      "reported_jar": "ThaumicRevelations-1.2.3.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "kitchen",
+      "declared_version": "1.3.23",
+      "name": "The Kitchen Mod",
+      "reported_jar": "TheKitchenMod-1.3.23-1.7.2-10.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "TiCTooltips",
+      "declared_version": "1.4.1",
+      "name": "TiC Tooltips",
+      "reported_jar": "TiCTooltips-1.4.1.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "teresetfix",
+      "declared_version": "1.0.1-noreq",
+      "name": "TileEntity Reset Fix",
+      "reported_jar": "TileEntityResetFix-1.0.1-noreq.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "tuborapido",
+      "declared_version": "1.4-canais",
+      "name": "Tubo Universal",
+      "reported_jar": "Transfer Zenyn 2.0.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "ForgeMicroblock",
+      "declared_version": "1.7.12",
+      "name": "Forge Microblocks",
+      "reported_jar": "ForgeMultipart-1.7.12.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "utilitiesinexcess",
+      "declared_version": "1.0.0-alpha02",
+      "name": "UtilitiesInExcess",
+      "reported_jar": "utilitiesinexcess-1.0.0-alpha02.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "WailaHarvestability",
+      "declared_version": "1.3.6-GTNH",
+      "name": "Waila Harvestability",
+      "reported_jar": "WailaHarvestability-1.3.6-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "wailaplugins",
+      "declared_version": "0.7.2",
+      "name": "WAILA Plugins",
+      "reported_jar": "WAILAPlugins-0.7.2.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "WarpTheory",
+      "declared_version": "1.5.7-GTNH",
+      "name": "WarpTheory",
+      "reported_jar": "WarpTheory-1.5.7-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "wawla",
+      "declared_version": "1.3.3-GTNH",
+      "name": "What Are We Looking At",
+      "reported_jar": "Wawla-1.3.3-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "WitchingGadgets",
+      "declared_version": "1.8.49-GTNH",
+      "name": "Witching Gadgets",
+      "reported_jar": "WitchingGadgets-1.8.49-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "YAMCore",
+      "declared_version": "0.7.5",
+      "name": "YAMCore",
+      "reported_jar": "YAMCore-0.7.5.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "Baubles|Expanded",
+      "declared_version": "2.2.22-GTNH",
+      "name": "Baubles Expanded",
+      "reported_jar": "BaublesExpanded-2.2.22-GTNH.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "McMultipart",
+      "declared_version": "1.7.12",
+      "name": "Minecraft Multipart Plugin",
+      "reported_jar": "ForgeMultipart-1.7.12.jar",
+      "sha256": null
+    },
+    {
+      "state": "UCHIJA",
+      "mod_id": "IguanaTweaksTConstruct",
+      "declared_version": "2.6.5",
+      "name": "Iguana Tinker Tweaks",
+      "reported_jar": "IguanaTweaksTConstruct-2.6.5.jar",
+      "sha256": null
+    },
+    {
+      "state": "UD",
+      "mod_id": "easycoloredlights",
+      "declared_version": "1.0.0",
+      "name": "Easy Colored Lights (Supernova Compat Stub)",
+      "reported_jar": "minecraft.jar",
+      "sha256": null
+    },
+    {
+      "state": "UD",
+      "mod_id": "MineFactoryReloaded|CompatAtum",
+      "declared_version": "1.7.10R2.8.1",
+      "name": "MFR Compat: Atum",
+      "reported_jar": "MineFactoryReloaded-[1.7.10]2.8.1-174.jar",
+      "sha256": null
+    },
+    {
+      "state": "UD",
+      "mod_id": "MineFactoryReloaded|CompatBackTools",
+      "declared_version": "1.7.10R2.8.1",
+      "name": "MFR Compat: BackTools",
+      "reported_jar": "MineFactoryReloaded-[1.7.10]2.8.1-174.jar",
+      "sha256": null
+    },
+    {
+      "state": "UD",
+      "mod_id": "MineFactoryReloaded|CompatChococraft",
+      "declared_version": "1.7.10R2.8.1",
+      "name": "MFR Compat: Chococraft",
+      "reported_jar": "MineFactoryReloaded-[1.7.10]2.8.1-174.jar",
+      "sha256": null
+    },
+    {
+      "state": "UD",
+      "mod_id": "MineFactoryReloaded|CompatExtraBiomes",
+      "declared_version": "1.7.10R2.8.1",
+      "name": "MFR Compat: ExtraBiomes",
+      "reported_jar": "MineFactoryReloaded-[1.7.10]2.8.1-174.jar",
+      "sha256": null
+    },
+    {
+      "state": "UD",
+      "mod_id": "MineFactoryReloaded|CompatProjRed",
+      "declared_version": "1.7.10R2.8.1",
+      "name": "MFR Compat ProjectRed",
+      "reported_jar": "MineFactoryReloaded-[1.7.10]2.8.1-174.jar",
+      "sha256": null
+    },
+    {
+      "state": "UD",
+      "mod_id": "MineFactoryReloaded|CompatRailcraft",
+      "declared_version": "1.7.10R2.8.1",
+      "name": "MFR Compat: Railcraft",
+      "reported_jar": "MineFactoryReloaded-[1.7.10]2.8.1-174.jar",
+      "sha256": null
+    },
+    {
+      "state": "UD",
+      "mod_id": "MineFactoryReloaded|CompatSufficientBiomes",
+      "declared_version": "1.7.10R2.8.1",
+      "name": "MFR Compat: Sufficient Biomes",
+      "reported_jar": "MineFactoryReloaded-[1.7.10]2.8.1-174.jar",
+      "sha256": null
+    }
+  ],
+  "physical_client_os": "Windows 8.1 amd64",
+  "server_target_user_reported": "Crucible Minecraft 1.7.10 / Java 21; exact server JAR unverified",
+  "source_file": "crash-2026-09-05_00.32.34-client.txt",
+  "source_kind": "client crash report; declared runtime metadata, not inspected JAR bytes",
+  "zip_inventory_status": "forbidden-series.zip located; materialization failed with HTTP 502 twice; no JAR hashes verified"
+}

@@ -1,0 +1,10 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "plugin": "com.seibel.distanthorizons.forge17.DistantHorizonsMixinConfigPlugin",
+  "package": "com.seibel.distanthorizons.forge17.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [],
+  "server": [],
+  "client": []
+}

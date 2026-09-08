@@ -1,0 +1,46 @@
+{
+  "project": "Akashic: Horizons of The Mirai",
+  "version": "0.1.7-dev",
+  "release_status": "development; runtime certification pending",
+  "minecraft": "1.7.10",
+  "graphics_backend": "LWJGL2",
+  "upstream_repository": "https://gitlab.com/distant-horizons-team/distant-horizons.git",
+  "upstream_branch": "merge-1.7.10",
+  "upstream_commit": "b4abe2f26bd1da4ce86ba5323711b2b50de84930",
+  "upstream_core_repository": "https://gitlab.com/jeseibel/distant-horizons-core.git",
+  "upstream_core_commit": "791070ae3647c1791b057f6269431434369da128",
+  "upstream_version": "3.2.1-b-dev",
+  "api_version": "7.1.0",
+  "preserved_mod_id": "distanthorizons",
+  "preserved_config_file": "DistantHorizons.toml",
+  "upstream_self_update": false,
+  "license": "LGPL-3.0",
+  "notes": "Source changes and original notices accompany every distribution. Never install beside another Distant Horizons jar. A compiled jar alone does not certify Crucible or client compatibility.",
+  "previous_release": {
+    "version": "0.1.6-dev",
+    "root_commit": "9213d55af6dac6261c8f1c2bdca37b62db036acb",
+    "core_commit": "32e666200e8f595e9f796ec8935fc1bb6770d959",
+    "jar_sha256": "c1d29f3f87ca952b4d57da14ff90f6e700cf49b3d8357037ac8a94988712c409",
+    "source_zip_sha256": "0b5ae0de6cc80a04bb4ac0a0cdc6ea74e5e3e1f6cf8f965dd52a2c22f675a31c"
+  },
+  "source_recovery": {
+    "date": "2026-09-08",
+    "verified_files": 1344,
+    "restoration_commit": "2bd57eabbacba72fe7277cdcc11fbc77ba95caab",
+    "history": "Flattened local Git restored from verified 0.1.6 archive, including modified core; original commit history is not reconstructed."
+  },
+  "historical_release_0_1_0": {
+    "version": "0.1.0-dev",
+    "root_commit": "20a5a46ece453a85fd96e1054ea384b2f30ece49",
+    "core_commit": "07f970c72705262bef09b7954985e723d21a4831",
+    "jar_sha256": "43f6f070afa680be477f3b3fba224c00d4b88e3e62d0ecf4c8ed34dde82167ed",
+    "source_zip_sha256": "7115c1aeed0d4f74e00bef9ff47fe9e9ad82c079b16884b64fb68d66fb2d77c0"
+  },
+  "historical_release_0_1_1": {
+    "version": "0.1.1-dev",
+    "root_commit": "42f53255c40f4436bdaf909dbef5a3811a78c04f",
+    "core_commit": "8a8bc319e1592117d3e632ef633f753f887969ae",
+    "jar_sha256": "a4f9a2129cf23033a7bd80e69b832063792c3f46a6d7598b864c7f92dd0c4205",
+    "source_zip_sha256": "ff21ed8f0402efca82266cb5f97d8c6b63497ccecda9d17e474b1a67a8a4b923"
+  }
+}

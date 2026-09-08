@@ -1,0 +1,103 @@
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.*;
+import java.util.concurrent.locks.*;
+import java.util.function.*;
+public class S05CallersProbe {
+ @interface NotNull{} @interface Nullable{}
+ static int assertions;
+ static void yes(boolean b,String why){assertions++;if(!b)throw new AssertionError(why);}
+ static void eq(int e,int a,String why){yes(e==a,why+" expected="+e+" actual="+a);}
+ static class Log { void error(String s,Throwable t){} void warn(String s){} }
+ static final Log LOGGER=new Log();
+ static class FullDataSourceV2 implements AutoCloseable { long pos; int closes,merges;boolean applyToParent,applyToChildren; FullDataSourceV2(long p){pos=p;}long getPos(){return pos;} void updateFromDataSource(FullDataSourceV2 c){merges++;} public void close(){closes++;} }
+ static class LongArrayList extends ArrayList<Long> {LongArrayList(Collection<Long> values){super(values);}}
+ static class DhBlockPos {int getX(){return 0;}int getZ(){return 0;}}
+ static class PriorityTaskPicker {static class Executor {boolean reject;int getQueueSize(){return 0;}void execute(Runnable task){if(reject)throw new RejectedExecutionException();task.run();}}}
+ static class Repo {LongArrayList getPositionsToUpdate(int x,int z,int n){return new LongArrayList(up);}LongArrayList getChildPositionsToUpdate(int x,int z,int n){return new LongArrayList(down);} Set<Long> up=ConcurrentHashMap.newKeySet(),down=ConcurrentHashMap.newKeySet();List<String> operations=new CopyOnWriteArrayList<>(); void setApplyToParent(long p,boolean x){operations.add("clearUp"+p);if(!x)up.remove(p);}void setApplyToChild(long p,boolean x){operations.add("clearDown"+p);if(!x)down.remove(p);} }
+ static class Provider { Repo repo=new Repo();Set<Long> missing=new HashSet<>();List<FullDataSourceV2> issued=new ArrayList<>();CompletableFuture<Void> result=CompletableFuture.completedFuture(null); FullDataSourceV2 get(long p){if(missing.contains(p))return null;FullDataSourceV2 d=new FullDataSourceV2(p);issued.add(d);return d;} CompletableFuture<Void> updateDataSourceAsync(FullDataSourceV2 d){return result;} }
+ static class Locks { ConcurrentHashMap<Long,ReentrantLock> locks=new ConcurrentHashMap<>();ReentrantLock getLock(long p){return locks.computeIfAbsent(p,k->new ReentrantLock());} }
+ static class Updater { Locks updateLockProvider=new Locks();Set<Long> lockedPosSet=new HashSet<>();List<Long> writes=new ArrayList<>();long fail=-1; Consumer<FullDataSourceV2> beforeWrite=d->{};void updateDataSource(FullDataSourceV2 d){beforeWrite.accept(d);if(d.pos==fail)throw new IllegalStateException("write rejected");writes.add(d.pos);} }
+ static class DhSectionPos { static final byte SECTION_BLOCK_DETAIL_LEVEL=6;static long getParentPos(long p){return 100;}static long getChildByIndex(long p,int i){return i+1;}static byte getDetailLevel(long p){return (byte)(p==100?7:6);}static String toString(long p){return Long.toString(p);} static int getChebyshevSignedBlockDistance(long p,DhBlockPos2D x){return 0;} }
+ static class FullDataSourceProviderV2 { static final byte ROOT_SECTION_DETAIL_LEVEL=30; }
+ static class Propagator { static int getMaxPropagateTaskCount(){return 40;}
+  Provider provider=new Provider();Updater dataUpdater=new Updater();AtomicBoolean isShutdownRef=new AtomicBoolean();Set<Long> updatingPosSet=new HashSet<>();
+  Propagator(){provider.repo.up.addAll(Arrays.asList(1L,2L,3L,4L));provider.repo.down.add(100L);updatingPosSet.add(100L);}
+  // PROPAGATOR_METHODS
+ }
+ static class ExceptionUtil { static boolean isInterruptOrReject(Throwable t){while(t instanceof CompletionException)t=t.getCause();return t instanceof CancellationException || t instanceof RejectedExecutionException;} }
+ static class Remote {
+  Set<Long> visitedPositions=new HashSet<>(); CompletableFuture<Void> write=new CompletableFuture<>();boolean syncThrow;
+  CompletableFuture<Void> updateDataSourceAsync(FullDataSourceV2 d){if(syncThrow)throw new IllegalStateException("sync reject");return write;}
+  // REMOTE_METHODS
+ }
+ enum ERetrievalResultState { SUCCESS, REQUIRES_SPLITTING, OTHER }
+ static class DataSourceRetrievalResult { ERetrievalResultState state=ERetrievalResultState.SUCCESS;FullDataSourceV2 dataSource;long pos;DataSourceRetrievalResult(FullDataSourceV2 d){dataSource=d;pos=d.pos;} }
+ static class LodUtil { static void assertTrue(boolean b,String s){if(!b)throw new AssertionError(s);} }
+ interface IOnWorldGenCompleteListener { void onWorldGenTaskComplete(long pos); }
+ static class Generated {
+  Updater dataUpdater=new Updater();List<IOnWorldGenCompleteListener> onWorldGenTaskCompleteListeners=new ArrayList<>();Map<Long,Object> queuedRetrievalFutureByPos=new HashMap<>();
+  // GENERATED_METHOD
+ }
+ static class Flag { boolean value=true;boolean get(){return value;} }
+ static class Config { static class Server { static final Flag enableRealTimeUpdates=new Flag(); } }
+ static class Buffer { int refs=1;void retain(){refs++;}void release(){refs--;if(refs<0)throw new AssertionError("double release");} }
+ static class FullDataPayload { static Buffer last;static boolean fail;Buffer dtoBuffer;FullDataPayload(FullDataSourceV2 d,Object beams){if(fail)throw new IllegalStateException("encode failed");dtoBuffer=new Buffer();last=dtoBuffer;} }
+ static class Beams { Object getAllBeamsForPos(long p){return null;} }
+ static class DhVec3d { double x,z; }
+ static class DhBlockPos2D { DhBlockPos2D(int x,int z){} }
+ static class Player { Object level;Object getLevel(){return level;}DhVec3d getPosition(){return new DhVec3d();} }
+ static class SessionConfig {boolean isRealTimeUpdatesEnabled(){return true;}int getMaxUpdateDistanceRadius(){return 128;} }
+ static class Session {void sendMessage(Object o){} }
+ static class Sender {boolean fail,fatal;Buffer owned;void sendInChunks(FullDataPayload p,Runnable finalMessage){if(fatal)throw new AssertionError("fatal send");if(fail)throw new IllegalStateException("send failure");p.dtoBuffer.retain();owned=p.dtoBuffer;}void finish(){if(owned!=null){owned.release();owned=null;}} }
+ static class ServerPlayerState {Player player=new Player();SessionConfig sessionConfig=new SessionConfig();Sender fullDataPayloadSender=new Sender();Session networkSession=new Session();Player getServerPlayer(){return player;} }
+ static class Manager {List<ServerPlayerState> players=new ArrayList<>();List<ServerPlayerState> getReadyPlayers(){return players;} }
+ static class FullDataPartialUpdateMessage {FullDataPartialUpdateMessage(Object l,FullDataPayload p){} }
+ static class ServerBase {public CompletableFuture<Void> updateDataSourcesAsync(FullDataSourceV2 d){return null;} }
+ static class Server extends ServerBase {Provider provider=new Provider();Beams beaconBeamRepo=new Beams();Object serverLevelWrapper=new Object();Manager serverPlayerStateManager=new Manager();Provider getFullDataProvider(){return provider;}
+  // SERVER_METHODS
+ }
+ static Set<Long> children(){return new HashSet<>(Arrays.asList(1L,2L,3L,4L));}
+ static void unlocked(Propagator p){yes(p.dataUpdater.updateLockProvider.locks.values().stream().noneMatch(ReentrantLock::isLocked),"all locks released");yes(p.updatingPosSet.isEmpty(),"queued marker released");for(FullDataSourceV2 d:p.provider.issued)eq(1,d.closes,"temporary source closed once");}
+ static void propagateTests() throws Exception {
+  Propagator rejected=new Propagator();rejected.updatingPosSet.clear();PriorityTaskPicker.Executor executor=new PriorityTaskPicker.Executor();executor.reject=true;
+  rejected.runParentUpdates(executor,new DhBlockPos());yes(rejected.updatingPosSet.isEmpty(),"rejected upward queue marker released");eq(4,rejected.provider.repo.up.size(),"rejected upward keeps flags");
+  rejected.runChildUpdates(executor,new DhBlockPos());yes(rejected.updatingPosSet.isEmpty(),"rejected downward queue marker released");yes(rejected.provider.repo.down.contains(100L),"rejected downward keeps flags");
+  Propagator p=new Propagator();p.propagateChildrenToParent(100,children());yes(p.provider.repo.up.isEmpty(),"parent ack clears represented children");eq(1,p.dataUpdater.writes.size(),"one parent write");unlocked(p);
+  p=new Propagator();p.dataUpdater.fail=100;p.propagateChildrenToParent(100,children());eq(4,p.provider.repo.up.size(),"parent failure keeps all flags");unlocked(p);
+  p=new Propagator();p.provider.missing.add(3L);p.propagateChildrenToParent(100,children());eq(0,p.dataUpdater.writes.size(),"missing child no partial parent ack");eq(4,p.provider.repo.up.size(),"missing child flags remain");unlocked(p);
+  final Propagator busy=new Propagator();CountDownLatch held=new CountDownLatch(1),release=new CountDownLatch(1);
+  Thread holder=new Thread(()->{ReentrantLock l=busy.dataUpdater.updateLockProvider.getLock(3);l.lock();try{held.countDown();release.await();}catch(InterruptedException e){throw new AssertionError(e);}finally{l.unlock();}});holder.start();yes(held.await(5,TimeUnit.SECONDS),"busy fixture ready");
+  busy.propagateChildrenToParent(100,children());eq(0,busy.dataUpdater.writes.size(),"busy child aborts without write");eq(4,busy.provider.repo.up.size(),"busy child preserves flags");yes(!busy.dataUpdater.updateLockProvider.getLock(1).isLocked(),"earlier acquired lock released on busy child");release.countDown();holder.join(5000);yes(!holder.isAlive(),"busy fixture exited");unlocked(busy);
+  final Propagator race=new Propagator();final Thread[] newer={null};CountDownLatch attempt=new CountDownLatch(1);
+  race.dataUpdater.beforeWrite=d->{
+   yes(race.dataUpdater.updateLockProvider.getLock(1).isHeldByCurrentThread(),"child lock held through parent commit");
+   newer[0]=new Thread(()->{attempt.countDown();ReentrantLock l=race.dataUpdater.updateLockProvider.getLock(1);l.lock();try{race.provider.repo.up.add(1L);}finally{l.unlock();}});newer[0].start();try{yes(attempt.await(5,TimeUnit.SECONDS),"new writer started");}catch(InterruptedException e){throw new AssertionError(e);}
+  };race.propagateChildrenToParent(100,children());newer[0].join(5000);yes(!newer[0].isAlive(),"new writer completed after unlock");yes(race.provider.repo.up.contains(1L),"newer child update not erased by old parent ack");unlocked(race);
+  p=new Propagator();p.propagateParentToChildren(100);eq(4,p.dataUpdater.writes.size(),"all four children committed");yes(p.provider.repo.down.isEmpty(),"four acks clear parent dirty flag");unlocked(p);
+  p=new Propagator();p.dataUpdater.fail=3;p.propagateParentToChildren(100);eq(2,p.dataUpdater.writes.size(),"partial child writes");yes(p.provider.repo.down.contains(100L),"partial failure keeps parent dirty");unlocked(p);
+  p=new Propagator();p.provider.missing.add(2L);p.propagateParentToChildren(100);yes(p.provider.repo.down.contains(100L),"missing child keeps parent dirty");unlocked(p);
+  p=new Propagator();p.isShutdownRef.set(true);p.propagateChildrenToParent(100,children());eq(0,p.dataUpdater.writes.size(),"shutdown no write");eq(4,p.provider.repo.up.size(),"shutdown no ack");unlocked(p);
+ }
+ static void remoteTests(){
+  Remote r=new Remote();FullDataSourceV2 d=new FullDataSourceV2(1);r.visitedPositions.add(1L);r.saveRemoteUpdate(d);eq(0,d.closes,"async ownership retained");r.write.completeExceptionally(new IllegalStateException("SQL failure"));eq(1,d.closes,"remote failed terminal closed");yes(!r.visitedPositions.contains(1L),"failed remote lookup can retry");
+  r=new Remote();d=new FullDataSourceV2(1);r.visitedPositions.add(1L);r.saveRemoteUpdate(d);r.write.complete(null);eq(1,d.closes,"remote success close");yes(r.visitedPositions.contains(1L),"success keeps sync dedup");
+  r=new Remote();d=new FullDataSourceV2(1);r.visitedPositions.add(1L);r.syncThrow=true;try{r.saveRemoteUpdate(d);throw new AssertionError("sync failure swallowed");}catch(IllegalStateException expected){}eq(1,d.closes,"synchronous failure closes ownership");yes(!r.visitedPositions.contains(1L),"sync failure clears visit");
+  r=new Remote();d=new FullDataSourceV2(1);r.saveRemoteUpdate(d);r.write.cancel(false);eq(1,d.closes,"cancel terminal closes");
+ }
+ static void generatedTests(){
+  Generated g=new Generated();FullDataSourceV2 d=new FullDataSourceV2(1);DataSourceRetrievalResult result=new DataSourceRetrievalResult(d);g.queuedRetrievalFutureByPos.put(1L,new Object());g.dataUpdater.fail=1;g.onWorldGenTaskComplete(1L,result,null);eq(1,d.closes,"failed generation write closes result");yes(g.queuedRetrievalFutureByPos.isEmpty(),"failed generation removes queued marker");
+  g=new Generated();d=new FullDataSourceV2(1);result=new DataSourceRetrievalResult(d);final int[] calls={0};g.onWorldGenTaskCompleteListeners.add(x->{throw new IllegalStateException("listener failed");});g.onWorldGenTaskCompleteListeners.add(x->calls[0]++);g.onWorldGenTaskComplete(1L,result,null);eq(1,d.closes,"listener failure still closes result");eq(1,calls[0],"other generation listener receives committed update");
+  g=new Generated();d=new FullDataSourceV2(1);g.onWorldGenTaskComplete(1L,new DataSourceRetrievalResult(d),new CancellationException());eq(1,d.closes,"retrieval error with result closes ownership");
+  g=new Generated();d=new FullDataSourceV2(1);g.onWorldGenTaskCompleteListeners.add(x->{throw new AssertionError("fatal listener");});try{g.onWorldGenTaskComplete(1L,new DataSourceRetrievalResult(d),null);throw new IllegalStateException("fatal listener swallowed");}catch(AssertionError expected){yes(expected.getMessage().equals("fatal listener"),"fatal generation observer propagates");}eq(1,d.closes,"fatal listener still closes result");
+ }
+ static void serverTests(){
+  Server s=new Server();FullDataSourceV2 d=new FullDataSourceV2(1);s.updateDataSourcesAsync(d).join();eq(0,FullDataPayload.last.refs,"zero-recipient creator released");
+  ServerPlayerState a=new ServerPlayerState();a.player.level=s.serverLevelWrapper;s.serverPlayerStateManager.players.add(a);s.updateDataSourcesAsync(d).join();eq(1,FullDataPayload.last.refs,"accepted sender owns exactly one retained view");a.fullDataPayloadSender.finish();eq(0,FullDataPayload.last.refs,"sender finish releases last view");
+  a.fullDataPayloadSender.fail=true;ServerPlayerState b=new ServerPlayerState();b.player.level=s.serverLevelWrapper;s.serverPlayerStateManager.players.add(b);s.updateDataSourcesAsync(d).join();yes(b.fullDataPayloadSender.owned!=null,"one failed recipient does not prevent another");eq(1,FullDataPayload.last.refs,"partial broadcast creator released");b.fullDataPayloadSender.finish();
+  FullDataPayload.fail=true;s.updateDataSourcesAsync(d).join();yes(true,"encoding failure does not falsify SQL acknowledgement");FullDataPayload.fail=false;
+  Server fatal=new Server();ServerPlayerState f=new ServerPlayerState();f.player.level=fatal.serverLevelWrapper;f.fullDataPayloadSender.fatal=true;fatal.serverPlayerStateManager.players.add(f);try{fatal.updateDataSourcesAsync(d).join();throw new AssertionError("fatal send swallowed");}catch(CompletionException expected){yes(expected.getCause() instanceof AssertionError,"fatal broadcast future remains exceptional");}eq(0,FullDataPayload.last.refs,"fatal broadcast releases creator");
+  Buffer before=FullDataPayload.last;s.provider.result=new CompletableFuture<>();s.provider.result.completeExceptionally(new IllegalStateException("SQL failed"));try{s.updateDataSourcesAsync(d).join();throw new AssertionError("failed SQL reported success");}catch(CompletionException expected){}yes(before==FullDataPayload.last,"SQL failure does not broadcast");
+ }
+ public static void main(String[] args)throws Exception{propagateTests();remoteTests();generatedTests();serverTests();System.out.println("S05 callers: PASS "+assertions+" assertions; source methods exact, dependencies controlled doubles");}
+}

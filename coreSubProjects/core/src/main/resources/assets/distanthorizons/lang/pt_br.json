@@ -1,0 +1,20 @@
+{
+  "distanthorizons.title": "Akashic: Horizons of The Mirai",
+  "distanthorizons.config.title": "Configurações do Akashic Mirai",
+  "distanthorizons.general.true": "Ativado",
+  "distanthorizons.general.false": "Desativado",
+  "distanthorizons.general.yes": "Sim",
+  "distanthorizons.general.no": "Não",
+  "distanthorizons.general.back": "Voltar",
+  "distanthorizons.general.next": "Próximo",
+  "distanthorizons.general.done": "Concluir",
+  "distanthorizons.general.cancel": "Cancelar",
+  "distanthorizons.general.reset": "Restaurar",
+  "distanthorizons.general.apiOverride": "CONTROLE DA API",
+  "distanthorizons.general.unsupportedMcVersion": "RESTRIÇÃO DA BUILD",
+  "distanthorizons.general.unsupportedMcVersion.@tooltip": "Esta opção está limitada pela compatibilidade desta build. O valor efetivo pode diferir do arquivo de configuração.",
+  "distanthorizons.config.client": "Cliente",
+  "distanthorizons.config.client.quickEnableRendering": "Renderizar terreno distante",
+  "distanthorizons.config.client.quickEnableRendering.@tooltip": "Exibe o terreno simplificado além da distância normal, usando os dados disponíveis.",
+  "distanthorizons.config.client.quickShowWorldGenProgress": "Mostrar progresso dos dados distantes"
+}
