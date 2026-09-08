@@ -39,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Java representation of one or more OpenGL buffers for rendering.
@@ -60,6 +61,7 @@ public class LodBufferContainer implements AutoCloseable
 	public final long pos;
 	
 	public boolean buffersUploaded = false;
+	private final AtomicBoolean closed = new AtomicBoolean();
 	
 	public IVertexBufferWrapper[] vboOpaqueWrappers;
 	public IVertexBufferWrapper[] vboTransparentWrappers;
@@ -117,20 +119,39 @@ public class LodBufferContainer implements AutoCloseable
 		bufferContainer.vboOpaqueWrappers = resizeWrapperArray(bufferContainer.vboOpaqueWrappers, opaqueBuffers.size());
 		bufferContainer.vboTransparentWrappers = resizeWrapperArray(bufferContainer.vboTransparentWrappers, transparentBuffers.size());
 		
-		PhantomArrayListCheckout opaqueIndexCheckout = ARRAY_LIST_POOL.checkoutByteBuffers(opaqueBuffers.size());
-		PhantomArrayListCheckout transparentIndexCheckout = ARRAY_LIST_POOL.checkoutByteBuffers(transparentBuffers.size());
-		future.thenRun(() -> 
+		final PhantomArrayListCheckout opaqueIndexCheckout;
+		try { opaqueIndexCheckout = ARRAY_LIST_POOL.checkoutByteBuffers(opaqueBuffers.size()); }
+		catch (RuntimeException | Error failure)
 		{
-			opaqueIndexCheckout.close();
-			transparentIndexCheckout.close();
-		});
+			bufferContainer.close();
+			throw failure;
+		}
+		final PhantomArrayListCheckout transparentIndexCheckout;
+		try { transparentIndexCheckout = ARRAY_LIST_POOL.checkoutByteBuffers(transparentBuffers.size()); }
+		catch (RuntimeException | Error failure)
+		{
+			try { opaqueIndexCheckout.close(); }
+			finally { bufferContainer.close(); }
+			throw failure;
+		}
 		
 		// create CPU index buffers if needed.
 		// Mac requires separate IBO objects for each VBO when using OpenGL,
 		// all other OS's can share a single IBO for quicker loading times
-		boolean useSingleIbo = RENDER_DEF.useSingleIbo();
-		@Nullable ArrayList<ByteBuffer> opaqueIndexBuffers = useSingleIbo ? null : bufferContainer.createIndexBuffers(opaqueIndexCheckout, opaqueBuffers);
-		@Nullable ArrayList<ByteBuffer> transparentIndexBuffers = useSingleIbo ? null : bufferContainer.createIndexBuffers(transparentIndexCheckout, transparentBuffers);
+		@Nullable final ArrayList<ByteBuffer> opaqueIndexBuffers;
+		@Nullable final ArrayList<ByteBuffer> transparentIndexBuffers;
+		try
+		{
+			boolean useSingleIbo = RENDER_DEF.useSingleIbo();
+			opaqueIndexBuffers = useSingleIbo ? null : bufferContainer.createIndexBuffers(opaqueIndexCheckout, opaqueBuffers);
+			transparentIndexBuffers = useSingleIbo ? null : bufferContainer.createIndexBuffers(transparentIndexCheckout, transparentBuffers);
+		}
+		catch (RuntimeException | Error failure)
+		{
+			try { closeIndexCheckouts(opaqueIndexCheckout, transparentIndexCheckout); }
+			finally { bufferContainer.close(); }
+			throw failure;
+		}
 		
 		//endregion
 		
@@ -142,7 +163,7 @@ public class LodBufferContainer implements AutoCloseable
 		//region	
 		
 		CompletableFuture<Void> createFuture = new CompletableFuture<Void>();
-		RenderThreadTaskHandler.INSTANCE.queueRunningOnRenderThread("LodBufferContainer Setup", () ->
+		queueUploadWork("LodBufferContainer Setup", createFuture, () ->
 		{
 			try
 			{
@@ -158,14 +179,13 @@ public class LodBufferContainer implements AutoCloseable
 				
 				createFuture.complete(null);
 			}
-			catch (Exception e)
+			catch (Exception | LinkageError e)
 			{
 				if (!ExceptionUtil.isShutdownException(e))
 				{
 					LOGGER.error("Unexpected issue creating buffers for pos: ["+DhSectionPos.toString(bufferContainer.pos)+"], error: ["+e.getMessage()+"].", e);
 				}
 
-				bufferContainer.close();
 				createFuture.completeExceptionally(e);
 			}
 		});
@@ -181,14 +201,17 @@ public class LodBufferContainer implements AutoCloseable
 		
 		createFuture.exceptionally((Throwable e) ->
 		{
-			// create VBOs failed //
-			if (!ExceptionUtil.isShutdownException(e))
+			try
 			{
-				LOGGER.error("Unexpected issue creating buffer [" + bufferContainer.minCornerBlockPos + "], error: [" + e.getMessage() + "].", e);
+				// No upload consumers were started on the failed-setup path.
+				if (!ExceptionUtil.isShutdownException(e))
+				{
+					LOGGER.error("Unexpected issue creating buffer [" + bufferContainer.minCornerBlockPos + "], error: [" + e.getMessage() + "].", e);
+				}
+				try { bufferContainer.close(); }
+				finally { future.completeExceptionally(e); }
 			}
-			
-			bufferContainer.close();
-			future.completeExceptionally(e);
+			finally { closeIndexCheckouts(opaqueIndexCheckout, transparentIndexCheckout); }
 			return null;
 		});
 		createFuture.thenRun(() ->
@@ -196,23 +219,31 @@ public class LodBufferContainer implements AutoCloseable
 			CompletableFuture<Void> opaqueFuture = uploadBuffersAsync(future, bufferContainer.vboOpaqueWrappers, opaqueBuffers, opaqueIndexBuffers);
 			CompletableFuture<Void> transparentFuture = uploadBuffersAsync(future, bufferContainer.vboTransparentWrappers, transparentBuffers, transparentIndexBuffers);
 			CompletableFuture<Void> uploadFuture = CompletableFuture.allOf(opaqueFuture, transparentFuture);
-			uploadFuture.exceptionally((Throwable e) ->
+			uploadFuture.whenComplete((unused, e) ->
 			{
-				// upload failed //
-				if (!ExceptionUtil.isShutdownException(e))
+				try
 				{
-					LOGGER.error("Unexpected issue uploading buffer [" + bufferContainer.minCornerBlockPos + "], error: [" + e.getMessage() + "].", e);
+					if (e != null)
+					{
+						if (!ExceptionUtil.isShutdownException(e))
+						{
+							LOGGER.error("Unexpected issue uploading buffer [" + bufferContainer.minCornerBlockPos + "], error: [" + e.getMessage() + "].", e);
+						}
+						try { bufferContainer.close(); }
+						finally { future.completeExceptionally(e); }
+					}
+					else
+					{
+						bufferContainer.buffersUploaded = true;
+						if (!future.complete(bufferContainer)) { bufferContainer.close(); }
+					}
 				}
-				
-				bufferContainer.close();
-				future.completeExceptionally(e);
-				return null;
-			});
-			uploadFuture.thenRun(() ->
-			{
-				// upload success //
-				bufferContainer.buffersUploaded = true;
-				future.complete(bufferContainer);
+				finally
+				{
+					// Observe the private all-consumers future, not the externally cancellable
+					// result. Cancelling that result must not return memory under queued uploads.
+					closeIndexCheckouts(opaqueIndexCheckout, transparentIndexCheckout);
+				}
 			});
 		});
 		
@@ -221,6 +252,16 @@ public class LodBufferContainer implements AutoCloseable
 		
 		
 		return future;
+	}
+	private static void closeIndexCheckouts(PhantomArrayListCheckout opaque, PhantomArrayListCheckout transparent)
+	{
+		try { opaque.close(); }
+		finally { transparent.close(); }
+	}
+	private static void queueUploadWork(String name, CompletableFuture<Void> completion, Runnable work)
+	{
+		try { RenderThreadTaskHandler.INSTANCE.queueRunningOnRenderThread(name, work); }
+		catch (RuntimeException | LinkageError failure) { completion.completeExceptionally(failure); }
 	}
 	
 	
@@ -285,78 +326,45 @@ public class LodBufferContainer implements AutoCloseable
 	/** Index buffers should be null if {@link AbstractDhRenderApiDefinition#useSingleIbo()} returns true. */
 	private static CompletableFuture<Void> uploadBuffersAsync(
 		CompletableFuture<LodBufferContainer> parentFuture,
-		IVertexBufferWrapper[] vboWrappers, 
+		IVertexBufferWrapper[] vboWrappers,
 		ArrayList<ByteBuffer> vertexBuffers, @Nullable ArrayList<ByteBuffer> indexBuffers
 		)
 	{
 		ArrayList<CompletableFuture<Void>> uploadFutureList = new ArrayList<>();
 		int vboIndex = 0;
-		for (int i = 0; i < vertexBuffers.size(); i++)
+		try
 		{
-			if (vboIndex >= vboWrappers.length)
+			for (int i = 0; i < vertexBuffers.size(); i++)
 			{
-				throw new RuntimeException("Too many vertex buffers!!");
-			}
-			
-			
-			
-			// final variables for use in lambdas //
-			
-			final IVertexBufferWrapper finalVboWrapper = vboWrappers[vboIndex];
-			
-			final ByteBuffer finalVertexBuffer = vertexBuffers.get(vboIndex);
-			// index buffers are optional
-			@Nullable final ByteBuffer finalIndexBuffer = (indexBuffers != null) ? indexBuffers.get(vboIndex) : null;
-			
-			final int finalVertexCount = vertexByteBufferToVertexCount(finalVertexBuffer);
-			
-			
-			
-			//===============//
-			// vertex upload //
-			//===============//
-			//region
-			
-			CompletableFuture<Void> vertexUploadFuture = new CompletableFuture<>();
-			uploadFutureList.add(vertexUploadFuture);
-			
-			
-			RenderThreadTaskHandler.INSTANCE.queueRunningOnRenderThread("LodBufferContainer VBO Upload", () ->
-			{
-				try
+				if (vboIndex >= vboWrappers.length)
 				{
-					// skip this event if requested
-					if (Thread.interrupted()
-						|| parentFuture.isCancelled())
-					{
-						throw new InterruptedException();
-					}
-					
-					finalVboWrapper.uploadVertexBuffer(finalVertexBuffer, finalVertexCount);
-					vertexUploadFuture.complete(null);
+					throw new RuntimeException("Too many vertex buffers!!");
 				}
-				catch (Exception e)
-				{
-					LOGGER.error("Failed to upload buffer. Error: [" + e.getMessage() + "].", e);
-					vertexUploadFuture.completeExceptionally(e);
-				}
-			});
-			
-			//endregion
-			
-			
-			
-			//==============//
-			// index upload //
-			//==============//
-			//region
-			
-			if (finalIndexBuffer != null)
-			{
-				CompletableFuture<Void> indexUploadFuture = new CompletableFuture<>();
-				uploadFutureList.add(indexUploadFuture);
-				
-				RenderThreadTaskHandler.INSTANCE.queueRunningOnRenderThread("LodBufferContainer IBO Upload", () ->
+
+
+
+				// final variables for use in lambdas //
+
+				final IVertexBufferWrapper finalVboWrapper = vboWrappers[vboIndex];
+
+				final ByteBuffer finalVertexBuffer = vertexBuffers.get(vboIndex);
+				// index buffers are optional
+				@Nullable final ByteBuffer finalIndexBuffer = (indexBuffers != null) ? indexBuffers.get(vboIndex) : null;
+
+				final int finalVertexCount = vertexByteBufferToVertexCount(finalVertexBuffer);
+
+
+
+				//===============//
+				// vertex upload //
+				//===============//
+				//region
+
+				CompletableFuture<Void> vertexUploadFuture = new CompletableFuture<>();
+				uploadFutureList.add(vertexUploadFuture);
+
+
+				queueUploadWork("LodBufferContainer VBO Upload", vertexUploadFuture, () ->
 				{
 					try
 					{
@@ -366,33 +374,78 @@ public class LodBufferContainer implements AutoCloseable
 						{
 							throw new InterruptedException();
 						}
-						
-						finalVboWrapper.uploadIndexBuffer(finalIndexBuffer, finalVertexCount);
-						indexUploadFuture.complete(null);
+
+						finalVboWrapper.uploadVertexBuffer(finalVertexBuffer, finalVertexCount);
+						vertexUploadFuture.complete(null);
 					}
-					catch (Exception e)
+					catch (Exception | LinkageError e)
 					{
-						finalVboWrapper.close();
-						indexUploadFuture.completeExceptionally(e);
+						LOGGER.error("Failed to upload buffer. Error: [" + e.getMessage() + "].", e);
+						vertexUploadFuture.completeExceptionally(e);
 					}
 				});
+
+				//endregion
+
+
+
+				//==============//
+				// index upload //
+				//==============//
+				//region
+
+				if (finalIndexBuffer != null)
+				{
+					CompletableFuture<Void> indexUploadFuture = new CompletableFuture<>();
+					uploadFutureList.add(indexUploadFuture);
+
+					queueUploadWork("LodBufferContainer IBO Upload", indexUploadFuture, () ->
+					{
+						try
+						{
+							// skip this event if requested
+							if (Thread.interrupted()
+								|| parentFuture.isCancelled())
+							{
+								throw new InterruptedException();
+							}
+
+							finalVboWrapper.uploadIndexBuffer(finalIndexBuffer, finalVertexCount);
+							indexUploadFuture.complete(null);
+						}
+						catch (Exception | LinkageError e)
+						{
+							// The container owns this wrapper and closes it after every upload
+							// consumer has finished; this task must not race/double-close it.
+							indexUploadFuture.completeExceptionally(e);
+						}
+					});
+				}
+				//endregion
+
+
+
+				vboIndex++;
 			}
-			//endregion
-			
-			
-			
-			vboIndex++;
+
+			if (vboIndex < vboWrappers.length)
+			{
+				throw new RuntimeException("Too few vertex buffers!!");
+			}
 		}
-		
-		if (vboIndex < vboWrappers.length)
+		catch (RuntimeException | LinkageError failure)
 		{
-			throw new RuntimeException("Too few vertex buffers!!");
+			// Account for a synchronous failure after partial submission without finishing
+			// before the already queued consumers. Each submitted future still owns its work.
+			CompletableFuture<Void> failed = new CompletableFuture<>();
+			failed.completeExceptionally(failure);
+			uploadFutureList.add(failed);
 		}
-		
-		
-		
+
+
+
 		// merge futures //
-		
+
 		CompletableFuture<?>[] futureArray = new CompletableFuture[uploadFutureList.size()];
 		for (int i = 0; i < uploadFutureList.size(); i++)
 		{
@@ -457,6 +510,7 @@ public class LodBufferContainer implements AutoCloseable
 	public void close()
 	{
 		this.buffersUploaded = false;
+		if (!this.closed.compareAndSet(false, true)) { return; }
 		
 		RenderThreadTaskHandler.INSTANCE.queueRunningOnRenderThread("LodBufferContainer Close", () -> 
 		{

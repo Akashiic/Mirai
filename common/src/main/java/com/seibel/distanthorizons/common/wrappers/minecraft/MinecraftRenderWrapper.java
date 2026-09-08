@@ -82,7 +82,6 @@ import net.minecraft.potion.Potion;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.fluids.IFluidBlock;
-import org.joml.Vector3d;
 #else
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
@@ -269,9 +268,9 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 		
 		#if MC_VER <= MC_1_7_10
 			float frameTime = Minecraft.getMinecraft().timer.renderPartialTicks;
-			Camera.INSTANCE.update(MC.renderViewEntity, frameTime);
-			Vector3d projectedView = Camera.INSTANCE.getPos();
-			return new DhVec3d(projectedView.x, projectedView.y, projectedView.z);
+			DhVec3d projectedView = Camera.getPositionSnapshot(MC.renderViewEntity, frameTime);
+			if (projectedView == null) { throw new IllegalStateException("No camera entity or model-view matrix available"); }
+			return projectedView;
 		#elif MC_VER <= MC_1_12_2
 			RenderManager rm = MC.getRenderManager();
 			return new DhVec3d(rm.viewerPosX, rm.viewerPosY, rm.viewerPosZ);
@@ -290,6 +289,31 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 		#endif
 	}
 	
+	@Override
+	public DhVec3d getCameraPositionForLodTick(IClientLevelWrapper expectedLevel)
+	{
+		#if MC_VER <= MC_1_7_10
+			// playerExists() and the level check in the timer are observations, not locks.
+			// A proxy/world transition can clear renderViewEntity between either check and here.
+			net.minecraft.client.multiplayer.WorldClient world = MC.theWorld;
+			net.minecraft.entity.EntityLivingBase entity = MC.renderViewEntity;
+			IClientLevelWrapper renderedLevel = ClientApi.RENDER_STATE.clientLevelWrapper;
+			if (world == null || entity == null || expectedLevel == null || renderedLevel == null
+					|| expectedLevel.getWrappedMcObject() != world || renderedLevel.getWrappedMcObject() != world
+					|| entity.worldObj != world) { return null; }
+			DhVec3d position = null;
+			if (DelayedAccessors.IMMERSIVE_PORTALS != null)
+			{ position = DelayedAccessors.IMMERSIVE_PORTALS.getActualCameraPos(); }
+			if (position == null)
+			{ position = Camera.getPositionSnapshot(entity, MC.timer.renderPartialTicks); }
+			if (MC.theWorld != world || MC.renderViewEntity != entity
+					|| ClientApi.RENDER_STATE.clientLevelWrapper != renderedLevel) { return null; }
+			return position;
+		#else
+			return this.getCameraExactPosition();
+		#endif
+	}
+
 	@Override
 	public float getPartialTickTime()
 	{

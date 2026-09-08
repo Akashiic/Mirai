@@ -19,6 +19,8 @@
 
 package com.seibel.distanthorizons.core.wrapperInterfaces.minecraft;
 
+import com.seibel.distanthorizons.core.wrapperInterfaces.world.IClientLevelWrapper;
+
 import java.awt.Color;
 
 import com.seibel.distanthorizons.core.api.internal.rendering.DhRenderState;
@@ -67,6 +69,11 @@ public interface IMinecraftRenderWrapper extends IBindable
 	 * the position the player's camera).
 	 */
 	DhVec3d getCameraExactPosition();
+
+	/** A transient missing camera must skip background LOD work, never invent a world position. */
+	@Nullable
+	default DhVec3d getCameraPositionForLodTick(IClientLevelWrapper expectedLevel)
+	{ return this.getCameraExactPosition(); }
 	
 	Color getFogColor(float partialTicks);
 	

@@ -234,7 +234,7 @@ public class DhClientLevel extends AbstractDhLevel implements IDhClientLevel
 				return;
 			}
 			
-			this.clientside.clientTick();
+			if (!this.clientside.clientTickForCurrentWorld()) { return; }
 			
 			if (this.syncOnLoadRequestQueue != null)
 			{

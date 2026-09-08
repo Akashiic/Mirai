@@ -1,4 +1,4 @@
-# Diagnóstico local do Akashic Mirai — 0.1.9-dev
+# Diagnóstico local do Akashic Mirai — 0.1.10-dev
 
 O registro básico começa automaticamente em `logs/akashic-mirai/latest.log`, dentro da instalação do Minecraft ou da pasta do servidor. Cada processo tem sua própria sessão. Não é necessário habilitar DEBUG global ou instalar outro mod.
 
@@ -47,7 +47,7 @@ Os tempos são inclusivos: uma chamada de upload pode estar dentro de uma tarefa
 
 Contadores são agregados por processo. Em servidor integrado, cliente e servidor compartilham esse agregado. Tokens de mundo relacionam eventos dentro da sessão; não são identificadores permanentes. Snapshots de filas são observações concorrentes, não uma fotografia transacional. Ausência de contagem não prova ausência de problemas fora dos pontos instrumentados.
 
-Amostragem de pilhas é uma pista: encontrar uma classe do Starlight, Angelica ou outro mod em uma pilha não prova que ele consumiu determinada porcentagem da CPU nem causou a queda de FPS. Não há perfil completo por mod/worker, medição de tempo da GPU, VRAM, clocks, temperatura ou identificação garantida do modelo de CPU. Valores não disponíveis permanecem identificados como indisponíveis.
+Amostragem de pilhas é uma pista: encontrar uma classe do Starlight, Angelica ou outro mod em uma pilha não prova que ele consumiu determinada porcentagem da CPU nem causou a queda de FPS. A captura GPU opcional mede intervalos do Mirai; não há perfil completo por mod/worker, tempo do frame GPU inteiro, ocupação exclusiva, VRAM, clocks, temperatura ou identificação garantida do modelo de CPU. Valores não disponíveis permanecem identificados como indisponíveis. A [coleta recomendada para a 0.1.10](PLANO-E-DIAGNOSTICO-0.1.10.md) separa cena estável de handoff.
 
 ## Limites de custo e retenção
 

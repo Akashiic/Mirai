@@ -2,13 +2,14 @@
 
 Fork de estabilização do Distant Horizons para **Minecraft 1.7.10**, cliente **LWJGL2** e homologação dedicada em **Crucible / Java 21**.
 
-A versão **0.1.9-dev** acrescenta diagnóstico GPU opcional para investigar o FPS baixo. Compilação, testes isolados e revisão de código não substituem execução real do modpack. O projeto preserva a identidade técnica `distanthorizons`, a API e os créditos do upstream; não deve ser instalado junto com outro Distant Horizons.
+A versão **0.1.10-dev** corrige falhas de câmera e do ciclo de vida dos buffers encontradas na auditoria da 0.1.9. Compilação, testes isolados e revisão de código não substituem execução real do modpack. O projeto preserva a identidade técnica `distanthorizons`, a API e os créditos do upstream; não deve ser instalado junto com outro Distant Horizons.
 
 - [Arquitetura, fluxogramas, escopo e critérios de estabilidade](docs/ARQUITETURA-MIRAI.md)
 - [Instalação, comandos e coleta de diagnóstico](docs/DIAGNOSTICO-MIRAI.md)
 - [Plano de homologação da base 0.1.5](docs/HOMOLOGACAO-0.1.5-dev.md)
-- [Alterações desta versão](docs/CHANGELOG-0.1.9-dev.md)
-- [Análise, etapas, fluxograma e próxima coleta](docs/PLANO-E-DIAGNOSTICO-0.1.9.md)
+- [Alterações desta versão](docs/CHANGELOG-0.1.10-dev.md)
+- [Análise, etapas, fluxograma e próxima coleta](docs/PLANO-E-DIAGNOSTICO-0.1.10.md)
+- [Auditoria independente da rodada 0.1.9](docs/ANALISE-LOGS-0.1.9.md)
 - [Análise da rodada anterior](docs/ANALISE-LOGS-0.1.8.md)
 - [Comparação técnica Voxy e Distant Horizons](docs/VOXY-DH-0.1.8.md)
 - [Compatibilidade com o modpack](docs/COMPATIBILIDADE-0.1.8.md)
@@ -28,7 +29,7 @@ O daemon Gradle utiliza JDK 25; o alvo distribuído é Java 8, após remapeament
 ./gradlew -PmcVer=1.7.10 build
 ```
 
-Distribua somente o resultado de `:forge17:shadeDowngradedApi`, em `forge17/build/libs/Akashic-Horizons-of-The-Mirai-forge17-0.1.9-dev-1.7.10.jar`. Arquivos intermediários não substituem esse artefato.
+Distribua somente o resultado de `:forge17:shadeDowngradedApi`, em `forge17/build/libs/Akashic-Horizons-of-The-Mirai-forge17-0.1.10-dev-1.7.10.jar`. Arquivos intermediários não substituem esse artefato.
 
 ## Licenças e origem
 

@@ -22,6 +22,7 @@ package com.seibel.distanthorizons.core.render.QuadTree;
 import com.seibel.distanthorizons.api.enums.config.EDhApiMaxHorizontalResolution;
 import com.seibel.distanthorizons.core.api.internal.ClientApi;
 import com.seibel.distanthorizons.core.config.Config;
+import com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding.LodBufferContainer;
 import com.seibel.distanthorizons.core.config.listeners.IConfigListener;
 import com.seibel.distanthorizons.core.dataObjects.fullData.sources.FullDataSourceV2;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
@@ -1252,20 +1253,21 @@ public class LodQuadTree extends QuadTree<LodRenderSection> implements IDebugRen
 		for (int i = 0; i < this.debugNodeList.size(); i++)
 		{
 			LodRenderSection renderSection = this.debugNodeList.get(i);
+			LodBufferContainer bufferContainer = renderSection.renderBufferContainer;
 			
 			Color color = Color.BLACK;
 			if (renderSection.gpuUploadInProgress())
 			{
 				color = Color.ORANGE;
 			}
-			else if (!renderSection.canRender())
+			else if (bufferContainer == null)
 			{
 				// uploaded but the buffer is missing
 				color = Color.PINK;
 			}
-			else if (renderSection.renderBufferContainer.hasNonNullVbos())
+			else if (bufferContainer.hasNonNullVbos())
 			{
-				if (renderSection.renderBufferContainer.vboBufferCount() != 0)
+				if (bufferContainer.vboBufferCount() != 0)
 				{
 					color = Color.GREEN;
 				}

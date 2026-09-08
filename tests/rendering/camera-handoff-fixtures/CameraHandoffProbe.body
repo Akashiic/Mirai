@@ -1,0 +1,101 @@
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicReference;
+import org.joml.Matrix4f;
+import org.joml.Vector3d;
+import org.joml.Vector4f;
+import com.seibel.distanthorizons.common.backports.Camera;
+import com.seibel.distanthorizons.common.backports.LegacyCamera;
+import com.seibel.distanthorizons.core.api.internal.ClientApi;
+import com.seibel.distanthorizons.core.util.math.DhMat4f;
+import com.seibel.distanthorizons.core.util.math.DhVec3d;
+import net.minecraft.client.multiplayer.WorldClient;
+import net.minecraft.entity.EntityLivingBase;
+
+public class CameraHandoffProbe {
+    static int checks;
+    static void check(boolean value, String label) { if (!value) throw new AssertionError(label); checks++; }
+    static boolean same(double a,double b) { return Double.doubleToLongBits(a)==Double.doubleToLongBits(b); }
+    static EntityLivingBase entity(double x) {
+        EntityLivingBase e=new EntityLivingBase(); e.posX=x; e.posY=64; e.posZ=-x;
+        e.lastTickPosX=x-1; e.lastTickPosY=63.5; e.lastTickPosZ=-x+2; return e;
+    }
+    static final Wrapper wrapper=new Wrapper();
+    static IClientLevelWrapper expected;
+    static void reset() {
+        final WorldClient world=new WorldClient(); Wrapper.MC.theWorld=world;
+        Wrapper.MC.renderViewEntity=entity(40); Wrapper.MC.renderViewEntity.worldObj=world;
+        Wrapper.MC.timer.renderPartialTicks=.5f; expected=()->world;
+        ClientApi.RENDER_STATE.clientLevelWrapper=expected;
+        ClientApi.RENDER_STATE.mcModelViewMatrix=new DhMat4f(new Matrix4f());
+        DelayedAccessors.IMMERSIVE_PORTALS=null;
+    }
+    static DhVec3d tick() { return wrapper.getCameraPositionForLodTick(expected); }
+    public static void main(String[] args) throws Exception {
+        check(new Vector4f().w==1, "JOML default homogeneous w is 1: preserve third-person offset");
+        Random random=new Random(171019L);
+        for(int i=0;i<12000;i++) {
+            EntityLivingBase e=entity(random.nextDouble()*60000000-30000000);
+            e.posY=random.nextDouble()*512-128; e.lastTickPosY=e.posY-4;
+            Matrix4f matrix=new Matrix4f().translate(random.nextFloat()*20-10,random.nextFloat()*20-10,random.nextFloat()*20-10)
+                .rotateXYZ(random.nextFloat()*6,random.nextFloat()*6,random.nextFloat()*6).scale(.25f+random.nextFloat()*3);
+            ClientApi.RENDER_STATE.mcModelViewMatrix=new DhMat4f(matrix);
+            float partial=(i%5==0)?0:(i%5==1)?1:random.nextFloat();
+            LegacyCamera.INSTANCE.update(e,partial); Vector3d old=LegacyCamera.INSTANCE.getPos();
+            DhVec3d now=Camera.getPositionSnapshot(e,partial);
+            check(same(old.x,now.x)&&same(old.y,now.y)&&same(old.z,now.z),"bit-exact baseline interpolation/inverse case "+i);
+        }
+        reset(); ClientApi.RENDER_STATE.mcModelViewMatrix=new DhMat4f(new Matrix4f().translation(3,4,5));
+        DhVec3d third=Camera.getPositionSnapshot(Wrapper.MC.renderViewEntity,1);
+        check(third.x==37&&third.y==60&&third.z==-45,"third-person inverse translation retained");
+        boolean legacyNull=false;
+        try { LegacyCamera.INSTANCE.update(null,.5f); } catch(NullPointerException caught){legacyNull=true;}
+        check(legacyNull,"negative baseline reproduces null entity NPE");
+        check(Camera.getPositionSnapshot(null,.5f)==null,"new null entity safely unavailable");
+        reset(); ClientApi.RENDER_STATE.mcModelViewMatrix=null;
+        check(Camera.getPositionSnapshot(Wrapper.MC.renderViewEntity,.5f)==null,"null matrix safely unavailable");
+        reset(); EntityLivingBase a=entity(10), b=entity(100);
+        LegacyCamera.INSTANCE.update(a,1); Vector3d oldHeld=LegacyCamera.INSTANCE.getPos();
+        LegacyCamera.INSTANCE.update(b,1);
+        check(oldHeld.x==100,"negative baseline demonstrates aliased mutable result");
+        DhVec3d held=Camera.getPositionSnapshot(a,1); Camera.getPositionSnapshot(b,1);
+        check(held.x==10,"new caller owns independent result");
+        final AtomicReference<Throwable> error=new AtomicReference<>();
+        Thread[] threads=new Thread[4];
+        for(int t=0;t<threads.length;t++) { final int n=t; threads[t]=new Thread(()->{
+            try { EntityLivingBase e=entity(n*1000); for(int i=0;i<20000;i++) {
+                DhVec3d p=Camera.getPositionSnapshot(e,1);
+                if(p.x!=n*1000 || p.z!=-n*1000)throw new AssertionError("cross-caller position corruption");
+            }}catch(Throwable fail){error.set(fail);}
+        });threads[t].start(); }
+        for(Thread thread:threads)thread.join(); check(error.get()==null,"80000 concurrent caller snapshots isolated");
+        reset(); check(tick().x==39.5,"valid world and interpolation");
+        reset(); Wrapper.MC.renderViewEntity=null; check(tick()==null,"world transition clears camera");
+        reset(); Wrapper.MC.theWorld=null; check(tick()==null,"world absent");
+        reset(); expected=null; check(tick()==null,"expected world absent");
+        reset(); expected=()->new WorldClient(); check(tick()==null,"previous world tick rejected");
+        reset(); ClientApi.RENDER_STATE.clientLevelWrapper=null; check(tick()==null,"rendered world absent");
+        reset(); ClientApi.RENDER_STATE.clientLevelWrapper=()->new WorldClient(); check(tick()==null,"previous rendered world rejected");
+        reset(); Wrapper.MC.renderViewEntity.worldObj=new WorldClient(); check(tick()==null,"camera entity in another world rejected");
+        reset(); ClientApi.RENDER_STATE.mcModelViewMatrix=null; check(tick()==null,"matrix absent on tick");
+        for(int i=0;i<3;i++) {
+            reset(); final int mutation=i;
+            ClientApi.RENDER_STATE.mcModelViewMatrix=new DhMat4f(new Matrix4f()) {
+                @Override public Matrix4f createJomlMatrix() {
+                    if(mutation==0)Wrapper.MC.theWorld=new WorldClient();
+                    if(mutation==1)Wrapper.MC.renderViewEntity=null;
+                    if(mutation==2)ClientApi.RENDER_STATE.clientLevelWrapper=()->Wrapper.MC.theWorld;
+                    return super.createJomlMatrix();
+                }
+            };
+            check(tick()==null,"handoff during calculation rejected "+i);
+        }
+        reset(); DhVec3d portal=new DhVec3d(123,456,789);
+        DelayedAccessors.IMMERSIVE_PORTALS=()->portal;
+        check(tick()==portal,"valid portal camera preserved");
+        reset(); DelayedAccessors.IMMERSIVE_PORTALS=()->null;
+        check(tick().x==39.5,"unavailable portal falls back to vanilla camera");
+        reset(); DelayedAccessors.IMMERSIVE_PORTALS=()->{Wrapper.MC.theWorld=null;return portal;};
+        check(tick()==null,"handoff during portal lookup rejected");
+        System.out.println("PASS "+checks+" checks including 12000 baseline-exact matrices, 80000 concurrent snapshots and lifecycle injection");
+    }
+}

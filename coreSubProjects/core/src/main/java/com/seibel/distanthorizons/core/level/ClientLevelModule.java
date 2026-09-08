@@ -84,17 +84,24 @@ public class ClientLevelModule implements Closeable, IDataSourceUpdateListenerFu
 	//==============//
 	
 	public void clientTick()
+	{ this.clientTickForCurrentWorld(); }
+
+	/**
+	 * False skips the rest of this level's tick when player/camera state is transiently
+	 * unavailable. An absent renderer does not prevent the existing network tick.
+	 */
+	public boolean clientTickForCurrentWorld()
 	{
 		// can be false if the level is unloading
 		if (!MC_CLIENT.playerExists())
 		{
-			return;
+			return false;
 		}
 		
 		ClientRenderState clientRenderState = this.ClientRenderStateRef.get();
 		if (clientRenderState == null)
 		{
-			return;
+			return true;
 		}
 		
 		// recreate the RenderState if the render distance changes
@@ -114,7 +121,8 @@ public class ClientLevelModule implements Closeable, IDataSourceUpdateListenerFu
 		if (Config.Client.Advanced.Graphics.Quality.useCameraPositionForQualityDropOff.get())
 		{
 			// use camera position allow free cam mods work better
-			DhVec3d cameraDoublePos = MC_RENDER.getCameraExactPosition();
+			DhVec3d cameraDoublePos = MC_RENDER.getCameraPositionForLodTick(this.clientLevel.getClientLevelWrapper());
+			if (cameraDoublePos == null) { return false; }
 			quadTreeTickBlockPos = new DhBlockPos2D((int)cameraDoublePos.x, (int)cameraDoublePos.z);
 		}
 		else
@@ -124,6 +132,7 @@ public class ClientLevelModule implements Closeable, IDataSourceUpdateListenerFu
 		}
 		
 		clientRenderState.quadtree.tryTick(quadTreeTickBlockPos);
+		return true;
 	}
 	
 	
