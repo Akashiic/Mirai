@@ -4,6 +4,7 @@ This checks failure ordering/aggregation, not Minecraft or a complete core build
 Usage: python tests/transport/test_shared_api_cleanup.py /absolute/jdk21
 """
 from pathlib import Path
+import hashlib
 import subprocess
 import sys
 import tempfile
@@ -13,9 +14,12 @@ source = (root / "coreSubProjects/core/src/main/java/com/seibel/distanthorizons/
 start = source.index("\tpublic static void setDhWorld(AbstractDhWorld newWorld)")
 end = source.index("\n\t@Nullable\n\tpublic static AbstractDhWorld getAbstractDhWorld()", start)
 actual_methods = source[start:end]
+observer_source = root / "coreSubProjects/core/src/main/java/com/seibel/distanthorizons/core/logging/mirai/MiraiWorldLifecycle.java"
 
 fixture = r'''
 import java.util.*;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiWorldLifecycle;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiWorldLifecycle.Phase;
 
 public class SharedApiLifecycleTest {
     static volatile AbstractDhWorld currentWorld;
@@ -141,8 +145,20 @@ with tempfile.TemporaryDirectory(prefix="mirai-world-cleanup-") as directory:
     test_source = work / "SharedApiLifecycleTest.java"
     test_source.write_text(fixture + actual_methods + "\n}\n")
     jdk = Path(sys.argv[1])
-    subprocess.run([str(jdk / "bin/javac"), "--release", "8", "-d", str(work), str(test_source)], check=True)
+    version = subprocess.run([str(jdk / "bin/javac"), "-version"], capture_output=True, text=True, check=True)
+    flags = ["-source", "8", "-target", "8"] if "1.8." in version.stdout + version.stderr else ["--release", "8"]
+    observer = work / "MiraiWorldLifecycle.java"
+    observer.write_bytes(observer_source.read_bytes())
+    diagnostics = work / "MiraiDiagnostics.java"
+    diagnostics.write_text('''package com.seibel.distanthorizons.core.logging.mirai;
+public final class MiraiDiagnostics {
+    public static boolean enabled() { return true; }
+    public static void event(String category, String detail) { }
+}''')
+    subprocess.run([str(jdk / "bin/javac"), *flags, "-d", str(work), str(test_source), str(observer), str(diagnostics)], check=True)
     subprocess.run([str(jdk / "bin/java"), "-cp", str(work), "SharedApiLifecycleTest"], check=True)
+    print("SharedApi sha256=" + hashlib.sha256(source.encode()).hexdigest())
+    print("MiraiWorldLifecycle sha256=" + hashlib.sha256(observer_source.read_bytes()).hexdigest())
 
 pool_source = (root / "coreSubProjects/core/src/main/java/com/seibel/distanthorizons/core/util/threading/ThreadPoolUtil.java").read_text()
 start = pool_source.index("\tpublic static void shutdownThreadPools()")
@@ -220,5 +236,5 @@ with tempfile.TemporaryDirectory(prefix="mirai-pool-cleanup-") as directory:
     work = Path(directory)
     test_source = work / "PoolShutdownTest.java"
     test_source.write_text(pool_fixture + actual_shutdown + "\n}\n")
-    subprocess.run([str(jdk / "bin/javac"), "--release", "8", "-d", str(work), str(test_source)], check=True)
+    subprocess.run([str(jdk / "bin/javac"), *flags, "-d", str(work), str(test_source)], check=True)
     subprocess.run([str(jdk / "bin/java"), "-cp", str(work), "PoolShutdownTest"], check=True)

@@ -31,6 +31,8 @@ import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.level.DhClientLevel;
 import com.seibel.distanthorizons.core.level.IDhLevel;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiWorldLifecycle;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiWorldLifecycle.Phase;
 import com.seibel.distanthorizons.core.pos.blockPos.DhBlockPos2D;
 import com.seibel.distanthorizons.core.pos.DhChunkPos;
 import com.seibel.distanthorizons.core.render.DhApiRenderProxy;
@@ -108,7 +110,7 @@ public class SharedApi
 				// Close callbacks can still resolve their original world here.
 				if (oldWorld != null)
 				{
-					oldWorld.close();
+					MiraiWorldLifecycle.run(Phase.OLD_WORLD_CLOSE, oldWorld::close);
 				}
 			}
 			catch (Throwable closeFailure)
@@ -126,8 +128,9 @@ public class SharedApi
 				currentWorld = newWorld;
 				try
 				{
-					ThreadPoolUtil.setupThreadPools();
-					ApiEventInjector.INSTANCE.fireAllEvents(DhApiWorldLoadEvent.class, new DhApiWorldLoadEvent.EventParam());
+					MiraiWorldLifecycle.run(Phase.THREAD_POOLS_SETUP, ThreadPoolUtil::setupThreadPools);
+					MiraiWorldLifecycle.run(Phase.WORLD_LOAD_EVENT, () -> ApiEventInjector.INSTANCE.fireAllEvents(
+							DhApiWorldLoadEvent.class, new DhApiWorldLoadEvent.EventParam()));
 					return;
 				}
 				catch (Throwable startupFailure)
@@ -143,7 +146,7 @@ public class SharedApi
 			{
 				try
 				{
-					failure = runWorldCleanup(failure, newWorld::close);
+					failure = runWorldCleanup(failure, () -> MiraiWorldLifecycle.run(Phase.REJECTED_WORLD_CLOSE, newWorld::close));
 				}
 				finally
 				{
@@ -153,7 +156,7 @@ public class SharedApi
 
 			// Each cleanup is independent: report all failures after attempting all
 			// releases, including the read-only reset after the unload notification.
-			failure = runWorldCleanup(failure, ThreadPoolUtil::shutdownThreadPools);
+			failure = runWorldCleanup(failure, () -> MiraiWorldLifecycle.run(Phase.THREAD_POOLS_SHUTDOWN, ThreadPoolUtil::shutdownThreadPools));
 			failure = runWorldCleanup(failure, () ->
 			{
 				AbstractDebugWireframeRenderer renderer = SingletonInjector.INSTANCE.get(AbstractDebugWireframeRenderer.class);
@@ -166,13 +169,13 @@ public class SharedApi
 			{
 				failure = runWorldCleanup(failure, MC_RENDER::clearTargetFrameBuffer);
 			}
-			failure = runWorldCleanup(failure, AbstractDhRepo::closeAllConnections);
+			failure = runWorldCleanup(failure, () -> MiraiWorldLifecycle.run(Phase.DATABASE_CLOSE, AbstractDhRepo::closeAllConnections));
 			failure = runWorldCleanup(failure, WORLD_CHUNK_UPDATE_MANAGER::clear);
 			failure = runWorldCleanup(failure, RenderThreadTaskHandler.INSTANCE::clearDebugStats);
-			failure = runWorldCleanup(failure, BlockTextureRegistry.INSTANCE::clear);
-			failure = runWorldCleanup(failure, System::gc);
-			failure = runWorldCleanup(failure, () -> ApiEventInjector.INSTANCE.fireAllEvents(
-					DhApiWorldUnloadEvent.class, new DhApiWorldUnloadEvent.EventParam()));
+			failure = runWorldCleanup(failure, () -> MiraiWorldLifecycle.run(Phase.TEXTURES_CLEAR, BlockTextureRegistry.INSTANCE::clear));
+			failure = runWorldCleanup(failure, () -> MiraiWorldLifecycle.run(Phase.EXPLICIT_GC, System::gc));
+			failure = runWorldCleanup(failure, () -> MiraiWorldLifecycle.run(Phase.WORLD_UNLOAD_EVENT,
+					() -> ApiEventInjector.INSTANCE.fireAllEvents(DhApiWorldUnloadEvent.class, new DhApiWorldUnloadEvent.EventParam())));
 			failure = runWorldCleanup(failure, () -> DhApiWorldProxy.INSTANCE.setReadOnly(false, false));
 			if (failure instanceof Error)
 			{

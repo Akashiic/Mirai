@@ -139,7 +139,7 @@ public class LodRenderSection implements IDebugRenderable, AutoCloseable
 	/** @return true if the upload started, false if it wasn't able to for any reason */
 	public synchronized boolean uploadRenderDataToGpuAsync()
 	{
-		if (this.closed || this.clientLevelWrapper.getDhLevel() != this.clientLevel) { return false; }
+		if (this.closed || this.quadTree.isClosing() || this.clientLevelWrapper.getDhLevel() != this.clientLevel) { return false; }
 		if (this.getAndBuildRenderDataFutureRef.get() != null)
 		{
 			// don't accidentally queue multiple uploads at the same time
@@ -181,24 +181,42 @@ public class LodRenderSection implements IDebugRenderable, AutoCloseable
 						}
 						
 						// 3 because that's generally the max needed
-						try (PhantomArrayListCheckout opaqueCheckout = LodQuadBuilder.ARRAY_LIST_POOL.checkoutByteBuffers(3);
-							PhantomArrayListCheckout transparentCheckout = LodQuadBuilder.ARRAY_LIST_POOL.checkoutByteBuffers(3))
+						PhantomArrayListCheckout opaqueCheckout = LodQuadBuilder.ARRAY_LIST_POOL.checkoutByteBuffers(3);
+						PhantomArrayListCheckout transparentCheckout = null;
+						CompletableFuture<LodBufferContainer> uploadCompletion = null;
+						try
 						{
+							transparentCheckout = LodQuadBuilder.ARRAY_LIST_POOL.checkoutByteBuffers(3);
 							// create CPU vertex buffers
 							ArrayList<ByteBuffer> opaqueBuffers = lodQuadBuilder.makeOpaqueVertexBuffers(opaqueCheckout);
 							ArrayList<ByteBuffer> transparentBuffers = lodQuadBuilder.makeTransparentVertexBuffers(transparentCheckout);
 							if (!this.isBuildCurrent(future)) { future.complete(null); return; }
 
-							// Keep both leases until the upload consumers have finished, even if the
-							// section's own build future was cancelled. Do not cancel the upload future.
-							this.uploadToGpuAsync(future, opaqueBuffers, transparentBuffers)
-							// Join is used to prevent queuing up potentially thousands of
-							// upload tasks (each requiring their own staging buffer)
-							// causing an explosion of pooled memory use.
-							// This may slow down loading times slightly,
-							// but in James' testing CPU usage was still quite high
-							// so it shouldn't be a big speed loss for the lower memory cost.
-								.join();
+							uploadCompletion = this.uploadToGpuAsync(future, opaqueBuffers, transparentBuffers);
+							// Keep backpressure during ordinary section churn. Closing the whole tree
+							// may release its worker: the client can be waiting for that worker to stop,
+							// so it cannot also execute the queued GL upload until the worker returns.
+							// Only the wait observes tree shutdown; the upload and consumers continue.
+							CompletableFuture.anyOf(uploadCompletion, this.quadTree.getShutdownFuture()).join();
+						}
+						finally
+						{
+							if (uploadCompletion == null)
+							{
+								closeVertexCheckouts(opaqueCheckout, transparentCheckout);
+							}
+							else
+							{
+								// Serialized vertex data no longer uses the builder. Keep its leases
+								// alive until ALL upload consumers and publication have actually finished,
+								// even when this worker has already returned after whole-tree retirement.
+								PhantomArrayListCheckout retainedTransparentCheckout = transparentCheckout;
+								uploadCompletion.whenComplete((ignored, failure) ->
+								{
+									try { closeVertexCheckouts(opaqueCheckout, retainedTransparentCheckout); }
+									catch (Exception cleanupError) { LOGGER.error("Unable to release completed vertex buffer checkouts.", cleanupError); }
+								});
+							}
 						}
 						future.complete(null);
 					}
@@ -231,8 +249,13 @@ public class LodRenderSection implements IDebugRenderable, AutoCloseable
 	}
 	private boolean isBuildCurrent(CompletableFuture<Void> future)
 	{
-		return !this.closed && this.getAndBuildRenderDataFutureRef.get() == future
+		return !this.closed && !this.quadTree.isClosing() && this.getAndBuildRenderDataFutureRef.get() == future
 			&& !future.isCancelled() && this.clientLevelWrapper.getDhLevel() == this.clientLevel;
+	}
+	private static void closeVertexCheckouts(PhantomArrayListCheckout opaque, PhantomArrayListCheckout transparent)
+	{
+		try { if (transparent != null) { transparent.close(); } }
+		finally { opaque.close(); }
 	}
 	
 	

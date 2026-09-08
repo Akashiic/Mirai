@@ -20,6 +20,10 @@ parser.add_argument('--out', required=True, type=Path)
 parser.add_argument('--javac', required=True)
 parser.add_argument('--java', required=True)
 parser.add_argument('--baseline-commit')
+parser.add_argument('--baseline-profile', choices=['0.1.9', '0.1.10'], default='0.1.9',
+                    help='Known baseline defects: .9 lease/publication fixes or .10 retirement wait.')
+parser.add_argument('--churn-mutant-only', action='store_true',
+                    help='Replace only the wait signal with individual request retirement; require the churn assertion to fail.')
 args = parser.parse_args()
 args.out.mkdir(parents=True, exist_ok=True)
 
@@ -58,7 +62,12 @@ FIXTURES = {
  public static class Box {public Box(long p,float a,float b,double c,java.awt.Color d){}}
  public static class BoxParticle {public BoxParticle(Box b,double x,float y){}}
 }''',
-'com.seibel.distanthorizons.core.render.QuadTree.LodQuadTree': '''public class LodQuadTree {public byte calcExpectedDetailLevel(com.seibel.distanthorizons.core.pos.blockPos.DhBlockPos2D p,long s){return 0;}}''',
+'com.seibel.distanthorizons.core.render.QuadTree.LodQuadTree': '''public class LodQuadTree {
+ private volatile boolean closing;private final java.util.concurrent.CompletableFuture<Void> shutdown=new java.util.concurrent.CompletableFuture<>();
+ public boolean isClosing(){return closing;}public java.util.concurrent.CompletableFuture<Void> getShutdownFuture(){return shutdown;}
+ public void close(){closing=true;shutdown.complete(null);}
+ public byte calcExpectedDetailLevel(com.seibel.distanthorizons.core.pos.blockPos.DhBlockPos2D p,long s){return 0;}
+}''',
 'com.seibel.distanthorizons.core.dataObjects.fullData.sources.FullDataSourceV2': '''public class FullDataSourceV2 implements AutoCloseable {public void close(){fixture.Driver.sourceCloses++;}}''',
 'com.seibel.distanthorizons.core.file.fullDatafile.V2.FullDataSourceProviderV2': '''public class FullDataSourceProviderV2 {
  public com.seibel.distanthorizons.core.dataObjects.fullData.sources.FullDataSourceV2 get(long p){fixture.Driver.dbReads++;return new com.seibel.distanthorizons.core.dataObjects.fullData.sources.FullDataSourceV2();}
@@ -73,14 +82,14 @@ FIXTURES = {
  b.quads++;if(fixture.Driver.failGeometry)throw new IllegalStateException("geometry");if(fixture.Driver.afterBuild!=null)fixture.Driver.afterBuild.run();}
 }''',
 'com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding.LodQuadBuilder': '''public class LodQuadBuilder implements AutoCloseable {
- public static final int BYTES_PER_VERTEX=16;public int quads;
+ public static final int BYTES_PER_VERTEX=16;public int quads;final Thread owner=Thread.currentThread();
  public static final com.seibel.distanthorizons.core.util.objects.pooling.PhantomArrayList.PhantomArrayListPool ARRAY_LIST_POOL=new com.seibel.distanthorizons.core.util.objects.pooling.PhantomArrayList.PhantomArrayListPool("vertex");
  static final ThreadLocal<LodQuadBuilder> LOCAL=ThreadLocal.withInitial(LodQuadBuilder::new);
  public static LodQuadBuilder getBuilder(boolean b,com.seibel.distanthorizons.core.wrapperInterfaces.world.IClientLevelWrapper w){fixture.Driver.builderGets++;return LOCAL.get();}
  public java.util.ArrayList<java.nio.ByteBuffer> makeOpaqueVertexBuffers(com.seibel.distanthorizons.core.util.objects.pooling.PhantomArrayList.PhantomArrayListCheckout c){if(fixture.Driver.failVertices)throw new IllegalStateException("vertices");return buffers(c);}
  public java.util.ArrayList<java.nio.ByteBuffer> makeTransparentVertexBuffers(com.seibel.distanthorizons.core.util.objects.pooling.PhantomArrayList.PhantomArrayListCheckout c){java.util.ArrayList<java.nio.ByteBuffer> b=buffers(c);if(fixture.Driver.beforeUpload!=null)fixture.Driver.beforeUpload.run();return b;}
  java.util.ArrayList<java.nio.ByteBuffer> buffers(com.seibel.distanthorizons.core.util.objects.pooling.PhantomArrayList.PhantomArrayListCheckout c){java.util.ArrayList<java.nio.ByteBuffer> b=new java.util.ArrayList<>();java.nio.ByteBuffer v=c.getByteBuffer(0,64);v.putInt(0,quads);b.add(v);return b;}
- public void close(){fixture.Driver.builderCloses++;quads=0;}
+ public void close(){fixture.Driver.check(Thread.currentThread()==owner,"builder_returned_by_owner_thread");fixture.Driver.builderCloses++;quads=0;}
 }''',
 'com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding.IndexBufferBuilder': '''public class IndexBufferBuilder {
  public static java.nio.ByteBuffer populateBuffer(com.seibel.distanthorizons.core.util.objects.pooling.PhantomArrayList.PhantomArrayListCheckout c,int i,int count){if(fixture.Driver.failIndices)throw new IllegalStateException("indices");return c.getByteBuffer(i,Math.max(4,count*24));}
@@ -117,7 +126,7 @@ FIXTURES = {
  public void queueRunningOnRenderThread(String n,Runnable r){
   if(n.endsWith("Setup")&&fixture.Driver.rejectSetup)throw new java.util.concurrent.RejectedExecutionException("setup");
   if(n.endsWith("Upload")&&++fixture.Driver.uploadSubmissions==fixture.Driver.rejectUploadAt)throw new java.util.concurrent.RejectedExecutionException("upload");
-  fixture.Driver.renderTasks.add(r);}
+   if(fixture.Driver.inlineRender)r.run();else fixture.Driver.renderTasks.add(r);}
 }''',
 }
 
@@ -132,7 +141,7 @@ public final class Driver {
  public static volatile boolean failGeometry,failVertices,failIndices,failSetup,failUpload;
  public static volatile Runnable afterBuild,beforeUpload;
  public static int errors,dbReads,sourceCloses,builderGets,builderCloses,acquisitions,failAcquireAt,uploadCalls,uploadSubmissions,rejectUploadAt;
- public static boolean rejectSetup;
+ public static boolean rejectSetup,inlineRender;
  public static boolean expectRejectedSubmissionSettlement;
  public static final List<PhantomArrayListCheckout> leases=Collections.synchronizedList(new ArrayList<>());
  public static final Map<ByteBuffer,PhantomArrayListCheckout> owners=Collections.synchronizedMap(new IdentityHashMap<>());
@@ -155,7 +164,8 @@ public final class Driver {
   public volatile boolean attached=true;public com.seibel.distanthorizons.core.wrapperInterfaces.world.IClientLevelWrapper getClientLevelWrapper(){return this;}
   public com.seibel.distanthorizons.core.level.IDhClientLevel getDhLevel(){return attached?this:null;}public int getMinHeight(){return 0;}public int getMaxHeight(){return 256;}
  }
- static LodRenderSection section(Level level){return new LodRenderSection(6,new LodQuadTree(),level,new com.seibel.distanthorizons.core.file.fullDatafile.V2.FullDataSourceProviderV2());}
+ static LodQuadTree tree;
+ static LodRenderSection section(Level level){tree=new LodQuadTree();return new LodRenderSection(6,tree,level,new com.seibel.distanthorizons.core.file.fullDatafile.V2.FullDataSourceProviderV2());}
  static Thread worker(LodRenderSection section)throws Exception {check(section.uploadRenderDataToGpuAsync(),"admitted_build");Runnable task=ThreadPoolUtil.LOADER.tasks.poll(2,TimeUnit.SECONDS);check(task!=null,"loader_task");Thread t=new Thread(task,"fixture-loader");t.setDaemon(true);t.start();return t;}
  static void drain(Thread worker)throws Exception {
   long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);
@@ -171,7 +181,45 @@ public final class Driver {
  static void dispose(LodRenderSection section){section.close();drainQueue();}
  public static void main(String[] args)throws Exception {
   String scenario=args[0];Level level=new Level();LodRenderSection section=section(level);
-  if(scenario.startsWith("direct-index-")){
+  if(scenario.startsWith("retirement-")){
+   Thread t=worker(section);waitForSetup(t);allLive();Thread active=null;
+   if(scenario.equals("retirement-active-upload")||scenario.equals("retirement-partial-upload")||scenario.equals("retirement-upload-failure")){
+    renderTasks.poll().run();waitForSetup(t);
+    if(scenario.equals("retirement-active-upload")){
+     uploadEntered=new CountDownLatch(1);CountDownLatch entered=uploadEntered;uploadRelease=new CountDownLatch(1);
+     active=new Thread(renderTasks.poll(),"fixture-native-consumer");active.setDaemon(true);active.start();check(entered.await(5,TimeUnit.SECONDS),"upload_entered");
+    }else if(scenario.equals("retirement-partial-upload"))renderTasks.poll().run();
+   }
+   long beforeClose=System.nanoTime();section.close();tree.close();t.join(1000);
+   check(!t.isAlive(),"retired_worker_released_without_render_drain");
+   check(builderCloses==1&&sourceCloses==5,"retired_worker_released_cpu_resources");
+   check(errors==0,"retirement_not_reported_as_render_error");allLive();check(!section.canRender(),"retired_section_not_published");
+   System.out.println("retirement_worker_ms="+TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-beforeClose));
+   if(scenario.equals("retirement-setup-failure"))failSetup=true;
+   if(scenario.equals("retirement-upload-failure"))failUpload=true;
+   if(active!=null){uploadRelease.countDown();active.join(5000);check(!active.isAlive(),"active_upload_finished");allLive();}
+   drainQueue();allReturned();check(!section.canRender(),"retired_section_no_late_publication");dispose(section);
+  }else if(scenario.equals("section-churn-backpressure")){
+   Thread t=worker(section);waitForSetup(t);section.close();t.join(100);
+   check(t.isAlive(),"section_churn_keeps_worker_backpressure");check(builderCloses==0,"churn_builder_retained_until_upload");allLive();
+   drain(t);allReturned();check(!section.canRender(),"churn_section_no_late_publication");dispose(section);
+  }else if(scenario.equals("retired-section-tree-shutdown")){
+   Thread t=worker(section);waitForSetup(t);section.close();t.join(100);
+   check(t.isAlive(),"section_churn_keeps_worker_backpressure");allLive();tree.close();t.join(1000);
+   check(!t.isAlive(),"retired_worker_released_without_render_drain");allLive();check(builderCloses==1&&sourceCloses==5,"retired_worker_released_cpu_resources");
+   drainQueue();allReturned();check(!section.canRender(),"retired_section_no_late_publication");dispose(section);
+  }else if(scenario.equals("tree-closing-rejects-admission")){
+   tree.close();check(!section.uploadRenderDataToGpuAsync(),"closing_tree_rejects_new_request");check(dbReads==0&&acquisitions==0,"closed_tree_admission_has_no_work");dispose(section);
+  }else if(scenario.equals("tree-closing-rejects-publication")){
+   Thread t=worker(section);waitForSetup(t);tree.close();t.join(1000);check(!t.isAlive(),"retired_worker_released_without_render_drain");
+   allLive();drainQueue();allReturned();check(!section.canRender(),"closing_tree_rejects_publication_before_section_cleanup");dispose(section);
+  }else if(scenario.equals("normal-backpressure")){
+   Thread t=worker(section);waitForSetup(t);t.join(100);
+   check(t.isAlive(),"active_section_keeps_worker_backpressure");check(builderCloses==0,"active_builder_retained_until_upload");
+   check(!section.uploadRenderDataToGpuAsync(),"active_request_deduplicated");allLive();drain(t);allReturned();check(section.canRender(),"active_section_published");dispose(section);
+  }else if(scenario.equals("inline-upload-completion")){
+   inlineRender=true;Thread t=worker(section);t.join(5000);check(!t.isAlive(),"inline_upload_worker_finished");allReturned();check(section.canRender(),"inline_upload_published");check(errors==0,"inline_upload_no_errors");dispose(section);
+  }else if(scenario.startsWith("direct-index-")){
    PhantomArrayListCheckout vertices=new PhantomArrayListCheckout(99,"external");ArrayList<ByteBuffer> a=new ArrayList<>(),b=new ArrayList<>();ByteBuffer av=vertices.getByteBuffer(0,64),bv=vertices.getByteBuffer(1,64);av.putInt(0,1);bv.putInt(0,1);a.add(av);b.add(bv);
    if(scenario.equals("direct-index-build-failure")){
     failIndices=true;try{LodBufferContainer.tryMakeAndUploadBuffersAsync(6,level,a,b);throw new AssertionError("ASSERT expected_index_failure");}catch(IllegalStateException expected){}
@@ -233,7 +281,10 @@ SCENARIOS = ['success', 'leases-live-until-drained', 'vertex-failure', 'second-v
              'first-index-checkout', 'second-index-checkout', 'index-failure', 'setup-failure', 'upload-failure',
              'cancel-after-dequeue', 'retired-level', 'cancel-after-build', 'cancel-before-upload', 'late-publication',
              'geometry-cleanup', 'cancel-result-before-setup', 'cancel-result-active-upload', 'reject-setup', 'reject-upload-partial',
-             'idempotent-close', 'old-buffer-preserved', 'direct-index-build-failure', 'direct-index-upload-failure']
+             'idempotent-close', 'old-buffer-preserved', 'direct-index-build-failure', 'direct-index-upload-failure',
+             'retirement-before-setup', 'retirement-active-upload', 'retirement-partial-upload',
+             'retirement-setup-failure', 'retirement-upload-failure', 'normal-backpressure', 'inline-upload-completion',
+             'section-churn-backpressure', 'retired-section-tree-shutdown', 'tree-closing-rejects-admission', 'tree-closing-rejects-publication']
 NEGATIVE_ASSERTIONS = {
     'vertex-failure': 'lease_returned_once_vertex_1',
     'second-vertex-checkout': 'lease_returned_once_vertex_1',
@@ -257,10 +308,19 @@ NEGATIVE_ASSERTIONS = {
     'direct-index-build-failure': 'lease_returned_once_LodBufferContainer_1',
     'direct-index-upload-failure': 'lease_returned_once_LodBufferContainer_1',
 }
+if args.baseline_profile == '0.1.10':
+    NEGATIVE_ASSERTIONS = {}
+NEGATIVE_ASSERTIONS.update({scenario: 'retired_worker_released_without_render_drain'
+                            for scenario in SCENARIOS if scenario.startswith('retirement-')})
+NEGATIVE_ASSERTIONS.update({'retired-section-tree-shutdown': 'retired_worker_released_without_render_drain',
+                            'tree-closing-rejects-admission': 'closing_tree_rejects_new_request',
+                            'tree-closing-rejects-publication': 'retired_worker_released_without_render_drain'})
+if args.baseline_profile == '0.1.9':
+    NEGATIVE_ASSERTIONS['section-churn-backpressure'] = 'churn_section_no_late_publication'
 report = {'scope': __doc__, 'source_hashes': {str(path): hashlib.sha256((ROOT / path).read_bytes()).hexdigest() for path in SOURCES},
-          'baseline_commit': args.baseline_commit, 'runs': []}
+          'baseline_commit': args.baseline_commit, 'baseline_profile': args.baseline_profile, 'runs': []}
 
-def run_suite(label, commit=None):
+def run_suite(label, commit=None, churn_mutant=False):
     output = args.out / label
     sources, classes = output / 'src', output / 'classes'
     sources.mkdir(parents=True, exist_ok=True); classes.mkdir(parents=True, exist_ok=True)
@@ -272,6 +332,11 @@ def run_suite(label, commit=None):
     driver = sources / 'fixture/Driver.java'; driver.parent.mkdir(parents=True, exist_ok=True); driver.write_text(DRIVER, encoding='utf-8')
     for path in SOURCES:
         content = subprocess.run(['git', 'show', commit + ':' + path.as_posix()], cwd=ROOT, capture_output=True, check=True).stdout if commit else (ROOT / path).read_bytes()
+        if churn_mutant and path.name == 'LodRenderSection.java':
+            original = b'CompletableFuture.anyOf(uploadCompletion, this.quadTree.getShutdownFuture()).join();'
+            assert content.count(original) == 1, 'Mutation target must be the current whole-tree wait.'
+            content = content.replace(original, b'CompletableFuture.anyOf(uploadCompletion, future.handle((ignored, failure) -> null)).join();')
+            report['mutant_source_sha256'] = hashlib.sha256(content).hexdigest()
         target = sources / Path(*path.parts[5:])
         target.parent.mkdir(parents=True, exist_ok=True); target.write_bytes(content)
     command = [args.javac, '-encoding', 'UTF-8', '-source', '8', '-target', '8', '-d', str(classes)] + [str(path) for path in sources.rglob('*.java')]
@@ -279,7 +344,7 @@ def run_suite(label, commit=None):
     (output / 'compile.log').write_text(result.stdout + result.stderr, encoding='utf-8')
     if result.returncode:
         print(result.stderr); raise SystemExit('Compilation failed: ' + label)
-    for scenario in SCENARIOS:
+    for scenario in (['section-churn-backpressure'] if churn_mutant else SCENARIOS):
         try:
             result = subprocess.run([args.java, '-Xverify:all', '-cp', str(classes), 'fixture.Driver', scenario], capture_output=True, text=True, timeout=15)
             text, code = result.stdout + result.stderr, result.returncode
@@ -287,6 +352,8 @@ def run_suite(label, commit=None):
             text, code = str(failure), None
         (output / (scenario + '.log')).write_text(text, encoding='utf-8')
         expected_assertion = NEGATIVE_ASSERTIONS.get(scenario) if commit else None
+        if churn_mutant:
+            expected_assertion = 'section_churn_keeps_worker_backpressure'
         expected_failure = expected_assertion is not None
         assertion = re.search(r'ASSERT ([A-Za-z0-9_]+)', text)
         passed = (code != 0 and code is not None and assertion is not None and assertion.group(1) == expected_assertion) if expected_failure else code == 0 and ('PASS ' + scenario) in text and assertion is None
@@ -294,9 +361,12 @@ def run_suite(label, commit=None):
                               'expected_assertion': expected_assertion, 'assertion': assertion.group(1) if assertion else None, 'passed': passed})
         print(('PASS ' if passed else 'FAIL ') + label + ' ' + scenario, flush=True)
 
-run_suite('candidate')
-if args.baseline_commit:
-    run_suite('baseline', args.baseline_commit)
+if args.churn_mutant_only:
+    run_suite('churn-mutant', churn_mutant=True)
+else:
+    run_suite('candidate')
+    if args.baseline_commit:
+        run_suite('baseline', args.baseline_commit)
 report['passed'] = all(run['passed'] for run in report['runs'])
 (args.out / 'results.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
 raise SystemExit(0 if report['passed'] else 1)

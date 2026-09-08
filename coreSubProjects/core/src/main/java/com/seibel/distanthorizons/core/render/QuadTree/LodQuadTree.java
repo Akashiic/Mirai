@@ -97,6 +97,11 @@ public class LodQuadTree extends QuadTree<LodRenderSection> implements IDebugRen
 	 * IE {@link RenderBufferHandler} will walk through the tree each frame.
 	 */
 	private final ReentrantLock treeTickLock = new ReentrantLock();
+	private final AtomicBoolean closing = new AtomicBoolean();
+	/** Only whole-tree retirement releases upload workers; individual section churn does not. */
+	private final CompletableFuture<Void> shutdownFuture = new CompletableFuture<>();
+	boolean isClosing() { return this.closing.get(); }
+	CompletableFuture<Void> getShutdownFuture() { return this.shutdownFuture; }
 	
 	private final AtomicBoolean requeueAllRetrievalTasksRef = new AtomicBoolean(false);
 	private final AtomicBoolean queueThreadRunningRef = new AtomicBoolean(false);
@@ -219,7 +224,7 @@ public class LodQuadTree extends QuadTree<LodRenderSection> implements IDebugRen
 	 */
 	public void tryTick(DhBlockPos2D playerPos)
 	{
-		if (this.level == null)
+		if (this.level == null || this.closing.get())
 		{
 			// the quad tree was created before a level reference was created
 			return;
@@ -230,11 +235,11 @@ public class LodQuadTree extends QuadTree<LodRenderSection> implements IDebugRen
 		// don't tick the tree if a modification is still going
 		if (this.treeTickLock.tryLock())
 		{
-			// this shouldn't be updated while the tree is being iterated through
-			this.updateDetailLevelVariables();
-			
 			try
 			{
+				if (this.closing.get()) { return; }
+				// this shouldn't be updated while the tree is being iterated through
+				this.updateDetailLevelVariables();
 				this.updateAllRenderSections(playerPos);
 			}
 			catch (Exception e)
@@ -1302,18 +1307,14 @@ public class LodQuadTree extends QuadTree<LodRenderSection> implements IDebugRen
 	@Override
 	public void close()
 	{
+		if (!this.closing.compareAndSet(false, true)) { return; }
 		//LOGGER.info("Shutting down LodQuadTree...");
 		
-		DEBUG_RENDERER.unregister(this, Config.Client.Advanced.Debugging.DebugWireframe.showQuadTreeRenderStatus);
-		Config.Common.WorldGenerator.enableDistantGeneration.removeListener(this);
-		Config.Server.enableServerGeneration.removeListener(this);
-		
-		
-		ThreadPoolExecutor mainCleanupExecutor = ThreadPoolUtil.getCleanupExecutor();
 		// closing every node may take a few moments
 		// so this is run on a separate thread to prevent lagging the render thread
-		mainCleanupExecutor.execute(() -> 
+		Runnable cleanup = () ->
 		{
+			Throwable failure = null;
 			this.treeTickLock.lock();
 			try
 			{
@@ -1325,16 +1326,57 @@ public class LodQuadTree extends QuadTree<LodRenderSection> implements IDebugRen
 					LodRenderSection renderSection = quadNode.value;
 					if (renderSection != null)
 					{
-						renderSection.close();
-						quadNode.value = null;
+						try { renderSection.close(); }
+						catch (RuntimeException | Error closeError)
+						{
+							if (failure == null) { failure = closeError; }
+							else if (failure != closeError) { failure.addSuppressed(closeError); }
+						}
+						finally { quadNode.value = null; }
 					}
 				}
 			}
 			finally
 			{
 				this.treeTickLock.unlock();
+				// CompletableFuture callbacks may run synchronously. All sections are fenced,
+				// and the tree lock is released before their waiting workers are allowed to exit.
+				this.shutdownFuture.complete(null);
 			}
-		});
+			if (failure instanceof Error) { throw (Error) failure; }
+			if (failure instanceof RuntimeException) { throw (RuntimeException) failure; }
+		};
+		Throwable preparationFailure = null;
+		try
+		{
+			DEBUG_RENDERER.unregister(this, Config.Client.Advanced.Debugging.DebugWireframe.showQuadTreeRenderStatus);
+			Config.Common.WorldGenerator.enableDistantGeneration.removeListener(this);
+			Config.Server.enableServerGeneration.removeListener(this);
+		}
+		catch (RuntimeException | Error error)
+		{
+			preparationFailure = error;
+			throw error;
+		}
+		finally
+		{
+			// A failed listener removal must not strand upload workers behind the closing guard.
+			try
+			{
+				ThreadPoolExecutor mainCleanupExecutor = ThreadPoolUtil.getCleanupExecutor();
+				if (mainCleanupExecutor == null) { cleanup.run(); }
+				else
+				{
+					try { mainCleanupExecutor.execute(cleanup); }
+					catch (RejectedExecutionException rejected) { cleanup.run(); }
+				}
+			}
+			catch (RuntimeException | Error cleanupError)
+			{
+				if (preparationFailure == null) { throw cleanupError; }
+				if (preparationFailure != cleanupError) { preparationFailure.addSuppressed(cleanupError); }
+			}
+		}
 		
 		
 		//LOGGER.info("Finished shutting down LodQuadTree");

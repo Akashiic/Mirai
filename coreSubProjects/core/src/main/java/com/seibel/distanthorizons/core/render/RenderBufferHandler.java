@@ -29,6 +29,7 @@ import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.logging.f3.F3Screen;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiDiagnostics;
 import com.seibel.distanthorizons.core.pos.DhSectionPos;
 import com.seibel.distanthorizons.core.pos.blockPos.DhBlockPos2D;
 import com.seibel.distanthorizons.core.render.QuadTree.LodQuadTree;
@@ -130,6 +131,14 @@ public class RenderBufferHandler implements AutoCloseable
 	 * <a href="https://www.reddit.com/r/VoxelGameDev/comments/a0l8zc/correct_depthordering_for_translucent_discrete/">correct_depth_ordering_for_translucent_discrete</a>
 	 */
 	public void buildRenderList(RenderParams renderParams)
+	{
+		// Includes selection, list construction and culling; this is not pure culling CPU time.
+		long diagnosticStart = MiraiDiagnostics.startTiming();
+		try { this.buildRenderListInternal(renderParams); }
+		finally { MiraiDiagnostics.finishTiming(MiraiDiagnostics.Metric.LOD_RENDER_LIST_WALL, diagnosticStart); }
+	}
+
+	private void buildRenderListInternal(RenderParams renderParams)
 	{
 		if (ModInfo.IS_DEV_BUILD)
 		{
