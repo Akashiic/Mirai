@@ -1,0 +1,23 @@
+import groovy.json.JsonOutput
+
+gradle.projectsEvaluated {
+    def root = gradle.rootProject
+    root.tasks.register('exportTestClasspaths') {
+        group = 'verification'
+        doLast {
+            def payload = [:]
+            [':core', ':api'].each { projectPath ->
+                def target = root.project(projectPath)
+                def testSources = target.extensions.getByName('sourceSets').getByName('test')
+                payload[projectPath] = [
+                    runtimeClasspath: testSources.runtimeClasspath.files.collect { it.absolutePath },
+                    testClassesDirs: testSources.output.classesDirs.files.collect { it.absolutePath }
+                ]
+            }
+            def output = new File(root.buildDir, 'mirai-test-classpaths.json')
+            output.parentFile.mkdirs()
+            output.text = JsonOutput.prettyPrint(JsonOutput.toJson(payload)) + '\n'
+            logger.lifecycle('Exported compiled-test classpaths to {}', output)
+        }
+    }
+}

@@ -97,6 +97,11 @@ public class CloudRenderHandler
 			new DhVec3d(),
 			new DhVec3d(),
 		};
+	/** Render-thread scratch, overwritten on each callback just like cullingCorners. */
+	private final DhVec3d cullingCornerNoHeight = new DhVec3d();
+	private final DhVec3d cullingCameraNoHeight = new DhVec3d();
+	private final DhVec3f cullingToCorner = new DhVec3f();
+	private final DhVec3f cullingCameraLook = new DhVec3f();
 	
 	
 	
@@ -511,7 +516,10 @@ public class CloudRenderHandler
 		this.cullingCorners[3].y = minPosY;
 		this.cullingCorners[3].z = minPosZ + cloudParams.widthInBlocks;
 		
-		DhVec3f cameraLookAtVector = this.renderWrapper.getLookAtVector();
+		DhVec3f currentCameraLook = this.renderWrapper.getLookAtVector();
+		// Normalize only our own scratch, not a potentially shared wrapper vector.
+		DhVec3f cameraLookAtVector = this.cullingCameraLook;
+		cameraLookAtVector.set(currentCameraLook.x, currentCameraLook.y, currentCameraLook.z);
 		cameraLookAtVector.normalize();
 		
 		double renderDistance = 
@@ -536,10 +544,14 @@ public class CloudRenderHandler
 			// Check if the corner is within the render distance
 			// (ignoring height, since LODs also ignore height)
 			
-			DhVec3d cornerNoHeight = new DhVec3d(corner); 
+			DhVec3d cornerNoHeight = this.cullingCornerNoHeight;
+			cornerNoHeight.x = corner.x;
 			cornerNoHeight.y = 0;
-			DhVec3d cameraPosNoHeight = new DhVec3d(cameraPos); 
+			cornerNoHeight.z = corner.z;
+			DhVec3d cameraPosNoHeight = this.cullingCameraNoHeight;
+			cameraPosNoHeight.x = cameraPos.x;
 			cameraPosNoHeight.y = 0;
+			cameraPosNoHeight.z = cameraPos.z;
 			
 			double cornerDistance = cornerNoHeight.getDistance(cameraPosNoHeight);
 			if (cornerDistance <= renderDistance)
@@ -549,7 +561,8 @@ public class CloudRenderHandler
 			
 			
 			// Check if the corner is in front of the camera (dot product > 0 means in front)
-			DhVec3f toCorner = new DhVec3f(
+			DhVec3f toCorner = this.cullingToCorner;
+			toCorner.set(
 					(float) (corner.x - cameraPos.x),
 					(float) (corner.y - cameraPos.y),
 					(float) (corner.z - cameraPos.z));

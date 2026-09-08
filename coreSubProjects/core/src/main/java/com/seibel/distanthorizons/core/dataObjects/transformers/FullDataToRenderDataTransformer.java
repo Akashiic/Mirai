@@ -355,6 +355,12 @@ public class FullDataToRenderDataTransformer
 		for (int fullDataIndex = 0; fullDataIndex < fullColumnData.size(); fullDataIndex++)
 		{
 			long fullData = fullColumnData.getLong(fullDataIndex);
+			// Partial DTO reads leave this sentinel in columns outside the requested edge.
+			// It has no mapping entry; a non-empty data point may still legitimately use ID 0.
+			if (fullData == FullDataPointUtil.EMPTY_DATA_POINT)
+			{
+				continue;
+			}
 			
 			int bottomY = FullDataPointUtil.getBottomY(fullData);
 			int blockHeight = FullDataPointUtil.getHeight(fullData);

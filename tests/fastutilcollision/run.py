@@ -6,6 +6,8 @@ import json
 import pathlib
 import subprocess
 import sys
+from urllib.parse import urlsplit
+from urllib.request import url2pathname
 import zipfile
 
 FASTUTIL_8518_SHA256 = '9094ae67d01d0ad246f886f11ad557fc2e79c72cbf3feed83e1512a8ae90a74a'
@@ -13,6 +15,17 @@ FASTUTIL_8518_SHA256 = '9094ae67d01d0ad246f886f11ad557fc2e79c72cbf3feed83e1512a8
 def sha256(path):
     with path.open('rb') as handle:
         return hashlib.file_digest(handle, 'sha256').hexdigest()
+
+def origin_matches(output, key, expected_path):
+    """Compare file locations, including Java's file:/C:/ form on Windows."""
+    values = [line[len(key) + 1:] for line in output.splitlines() if line.startswith(key + '=')]
+    if len(values) != 1:
+        return False
+    origin = urlsplit(values[0])
+    if origin.scheme != 'file' or origin.query or origin.fragment:
+        return False
+    file_path = ('//' + origin.netloc if origin.netloc else '') + origin.path
+    return pathlib.Path(url2pathname(file_path)).resolve() == expected_path.resolve()
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -68,20 +81,19 @@ def main():
             try:
                 run = subprocess.run(command, capture_output=True, text=True, timeout=30)
                 output = run.stdout + run.stderr
-                origin = 'ARRAY_ORIGIN=file:' + str(expected_origin)
-                passed = origin in output
+                passed = origin_matches(output, 'ARRAY_ORIGIN', expected_origin)
                 if expected_failure:
                     passed &= run.returncode != 0 and 'NoSuchMethodError' in output and 'ObjectArrayList.combine(' in output
                 else:
                     passed &= run.returncode == 0 and 'PASS ' + mode in output
                     if mode == 'external':
-                        passed &= 'IMMUTABLE_ORIGIN=file:' + str(args.fastutil) in output
+                        passed &= origin_matches(output, 'IMMUTABLE_ORIGIN', args.fastutil)
                     else:
-                        passed &= 'LONG_ARRAY_ORIGIN=file:' + str(args.candidate) in output
+                        passed &= origin_matches(output, 'LONG_ARRAY_ORIGIN', args.candidate)
                         if len(jars) > 1:
                             for phase in ('BEFORE', 'AFTER'):
                                 for kind in ('ARRAY', 'IMMUTABLE'):
-                                    passed &= 'COEXIST_' + phase + '_' + kind + '_ORIGIN=file:' + str(args.fastutil) in output
+                                    passed &= origin_matches(output, 'COEXIST_' + phase + '_' + kind + '_ORIGIN', args.fastutil)
                 result = {'runtime': name, 'case': case, 'expected_collision': expected_failure,
                           'exit_code': run.returncode, 'passed': bool(passed), 'command': command}
             except subprocess.TimeoutExpired as exc:

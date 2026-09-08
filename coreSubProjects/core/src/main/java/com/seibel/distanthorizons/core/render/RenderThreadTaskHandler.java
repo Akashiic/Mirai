@@ -21,6 +21,7 @@ import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.LongAdder;
 
 public class RenderThreadTaskHandler
@@ -41,6 +42,9 @@ public class RenderThreadTaskHandler
 	private static final NumberFormat DECIMAL_NUMBER_FORMAT = NumberFormat.getNumberInstance();
 	private static final NumberFormat INT_NUMBER_FORMAT = NumberFormat.getIntegerInstance();
 	private static final boolean LOG_SLOW_TASKS = false;
+	// A development version is also distributed to players. Capturing every
+	// producer stack is expensive even when nobody is investigating a GL error.
+	private static final boolean CAPTURE_TASK_STACKS = Boolean.getBoolean("akashic.mirai.renderTaskStacks");
 	
 	private static final Timer TIMER = TimerUtil.CreateTimer("Cleanup timer");
 	private static final long MS_BETWEEN_CLEANUP_TICKS = 1_000L;
@@ -50,7 +54,8 @@ public class RenderThreadTaskHandler
 	public static final RenderThreadTaskHandler INSTANCE = new RenderThreadTaskHandler();
 	
 	
-	private long nanoSinceTasksRun = System.nanoTime();
+	private volatile long nanoSinceTasksRun = System.nanoTime();
+	private final AtomicBoolean cleanupQueued = new AtomicBoolean();
 	private final boolean running; 
 	
 	private Thread renderThread;
@@ -104,7 +109,7 @@ public class RenderThreadTaskHandler
 		
 		// don't get the stacktrace on release to reduce GC pressure
 		StackTraceElement[] stackTrace = null;
-		if (ModInfo.IS_DEV_BUILD)
+		if (CAPTURE_TASK_STACKS)
 		{
 			stackTrace = Thread.currentThread().getStackTrace();
 		}
@@ -130,18 +135,21 @@ public class RenderThreadTaskHandler
 	{
 		IMinecraftRenderWrapper MC_RENDER = SingletonInjector.INSTANCE.get(IMinecraftRenderWrapper.class);
 		
-		// https://fpstoms.com/
-		int frameLimit = MC_RENDER.getFrameLimit();
+		this.runRenderThreadTasks(taskBudgetNanos(MC_RENDER.getFrameLimit()));
+	}
+
+	/** Preserve the half-frame policy without truncating to whole milliseconds. */
+	static long taskBudgetNanos(int frameLimit)
+	{
 		if (frameLimit <= 1)
 		{
 			frameLimit = 240;
 		}
 		
 		
-		int msPerFrame = 1000 / frameLimit;
-		long nanoPerFrame = msPerFrame * 1_000_000L;
-		nanoPerFrame /= 2; // divide the time in half so we can only impact half of the framerate at worst
-		this.runRenderThreadTasks(nanoPerFrame);
+		// Individual tasks cannot be preempted, so this is a scheduling budget,
+		// not a guarantee that driver calls finish within half a frame.
+		return Math.max(1L, 500_000_000L / frameLimit);
 	}
     private void runRenderThreadTasks(long nanoMaxRunTime)
     {
@@ -184,11 +192,8 @@ public class RenderThreadTaskHandler
 			// stat tracking
 			if (ModInfo.IS_DEV_BUILD)
 			{
-				if (!AVERAGE_NANO_RUN_TIME_BY_TASK_NAME.containsKey(runnable.name))
-				{
-					AVERAGE_NANO_RUN_TIME_BY_TASK_NAME.put(runnable.name, new RollingAverage(1_000));
-				}
-				AVERAGE_NANO_RUN_TIME_BY_TASK_NAME.get(runnable.name).add(totalLoopNano);
+				AVERAGE_NANO_RUN_TIME_BY_TASK_NAME.computeIfAbsent(runnable.name,
+						name -> new RollingAverage(1_000)).add(taskNano);
 				
 				COMPLETED_TASK_COUNTER.increment();
 			}
@@ -224,7 +229,8 @@ public class RenderThreadTaskHandler
 	{
 		long nowNano = System.nanoTime();
 		long nanoSinceLast = nowNano - this.nanoSinceTasksRun;
-		if (nanoSinceLast < NANOS_BEFORE_RUN_CLEANUP_TIMER)
+		if (nanoSinceLast < NANOS_BEFORE_RUN_CLEANUP_TIMER
+				|| RENDER_THREAD_RUNNABLE_QUEUE.isEmpty())
 		{
 			return;
 		}
@@ -236,7 +242,40 @@ public class RenderThreadTaskHandler
 		IMinecraftClientWrapper mcClient = SingletonInjector.INSTANCE.get(IMinecraftClientWrapper.class);
 		if (mcClient != null)
 		{
-			mcClient.executeOnRenderThread(() -> this.runRenderThreadTasks(500 * 1_000_000L));
+			// The client executor may itself be stalled. Keep only one fallback
+			// callback pending, and recheck freshness when it actually executes.
+			if (!this.cleanupQueued.compareAndSet(false, true)) { return; }
+			try
+			{
+				mcClient.executeOnRenderThread(() ->
+				{
+					try
+					{
+						if (System.nanoTime() - this.nanoSinceTasksRun >= NANOS_BEFORE_RUN_CLEANUP_TIMER)
+						{
+							// Returning to the game must not trigger a half-second
+							// drain left over from a menu/minimized window.
+							this.runRenderThreadTasks();
+						}
+					}
+					finally { this.cleanupQueued.set(false); }
+				});
+			}
+			catch (RuntimeException failure)
+			{
+				this.cleanupQueued.set(false);
+				// Timer terminates permanently if a RuntimeException escapes its
+				// task. A transient client-executor rejection must remain retryable.
+				if (!ExceptionUtil.isShutdownException(failure))
+				{
+					RATE_LIMITED_LOGGER.warn("Unable to schedule render task cleanup: " + failure.getMessage());
+				}
+			}
+			catch (Error failure)
+			{
+				this.cleanupQueued.set(false);
+				throw failure;
+			}
 		}
 		else
 		{

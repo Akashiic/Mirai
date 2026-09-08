@@ -52,3 +52,6 @@ accesstransformer.cfg
 # Local regression harness caches
 __pycache__/
 *.pyc
+
+# Local verification artifacts are delivered in the separate evidence package.
+/evidence/

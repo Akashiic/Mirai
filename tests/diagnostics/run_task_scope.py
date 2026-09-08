@@ -8,6 +8,7 @@ p.add_argument('jar', type=Path)
 p.add_argument('--jdk', type=Path, action='append', required=True)
 p.add_argument('--junit', type=Path, required=True)
 p.add_argument('--hamcrest', type=Path, required=True)
+p.add_argument('--log4j', type=Path, action='append', required=True, help='Explicit Log4j API and core runtime JARs')
 p.add_argument('--negative-control', type=Path, required=True)
 p.add_argument('--report', type=Path, required=True)
 a = p.parse_args()
@@ -18,7 +19,7 @@ result = {'jar': str(jar), 'sha256': hashlib.sha256(jar.read_bytes()).hexdigest(
           'scope': 'Actual RenderThreadTaskHandler bytecode, headless tasks in an isolated classloader. No Minecraft/driver validation.', 'runs': []}
 source = Path(__file__).resolve().parents[2] / 'coreSubProjects/core/src/test/java/com/seibel/distanthorizons/core/render/RenderTaskScopeTest.java'
 with tempfile.TemporaryDirectory(prefix='mirai-task-scope-') as temp:
-    dependencies = os.pathsep.join(str(path.resolve()) for path in (a.junit, a.hamcrest))
+    dependencies = os.pathsep.join(str(path.resolve()) for path in (a.junit, a.hamcrest, *a.log4j))
     subprocess.run([str(a.jdk[0] / 'bin/javac'), '-source', '8', '-target', '8', '-cp', dependencies,
                     '-d', temp, str(source)], check=True)
     cp = os.pathsep.join((temp, str(jar), dependencies))

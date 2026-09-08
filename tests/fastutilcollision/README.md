@@ -46,4 +46,6 @@ Nos dois casos de coleções privadas com a dependência externa, o mesmo classl
 
 O teste também rejeita qualquer entrada residual em `it/unimi/dsi/fastutil/` no JAR corrigido. O relatório `results.json` registra comandos, JVMs, SHA-256, expectativas e resultados individuais; os logs preservam a origem efetiva das classes e a cadeia de exceções.
 
+A comparação de origem converte a URL `file:` emitida pelo Java para caminho local antes de comparar. Isso preserva a verificação do arquivo exato também no Windows (`file:/C:/...`), em caminhos com espaços e nas formas equivalentes de URL. Uma origem ausente, duplicada, não local ou diferente continua reprovada.
+
 Este teste comprova a regressão de empacotamento e resolução de classes. Ele não inicia Minecraft, Forge, a renderização do Angelica nem um contexto OpenGL e não equivale à homologação do modpack completo.

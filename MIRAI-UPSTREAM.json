@@ -1,6 +1,6 @@
 {
   "project": "Akashic: Horizons of The Mirai",
-  "version": "0.1.7-dev",
+  "version": "0.1.8-dev",
   "release_status": "development; runtime certification pending",
   "minecraft": "1.7.10",
   "graphics_backend": "LWJGL2",
@@ -16,12 +16,26 @@
   "upstream_self_update": false,
   "license": "LGPL-3.0",
   "notes": "Source changes and original notices accompany every distribution. Never install beside another Distant Horizons jar. A compiled jar alone does not certify Crucible or client compatibility.",
-  "previous_release": {
+  "historical_release_0_1_6": {
     "version": "0.1.6-dev",
     "root_commit": "9213d55af6dac6261c8f1c2bdca37b62db036acb",
     "core_commit": "32e666200e8f595e9f796ec8935fc1bb6770d959",
     "jar_sha256": "c1d29f3f87ca952b4d57da14ff90f6e700cf49b3d8357037ac8a94988712c409",
     "source_zip_sha256": "0b5ae0de6cc80a04bb4ac0a0cdc6ea74e5e3e1f6cf8f965dd52a2c22f675a31c"
+  },
+  "previous_release": {
+    "version": "0.1.7-dev",
+    "delivered_root_commit": "d8afab15da319b692d5e753e1c722c5f4042a39f",
+    "supplied_source_manifest_commit": "2ae4158f66a3416a165741a8041ed0c4a966973d",
+    "jar_sha256": "b46cac2c39e63fce350c97687c4ffe36308d380ff84dda4a81db81dfb83e39ac",
+    "supplied_source_zip_sha256": "086c631210bd8d6e0bc3d73a3a8c566fcd465277f228f84ef0890264967c2709",
+    "expected_final_source_zip_sha256": "426dd06cb3e0fc1922e6f2e08385e8bf3f50e37e3bc97e4b5f4cb11319880888"
+  },
+  "source_recovery_0_1_8": {
+    "date": "2026-09-08",
+    "verified_files": 1349,
+    "restoration_commit": "195f83f",
+    "history": "New consolidated local Git from supplied candidate ZIP. Internal hashes all matched. Candidate ZIP differs from final delivery ZIP; previous final evidence records changes in two test files only. This checkout is not represented as original d8afab15 history."
   },
   "source_recovery": {
     "date": "2026-09-08",

@@ -102,6 +102,8 @@ public class GLBuffer implements AutoCloseable
 	public int getSize() { return this.size; }
 	protected boolean bufferStorage;
 	protected boolean isMapped = false;
+	/** A storage call may allocate before a wrapper throws, so track attempts per GL ID. */
+	private boolean immutableStorageAllocationAttempted;
 	
 	/**
 	 * Locking on the render thread isn't great, but is needed due to an inconsistent
@@ -164,6 +166,8 @@ public class GLBuffer implements AutoCloseable
 		{
 			final int oldId = this.id;
 			this.id = GLMC.glGenBuffers();
+			this.size = 0;
+			this.immutableStorageAllocationAttempted = false;
 			//LOGGER.info("created [" + newId + "].");
 			
 			// destroy the old buffer
@@ -217,6 +221,7 @@ public class GLBuffer implements AutoCloseable
 			// where the queued on render thread task runs before the ID is cleared
 			this.id = 0;
 			this.size = 0;
+			this.immutableStorageAllocationAttempted = false;
 			
 			//LOGGER.info("async destroy [" + idToDelete + "].");
 			RenderThreadTaskHandler.INSTANCE.queueRunningOnRenderThread("GLBuffer destroyAsync", () -> { destroyBufferIdNow(idToDelete, "destroyAsync"); });
@@ -358,8 +363,15 @@ public class GLBuffer implements AutoCloseable
 		LodUtil.assertTrue(this.bufferStorage, "Buffer is not bufferStorage but its trying to use bufferStorage upload method!");
 		
 		int bbSize = bb.limit() - bb.position();
-		this.destroyOldAndCreate(true);
+		// A freshly generated ID has no immutable storage yet. Replacing it on the
+		// first upload only adds driver calls and phantom-reference bookkeeping.
+		if (this.immutableStorageAllocationAttempted)
+		{
+			this.destroyOldAndCreate(true);
+		}
 		this.bind();
+		// Mark before the native call: after a partial failure, retry with a new ID.
+		this.immutableStorageAllocationAttempted = true;
 		LWJGL.glBufferStorage(this.getBufferBindingTarget(), bb, 0);
 		this.size = bbSize;
 	}

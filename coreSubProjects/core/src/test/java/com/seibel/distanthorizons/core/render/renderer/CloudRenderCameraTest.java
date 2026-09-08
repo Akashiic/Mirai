@@ -8,6 +8,7 @@ import com.seibel.distanthorizons.api.objects.render.DhApiRenderableBox;
 import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.level.IDhClientLevel;
 import com.seibel.distanthorizons.core.render.RenderParams;
+import com.seibel.distanthorizons.core.util.LodUtil;
 import com.seibel.distanthorizons.core.util.math.DhVec3d;
 import com.seibel.distanthorizons.core.util.math.DhVec3f;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
@@ -21,10 +22,12 @@ import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.io.InputStream;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.function.Consumer;
 
 import static org.junit.Assert.*;
@@ -156,6 +159,115 @@ public class CloudRenderCameraTest
 		assertEquals(2, fixture.cameraQueries);
 	}
 
+	@Test public void allocationFreeCullingMatchesPreviousDecisionsAtBoundaries() throws Exception
+	{
+		Fixture fixture = new Fixture();
+		CullingAccess culling = new CullingAccess(fixture);
+		float[] origins = {0, -0.0f, 128, -128, Math.nextDown(6144f), 6144, Math.nextUp(6144f),
+			-6144, 16_777_216, -16_777_216, Float.MIN_VALUE, Float.MAX_VALUE,
+			Float.NaN, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY};
+		DhVec3f[] looks = {new DhVec3f(), new DhVec3f(1, 0, 0), new DhVec3f(-1, 0, 0),
+			new DhVec3f(0, 1, 0), new DhVec3f(0, -1, 0), new DhVec3f(0, 0, 1), new DhVec3f(0, 0, -1),
+			new DhVec3f(3, -4, 5), new DhVec3f(0.0031622776f, 0, 0), new DhVec3f(Float.MIN_VALUE, 0, 0),
+			new DhVec3f(Float.NaN, 1, 0), new DhVec3f(0, Float.POSITIVE_INFINITY, 0),
+			new DhVec3f(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE)};
+		DhVec3d[] cameras = {new DhVec3d(), new DhVec3d(128, 356, 128),
+			new DhVec3d(-30_000_000.25, 256, 30_000_000.75), new DhVec3d(Double.MIN_VALUE, -0.0, -Double.MIN_VALUE),
+			new DhVec3d(Double.NaN, 0, 0), new DhVec3d(0, Double.POSITIVE_INFINITY, 0)};
+		for (int radius : new int[] {128, 256, 2048})
+		{
+			Config.Client.Advanced.Graphics.Quality.lodChunkRenderDistanceRadius.setWithoutFiringEvents(radius);
+			for (float origin : origins)
+				for (DhVec3f look : looks)
+					for (DhVec3d camera : cameras)
+					{
+						culling.assertSameDecision(origin, 356, -origin, 1, 2, -2, camera, look);
+						culling.assertSameDecision(origin, Float.NaN, origin, 16, 1, -1, camera, look);
+					}
+		}
+	}
+
+	@Test public void cullingScratchesAreOverwrittenForChangingCamerasAndDirections() throws Exception
+	{
+		Fixture fixture = new Fixture();
+		CullingAccess culling = new CullingAccess(fixture);
+		Random random = new Random(0x4d49524149L);
+		for (int i = 0; i < 12_000; i++)
+		{
+			DhVec3d camera = new DhVec3d(random.nextDouble() * 60_000_000 - 30_000_000,
+				random.nextDouble() * 2048 - 1024, random.nextDouble() * 60_000_000 - 30_000_000);
+			float x = (float) (camera.x + random.nextDouble() * 100_000 - 50_000);
+			float y = (float) (camera.y + random.nextDouble() * 2048 - 1024);
+			float z = (float) (camera.z + random.nextDouble() * 100_000 - 50_000);
+			DhVec3f look = new DhVec3f(random.nextFloat() * 4 - 2, random.nextFloat() * 4 - 2, random.nextFloat() * 4 - 2);
+			culling.assertSameDecision(x, y, z, 1 + random.nextInt(257), random.nextInt(11) - 5,
+				random.nextInt(11) - 5, camera, look);
+		}
+	}
+
+	/** Invokes the production private method; the oracle retains the pre-optimization algorithm. */
+	private static final class CullingAccess
+	{
+		final Fixture fixture;
+		final Constructor<?> paramsConstructor;
+		final Method method;
+
+		CullingAccess(Fixture fixture) throws Exception
+		{
+			this.fixture = fixture;
+			Class<?> paramsClass = Class.forName(CloudRenderHandler.class.getName() + "$CloudParams");
+			this.paramsConstructor = paramsClass.getDeclaredConstructor(int.class, int.class, int.class, int.class);
+			this.paramsConstructor.setAccessible(true);
+			this.method = CloudRenderHandler.class.getDeclaredMethod("shouldCloudBeCulled", float.class, float.class,
+				float.class, paramsClass, DhVec3d.class);
+			this.method.setAccessible(true);
+		}
+
+		void assertSameDecision(float x, float y, float z, int textureWidth, int offsetX, int offsetZ,
+				DhVec3d camera, DhVec3f look) throws Exception
+		{
+			DhVec3d cameraBefore = new DhVec3d(camera);
+			DhVec3f lookBefore = new DhVec3f(look);
+			this.fixture.sharedLook = look;
+			boolean expected = previousCulling(x, y, z, textureWidth * 128, offsetX, offsetZ, camera, new DhVec3f(look));
+			Object params = this.paramsConstructor.newInstance(textureWidth, 0, offsetX, offsetZ);
+			boolean actual = (Boolean) this.method.invoke(this.fixture.handler, x, y, z, params, camera);
+			assertEquals("Previous culling decision must be unchanged", expected, actual);
+			assertEquals(Double.doubleToRawLongBits(cameraBefore.x), Double.doubleToRawLongBits(camera.x));
+			assertEquals(Double.doubleToRawLongBits(cameraBefore.y), Double.doubleToRawLongBits(camera.y));
+			assertEquals(Double.doubleToRawLongBits(cameraBefore.z), Double.doubleToRawLongBits(camera.z));
+			assertEquals(Float.floatToRawIntBits(lookBefore.x), Float.floatToRawIntBits(look.x));
+			assertEquals(Float.floatToRawIntBits(lookBefore.y), Float.floatToRawIntBits(look.y));
+			assertEquals(Float.floatToRawIntBits(lookBefore.z), Float.floatToRawIntBits(look.z));
+		}
+	}
+
+	private static boolean previousCulling(float x, float y, float z, int width, int offsetX, int offsetZ,
+			DhVec3d cameraPos, DhVec3f cameraLookAtVector)
+	{
+		if (offsetX >= -1 && offsetX <= 1 && offsetZ >= -1 && offsetZ <= 1) return false;
+		DhVec3d[] corners = {new DhVec3d(x, y, z), new DhVec3d(x, y, z + width),
+			new DhVec3d(x + width, y, z), new DhVec3d(x + width, y, z + width)};
+		cameraLookAtVector.normalize();
+		double renderDistance = Math.max(Config.Client.Advanced.Graphics.Quality.lodChunkRenderDistanceRadius.get(), 256)
+			* LodUtil.CHUNK_WIDTH * 1.5;
+		boolean allOutsideRenderDistance = true;
+		boolean allBehindCamera = true;
+		for (DhVec3d corner : corners)
+		{
+			DhVec3d cornerNoHeight = new DhVec3d(corner);
+			cornerNoHeight.y = 0;
+			DhVec3d cameraPosNoHeight = new DhVec3d(cameraPos);
+			cameraPosNoHeight.y = 0;
+			if (cornerNoHeight.getDistance(cameraPosNoHeight) <= renderDistance) allOutsideRenderDistance = false;
+			DhVec3f toCorner = new DhVec3f((float) (corner.x - cameraPos.x), (float) (corner.y - cameraPos.y),
+				(float) (corner.z - cameraPos.z));
+			toCorner.normalize();
+			if (cameraLookAtVector.dotProduct(toCorner) > 0) allBehindCamera = false;
+		}
+		return allOutsideRenderDistance || allBehindCamera;
+	}
+
 	private static <T> T proxy(Class<T> type, InvocationHandler handler)
 	{
 		return type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] {type}, handler));
@@ -207,10 +319,12 @@ public class CloudRenderCameraTest
 		final List<Group> groups = new ArrayList<>();
 		final List<IDhApiRenderableBoxGroup> registered = new ArrayList<>();
 		final IMinecraftRenderWrapper renderWrapper;
+		final CloudRenderHandler handler;
 		final int width;
 		DhVec3d cameraPosition = new DhVec3d(10_000_000, 500, 10_000_000);
 		Color color = new Color(71, 119, 173);
 		float lookZ = 1;
+		DhVec3f sharedLook;
 		int cameraQueries;
 
 		@SuppressWarnings("unchecked")
@@ -224,7 +338,7 @@ public class CloudRenderCameraTest
 			this.renderWrapper = proxy(IMinecraftRenderWrapper.class, (object, method, args) ->
 			{
 				if (method.getName().equals("getCameraExactPosition")) { this.cameraQueries++; return this.cameraPosition; }
-				if (method.getName().equals("getLookAtVector")) { return new DhVec3f(0, 0, this.lookZ); }
+				if (method.getName().equals("getLookAtVector")) { return this.sharedLook != null ? this.sharedLook : new DhVec3f(0, 0, this.lookZ); }
 				return defaultReturn(method);
 			});
 			IClientLevelWrapper client = proxy(IClientLevelWrapper.class, (object, method, args) ->
@@ -253,7 +367,7 @@ public class CloudRenderCameraTest
 				}
 				return defaultReturn(method);
 			});
-			new CloudRenderHandler(level, renderer, this.renderWrapper, factory);
+			this.handler = new CloudRenderHandler(level, renderer, this.renderWrapper, factory);
 			assertEquals(363, this.registered.size());
 		}
 
