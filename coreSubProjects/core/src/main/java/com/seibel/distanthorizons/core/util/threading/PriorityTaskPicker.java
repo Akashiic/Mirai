@@ -51,6 +51,8 @@ public class PriorityTaskPicker
 	private final ReentrantLock taskPickerLock = new ReentrantLock();
 	/** Tracks the number of active threads */
 	private final AtomicInteger occupiedThreadsRef = new AtomicInteger(0);
+	/** A non-blocking caller that loses the picker lock leaves a durable wakeup request. */
+	private final AtomicBoolean retryRequestedRef = new AtomicBoolean(false);
 	
 	private final AtomicBoolean isShutDownRef = new AtomicBoolean(false);
 	
@@ -80,6 +82,8 @@ public class PriorityTaskPicker
 	
 	private void startNextTask(boolean waitForLock)
 	{
+		do
+		{
 		if (this.isShutDownRef.get()) { return; }
 		// only let one thread start the next task to prevent concurrency errors
 		if (waitForLock)
@@ -94,6 +98,7 @@ public class PriorityTaskPicker
 			// task since that means someone else is already working on it
 			if (!this.taskPickerLock.tryLock())
 			{
+				this.retryRequestedRef.set(true);
 				return;
 			}
 		}
@@ -184,6 +189,8 @@ public class PriorityTaskPicker
 		{
 			this.taskPickerLock.unlock();
 		}
+		waitForLock = false;
+		} while (this.retryRequestedRef.getAndSet(false));
 	}
 	private Iterator<Executor> getExecutorIteratorSortedByShortestTotalRunTime()
 	{

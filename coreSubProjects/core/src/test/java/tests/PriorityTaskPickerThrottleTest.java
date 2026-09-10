@@ -92,6 +92,47 @@ public class PriorityTaskPickerThrottleTest
     }
 
     @Test
+    public void contendedSchedulerPassCannotLoseQueuedWork() throws Exception
+    {
+        Config.Client.threadPresetSetting.get();
+        int oldThreads = Config.Common.MultiThreading.numberOfThreads.get();
+        double oldRatio = Config.Common.MultiThreading.threadRunTimeRatio.get();
+        PriorityTaskPicker picker = null;
+        CountDownLatch releasePass = new CountDownLatch(1);
+        try
+        {
+            Config.Common.MultiThreading.numberOfThreads.setWithoutFiringEvents(1);
+            Config.Common.MultiThreading.threadRunTimeRatio.setWithoutFiringEvents(1.0);
+            picker = new PriorityTaskPicker();
+            PriorityTaskPicker.Executor target = picker.createExecutor("lost-wakeup-target");
+            CountDownLatch passInsideBlocker = new CountDownLatch(1);
+            picker.createExecutor("lost-wakeup-blocker", () ->
+            {
+                passInsideBlocker.countDown();
+                try { releasePass.await(2, TimeUnit.SECONDS); }
+                catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+                return true;
+            });
+            PriorityTaskPicker finalPicker = picker;
+            Thread holder = new Thread(finalPicker::requestWork, "picker-lock-holder");
+            holder.start();
+            assertTrue("scheduler pass never entered blocker", passInsideBlocker.await(1, TimeUnit.SECONDS));
+            CountDownLatch ran = new CountDownLatch(1);
+            target.execute(ran::countDown);
+            releasePass.countDown();
+            holder.join(1000);
+            assertTrue("scheduler lost work queued during lock contention", ran.await(1, TimeUnit.SECONDS));
+        }
+        finally
+        {
+            releasePass.countDown();
+            if (picker != null) { picker.shutdownNow(); }
+            Config.Common.MultiThreading.threadRunTimeRatio.setWithoutFiringEvents(oldRatio);
+            Config.Common.MultiThreading.numberOfThreads.setWithoutFiringEvents(oldThreads);
+        }
+    }
+
+    @Test
     public void instantaneousTasksLeaveGlobalOccupancyAtZero() throws Exception
     {
         Config.Client.threadPresetSetting.get();

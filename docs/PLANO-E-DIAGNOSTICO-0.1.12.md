@@ -31,7 +31,7 @@ O governor mede somente sinais disponíveis dentro do processo: razão aproximad
 
 - **G0 — baseline:** `:core:test :api:test` deve passar antes do primeiro patch. Resultado: aprovado.
 - **G1 — reprodução:** teste dedicado deve falhar com a lógica 0.1.11 no cenário de starvation e passar com a correção. Resultado: aprovado.
-- **G2 — concorrência/FIFO:** 2.000 tarefas instantâneas devem drenar e `occupiedThreadsRef` deve retornar exatamente a zero. Um segundo caso força backpressure durante throttle e exige ordem `ABC`; a versão intermediária `ACB` foi rejeitada. Resultado final: aprovado.
+- **G2 - concorrencia/FIFO/wakeup:** 2.000 tarefas instantaneas devem drenar e `occupiedThreadsRef` deve retornar exatamente a zero. Um caso forca backpressure durante throttle e exige ordem `ABC`; a versao intermediaria `ACB` foi rejeitada. Outro caso mantem o lock do picker ocupado enquanto uma nova tarefa e submetida e exige retry duravel, sem depender de futura submissao externa. Resultado final: aprovado.
 - **G3 — sync/lifecycle:** testes de cache remoto, deferred e delayed batch devem continuar verdes, incluindo sessão terminal sem intent retido. Resultado: aprovado.
 - **G4 — regressão ampla:** `:core:test :api:test`. Resultado: aprovado na candidata de código.
 - **G5 — pacote Forge 1.7.10:** build completo e `verify-mirai-jar.py`. O build de engenharia pré-bump foi aprovado; o build final deve ser repetido sobre o commit de release.
