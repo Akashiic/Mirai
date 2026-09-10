@@ -16,6 +16,7 @@
 package com.seibel.distanthorizons.forge17;
 
 import com.seibel.distanthorizons.core.logging.mirai.MiraiDiagnostics;
+import com.seibel.distanthorizons.core.util.threading.ThreadPoolUtil;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.shader.Framebuffer;
@@ -215,6 +216,7 @@ public class ForgeClientProxy implements AbstractModInitializer.IEventProxy
     {
 		if (event.phase == TickEvent.Phase.START)
 		{
+			ThreadPoolUtil.onClientRenderFrame(Minecraft.getMinecraft().theWorld != null && Minecraft.getMinecraft().currentScreen == null && Minecraft.getMinecraft().inGameHasFocus);
 			AbstractModInitializer.updateShaderTransparencyPolicy();
 		}
 		// Angelica owns the depth attachment when our framebuffer mixin is excluded.

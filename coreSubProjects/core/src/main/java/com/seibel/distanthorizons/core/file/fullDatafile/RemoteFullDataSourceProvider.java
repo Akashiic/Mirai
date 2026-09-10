@@ -120,7 +120,7 @@ public class RemoteFullDataSourceProvider extends GeneratedFullDataSourceProvide
 	/** True means no deferred intent is needed (already pending, checked, or admitted). */
 	private boolean trySynchronize(long pos)
 	{
-		if (this.synchronizationStopped() || this.syncOnLoadRequestQueue.isClosed()) { return true; }
+		if (this.synchronizationStopped() || !this.syncOnLoadRequestQueue.canRetainDeferredRequests()) { return true; }
 		if (this.unavailablePositions.contains(pos) || this.visitedPositions.contains(pos)
 			|| !this.pendingPositions.add(pos)) { return true; }
 		boolean submitted = false;
@@ -154,7 +154,7 @@ public class RemoteFullDataSourceProvider extends GeneratedFullDataSourceProvide
 		{
 			synchronized (this.syncOnLoadRequestQueue)
 			{
-				if (this.synchronizationStopped() || this.syncOnLoadRequestQueue.isClosed())
+				if (this.synchronizationStopped() || !this.syncOnLoadRequestQueue.canRetainDeferredRequests())
 				{
 					if (result != null && result.dataSource != null) { result.dataSource.close(); }
 					return;
@@ -190,10 +190,12 @@ public class RemoteFullDataSourceProvider extends GeneratedFullDataSourceProvide
 
 	private void deferPosition(long pos)
 	{
+		// Never acquire the network queue while holding deferredPositions: stopSynchronization
+		// owns the opposite (queue -> deferred) order. Recheck the volatile close fence inside.
+		if (this.synchronizationStopped() || !this.syncOnLoadRequestQueue.canRetainDeferredRequests()) { return; }
 		synchronized (this.deferredPositions)
 		{
-			if (this.synchronizationStopped() || this.syncOnLoadRequestQueue.isClosed()
-				|| this.deferredPositions.contains(pos)) { return; }
+			if (this.synchronizationStopped() || this.deferredPositions.contains(pos)) { return; }
 			if (this.deferredPositions.size() >= this.syncOnLoadRequestQueue.getRequestCapacity())
 			{
 				Iterator<Long> iterator = this.deferredPositions.iterator();
@@ -218,8 +220,13 @@ public class RemoteFullDataSourceProvider extends GeneratedFullDataSourceProvide
 	/** Called by the existing current-level tick, outside the queue's monitor. */
 	public void tickDeferredSynchronization()
 	{
-		if (this.syncOnLoadRequestQueue == null || this.synchronizationStopped()
-			|| this.getDeferredSyncCount() == 0 || !this.syncOnLoadRequestQueue.hasSyncRequestCapacity()
+		if (this.syncOnLoadRequestQueue == null || this.synchronizationStopped()) { return; }
+		if (!this.syncOnLoadRequestQueue.canRetainDeferredRequests())
+		{
+			synchronized (this.deferredPositions) { this.deferredPositions.clear(); }
+			return;
+		}
+		if (this.getDeferredSyncCount() == 0 || !this.syncOnLoadRequestQueue.hasSyncRequestCapacity()
 			|| !this.deferredWorkerPending.compareAndSet(false, true)) { return; }
 		try
 		{
@@ -251,7 +258,8 @@ public class RemoteFullDataSourceProvider extends GeneratedFullDataSourceProvide
 			}
 			for (int i = 0; i < size; i++)
 			{
-				if (this.synchronizationStopped() || !this.syncOnLoadRequestQueue.hasSyncRequestCapacity()) { break; }
+				if (this.synchronizationStopped() || !this.syncOnLoadRequestQueue.canRetainDeferredRequests()
+						|| !this.syncOnLoadRequestQueue.hasSyncRequestCapacity()) { break; }
 				if (!this.trySynchronize(batch[i])) { break; }
 				this.removeDeferredPosition(batch[i]);
 			}

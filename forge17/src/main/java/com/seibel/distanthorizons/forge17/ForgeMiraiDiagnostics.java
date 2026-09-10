@@ -86,10 +86,13 @@ public final class ForgeMiraiDiagnostics
     }
     static void threadPools()
     {
+        MiraiDiagnostics.event("runtime_governor", com.seibel.distanthorizons.core.util.threading.MiraiRuntimeGovernor.getDiagnosticString());
+        MiraiDiagnostics.event("scheduler_state", com.seibel.distanthorizons.core.util.threading.ThreadPoolUtil.getMiraiSchedulerDiagnosticString());
         pool("LOD_Builder", com.seibel.distanthorizons.core.util.threading.ThreadPoolUtil.getChunkToLodBuilderExecutor());
         pool("Render_Load", com.seibel.distanthorizons.core.util.threading.ThreadPoolUtil.getRenderLoadingExecutor());
         pool("Network", com.seibel.distanthorizons.core.util.threading.ThreadPoolUtil.getNetworkCompressionExecutor());
         pool("File_Handler", com.seibel.distanthorizons.core.util.threading.ThreadPoolUtil.getFileHandlerExecutor());
+        pool("Update_Propagator", com.seibel.distanthorizons.core.util.threading.ThreadPoolUtil.getUpdatePropagatorExecutor());
         pool("World_Gen_Import", com.seibel.distanthorizons.core.util.threading.ThreadPoolUtil.getWorldGenExecutor());
     }
     private static void pool(String name, com.seibel.distanthorizons.core.util.threading.PriorityTaskPicker.Executor pool)
@@ -99,6 +102,7 @@ public final class ForgeMiraiDiagnostics
         int queued = pool == null ? 0 : pool.getQueueSizeUpTo(256);
         MiraiDiagnostics.event("threads", "pool=" + name + (pool == null ? " available=false" : " queued_observed=" + (queued == 256 ? ">=256" : Integer.toString(queued))
             + " completed=" + pool.getCompletedTaskCount() + " running=" + pool.getRunningTaskCount()
-            + " threads=" + pool.getPoolSize() + " average_task_wall_ms=" + pool.getAverageRunTimeInMs()));
+            + " threads=" + pool.getPoolSize() + " reserved=" + pool.getReservedWorkerCount()
+            + " average_task_wall_ms=" + pool.getAverageRunTimeInMs()));
     }
 }

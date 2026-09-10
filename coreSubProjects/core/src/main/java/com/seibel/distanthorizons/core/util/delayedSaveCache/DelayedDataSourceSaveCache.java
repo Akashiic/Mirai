@@ -5,6 +5,7 @@ import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.pos.DhChunkPos;
 import com.seibel.distanthorizons.core.pos.DhSectionPos;
+import com.seibel.distanthorizons.core.util.ExceptionUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -146,7 +147,7 @@ public class DelayedDataSourceSaveCache extends AbstractDelayedSaveCache<FullDat
 			else
 			{
 				container.finished.completeExceptionally(terminalFailure);
-				if (!(terminalFailure instanceof CancellationException))
+				if (!ExceptionUtil.isShutdownException(terminalFailure))
 				{
 					LOGGER.error("Unable to persist full-data batch [" + DhSectionPos.toString(container.dataSource.getPos()) + "].", terminalFailure);
 				}

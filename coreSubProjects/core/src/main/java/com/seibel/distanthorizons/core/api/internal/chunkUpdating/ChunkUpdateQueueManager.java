@@ -8,10 +8,12 @@ import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.enums.MinecraftTextFormat;
 import com.seibel.distanthorizons.core.generation.DhLightingEngine;
+import com.seibel.distanthorizons.core.level.IDhClientLevel;
 import com.seibel.distanthorizons.core.level.IDhLevel;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.logging.f3.F3Screen;
 import com.seibel.distanthorizons.core.pos.DhChunkPos;
+import com.seibel.distanthorizons.core.util.ExceptionUtil;
 import com.seibel.distanthorizons.core.util.LodUtil;
 import com.seibel.distanthorizons.core.util.ThreadUtil;
 import com.seibel.distanthorizons.core.util.threading.ThreadPoolUtil;
@@ -304,6 +306,7 @@ public class ChunkUpdateQueueManager implements AutoCloseable
 		
 		IDhLevel dhLevel = preUpdateData.dhLevel;
 		IChunkWrapper chunkWrapper = preUpdateData.chunkWrapper;
+		if (isStaleClientLevel(dhLevel)) { return; }
 		chunkWrapper.createDhHeightMaps();
 		
 		try
@@ -329,7 +332,8 @@ public class ChunkUpdateQueueManager implements AutoCloseable
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("Unexpected error when pre-updating chunk at pos: [" + chunkWrapper.getChunkPos() + "]", e);
+			if (!ExceptionUtil.isShutdownException(e))
+			{ LOGGER.error("Unexpected error when pre-updating chunk at pos: [" + chunkWrapper.getChunkPos() + "]", e); }
 		}
 	}
 	
@@ -372,6 +376,7 @@ public class ChunkUpdateQueueManager implements AutoCloseable
 		IChunkWrapper chunkWrapper = updateData.chunkWrapper;
 		IDhLevel dhLevel = updateData.dhLevel;
 		ILevelWrapper levelWrapper = dhLevel.getLevelWrapper();
+		if (isStaleClientLevel(dhLevel)) { return; }
 		
 		// having a list of the nearby chunks is needed for lighting and beacon generation
 		ArrayList<IChunkWrapper> nearbyChunkList = this.tryGetNeighborChunkListForChunk(chunkWrapper);
@@ -384,12 +389,19 @@ public class ChunkUpdateQueueManager implements AutoCloseable
 			dhLevel.updateBeaconBeamsForChunk(chunkWrapper, nearbyChunkList);
 			
 			int newChunkHash = chunkWrapper.getBlockBiomeHashCode();
-			dhLevel.updateChunkAsync(chunkWrapper, newChunkHash);
+			if (!isStaleClientLevel(dhLevel)) { dhLevel.updateChunkAsync(chunkWrapper, newChunkHash); }
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("Unexpected error when updating chunk at pos: [" + chunkWrapper.getChunkPos() + "]", e);
+			if (!ExceptionUtil.isShutdownException(e))
+			{ LOGGER.error("Unexpected error when updating chunk at pos: [" + chunkWrapper.getChunkPos() + "]", e); }
 		}
+	}
+
+	private static boolean isStaleClientLevel(IDhLevel dhLevel)
+	{
+		return dhLevel instanceof IDhClientLevel
+				&& dhLevel.getLevelWrapper().getDhLevel() != dhLevel;
 	}
 	
 	private ArrayList<IChunkWrapper> tryGetNeighborChunkListForChunk(IChunkWrapper chunkWrapper)

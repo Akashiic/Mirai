@@ -74,9 +74,13 @@ public class PriorityTaskPicker
 	 * for one of the available executors.
 	 */
 	private void tryStartNextTask() { this.startNextTask(false); }
+	/** Wake the picker after an external runtime budget changes. */
+	public void requestWork() { this.tryStartNextTask(); }
+	public int getOccupiedThreadCount() { return this.occupiedThreadsRef.get(); }
 	
 	private void startNextTask(boolean waitForLock)
 	{
+		if (this.isShutDownRef.get()) { return; }
 		// only let one thread start the next task to prevent concurrency errors
 		if (waitForLock)
 		{
@@ -118,16 +122,25 @@ public class PriorityTaskPicker
 				// start tasks until we're running as many threads as acceptable by the config,
 				// or until this executor is empty,
 				// or until we should move on to the next executor
-				while (this.occupiedThreadsRef.get() < Config.Common.MultiThreading.numberOfThreads.get()
+				while (this.occupiedThreadsRef.get() < MiraiRuntimeGovernor.getEffectiveThreadLimit(Config.Common.MultiThreading.numberOfThreads.get())
 						&& (task = executor.taskQueue.poll()) != null)
 				{
+					boolean globalSlotReserved = false;
 					try
 					{
-						executor.runTask(task);
-						this.occupiedThreadsRef.getAndIncrement();
+						this.occupiedThreadsRef.incrementAndGet();
+						globalSlotReserved = true;
+						if (!executor.tryRunTaskImmediately(task))
+						{
+							this.occupiedThreadsRef.decrementAndGet();
+							globalSlotReserved = false;
+							executor.taskQueue.addFirst(task);
+							break;
+						}
 					}
 					catch (RejectedExecutionException e)
 					{
+						if (globalSlotReserved) { this.occupiedThreadsRef.decrementAndGet(); }
 						if (this.isShutDownRef.get())
 						{
 							// Clear this executor's tasks since we no longer expect anything to execute.
@@ -140,7 +153,7 @@ public class PriorityTaskPicker
 							// Re-queue the task so we don't lose any tasks
 							// (failing to re-queue tasks can cause LODs to fail to load due
 							// to completable futures becoming orphaned).
-							executor.taskQueue.add(task);
+							executor.taskQueue.addFirst(task);
 						}
 					}
 				}
@@ -236,7 +249,7 @@ public class PriorityTaskPicker
 		private final PriorityTaskPicker parentTaskPicker;
 		private final String name;
 		
-		private final Queue<TrackedRunnable> taskQueue = new ConcurrentLinkedQueue<>();
+		private final Deque<TrackedRunnable> taskQueue = new ConcurrentLinkedDeque<>();
 		
 		private final AtomicInteger runningTasksRef = new AtomicInteger(0);
 		private final AtomicInteger completedTasksRef = new AtomicInteger(0);
@@ -274,7 +287,8 @@ public class PriorityTaskPicker
 			return new RateLimitedThreadPoolExecutor(
 					Config.Common.MultiThreading.numberOfThreads.get(),
 					new DhThreadFactory(this.name, Config.Common.MultiThreading.threadPriority.get(), false),
-					new ArrayBlockingQueue<>(Runtime.getRuntime().availableProcessors())
+					new ArrayBlockingQueue<>(Runtime.getRuntime().availableProcessors()),
+					this.parentTaskPicker::tryStartNextTask
 			);
 		}
 		
@@ -330,7 +344,13 @@ public class PriorityTaskPicker
 		public void remove(@NotNull Runnable command) { this.taskQueue.removeIf(trackedRunnable -> trackedRunnable.command == command); }
 		
 		
-		public void runTask(@NotNull Runnable command) { this.threadPoolExecutor.execute(command); }
+		public void runTask(@NotNull Runnable command)
+		{
+			if (!this.threadPoolExecutor.tryExecuteImmediately(command))
+			{ throw new RejectedExecutionException("No immediately available worker for [" + this.name + "]"); }
+		}
+		private boolean tryRunTaskImmediately(@NotNull Runnable command) { return this.threadPoolExecutor.tryExecuteImmediately(command); }
+		public int getReservedWorkerCount() { return this.threadPoolExecutor.getReservedWorkerCount(); }
 		
 		
 		public int getQueueSize() { return this.taskQueue.size(); }

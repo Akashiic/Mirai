@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -71,8 +73,30 @@ public class CachedLodProviderTest
 		List<CompletableFuture<DataSourceRetrievalResult>> replies = new ArrayList<>();
 		boolean ready = true;
 		boolean full;
-		@Override public synchronized boolean canAcceptSyncRequests() { return this.ready && !this.isClosed(); }
-		@Override public synchronized boolean hasSyncRequestCapacity() { return this.canAcceptSyncRequests() && !this.full; }
+		boolean terminal;
+		int retainCalls;
+		CountDownLatch capacityRejected, allowCapacityReturn, secondRetainEntered;
+		@Override public boolean canRetainDeferredRequests()
+		{
+			int call = ++this.retainCalls;
+			if (call == 2 && this.secondRetainEntered != null) { this.secondRetainEntered.countDown(); }
+			synchronized (this) { return !this.terminal && !this.isClosed(); }
+		}
+		@Override public synchronized boolean canAcceptSyncRequests() { return this.ready && this.canRetainDeferredRequests(); }
+		@Override public boolean hasSyncRequestCapacity()
+		{
+			if (!this.ready)
+			{
+				if (this.capacityRejected != null)
+				{
+					this.capacityRejected.countDown();
+					try { this.allowCapacityReturn.await(2, TimeUnit.SECONDS); }
+					catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+				}
+				return false;
+			}
+			synchronized (this) { return this.canAcceptSyncRequests() && !this.full; }
+		}
 		private RecordingQueue() { super(null, null); }
 		@Override public CompletableFuture<DataSourceRetrievalResult> trySubmitRequest(long pos, Long timestamp)
 		{
@@ -298,6 +322,54 @@ public class CachedLodProviderTest
 			Assert.assertEquals(0, fixture.provider.timestampReads);
 			Assert.assertTrue(fixture.queue.replies.isEmpty());
 			Assert.assertEquals(1, fixture.provider.getDeferredSyncCount());
+		}
+	}
+
+	@Test public void terminalCloseCannotDeadlockAgainstDeferredAdmission() throws Exception
+	{
+		try (Fixture fixture = new Fixture(true))
+		{
+			fixture.queue.ready = false;
+			fixture.queue.capacityRejected = new CountDownLatch(1);
+			fixture.queue.allowCapacityReturn = new CountDownLatch(1);
+			fixture.queue.secondRetainEntered = new CountDownLatch(1);
+			Thread reader = new Thread(fixture::read, "deferred-reader");
+			Thread closer = new Thread(() ->
+			{
+				try
+				{
+					Assert.assertTrue(fixture.queue.capacityRejected.await(1, TimeUnit.SECONDS));
+					synchronized (fixture.queue)
+					{
+						fixture.queue.allowCapacityReturn.countDown();
+						Assert.assertTrue(fixture.queue.secondRetainEntered.await(1, TimeUnit.SECONDS));
+						fixture.provider.stopSynchronization();
+					}
+				}
+				catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+			}, "deferred-closer");
+			reader.setDaemon(true); closer.setDaemon(true);
+			reader.start(); closer.start();
+			reader.join(2000); closer.join(2000);
+			Assert.assertFalse("deferred reader deadlocked with close", reader.isAlive());
+			Assert.assertFalse("close deadlocked with deferred reader", closer.isAlive());
+			Assert.assertEquals(0L, fixture.queue.capacityRejected.getCount());
+			Assert.assertEquals(0L, fixture.queue.secondRetainEntered.getCount());
+			Assert.assertTrue("terminal close did not close the request queue", fixture.queue.isClosed());
+		}
+	}
+
+	@Test public void terminalNetworkSessionDoesNotRetainDeferredIntent() throws Exception
+	{
+		try (Fixture fixture = new Fixture(true))
+		{
+			fixture.queue.ready = false;
+			fixture.queue.terminal = true;
+			fixture.read();
+			fixture.provider.tickDeferredSynchronization();
+			Assert.assertEquals(0, fixture.provider.timestampReads);
+			Assert.assertTrue(fixture.queue.replies.isEmpty());
+			Assert.assertEquals(0, fixture.provider.getDeferredSyncCount());
 		}
 	}
 

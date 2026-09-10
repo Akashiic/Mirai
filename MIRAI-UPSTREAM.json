@@ -1,6 +1,6 @@
 {
   "project": "Akashic: Horizons of The Mirai",
-  "version": "0.1.11-dev",
+  "version": "0.1.12-dev",
   "release_status": "development; runtime certification pending",
   "minecraft": "1.7.10",
   "graphics_backend": "LWJGL2",
@@ -24,10 +24,10 @@
     "source_zip_sha256": "0b5ae0de6cc80a04bb4ac0a0cdc6ea74e5e3e1f6cf8f965dd52a2c22f675a31c"
   },
   "previous_release": {
-    "version": "0.1.10-dev",
-    "commit": "987f3e7941a471e7b5e0f9c943117fba9ff356d0",
-    "jar_sha256": "7a5e4a8c7741a3f586cf056637fed11b10ffd39cfe1cc49201cdaeb40a05c87a",
-    "source_zip_sha256": "52fad236e415e71ac7db2c87ec52c1069ff021410c228349fd0582a3bc2cc811"
+    "version": "0.1.11-dev",
+    "commit": "1484fc07025140f5e5a109c26eb4ed58ebc062de",
+    "jar_sha256": "473a4a669811b418e46039e9e9657b2636391da9b4d78243cfa0cdfd5c74b798",
+    "note": "Checkpoint local limpo confirmado antes do desenvolvimento da 0.1.12; hash do JAR final presente no worktree original."
   },
   "historical_release_0_1_8": {
     "version": "0.1.8-dev",

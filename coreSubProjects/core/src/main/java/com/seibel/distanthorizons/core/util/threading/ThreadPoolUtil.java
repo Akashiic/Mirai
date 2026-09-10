@@ -151,6 +151,24 @@ public class ThreadPoolUtil
 		
 	}
 	
+	/** Called from the physical client render owner; dedicated servers never invoke this path. */
+	public static void onClientRenderFrame(boolean gameplayFocused)
+	{
+		if (MiraiRuntimeGovernor.onClientFrame(gameplayFocused) && taskPicker != null)
+		{
+			taskPicker.requestWork();
+		}
+	}
+
+	public static String getMiraiSchedulerDiagnosticString()
+	{
+		int configured = Config.Common.MultiThreading.numberOfThreads.get();
+		int effective = MiraiRuntimeGovernor.getEffectiveThreadLimit(configured);
+		PriorityTaskPicker picker = taskPicker;
+		return "configured=" + configured + " effective=" + effective
+				+ " occupied=" + (picker == null ? 0 : picker.getOccupiedThreadCount());
+	}
+
 	public static void shutdownThreadPools()
 	{
 		// Startup can fail after creating only some pools. Snapshot every owner,

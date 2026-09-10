@@ -2,13 +2,13 @@
 
 Fork de estabilização do Distant Horizons para **Minecraft 1.7.10**, cliente **LWJGL2** e homologação dedicada em **Crucible / Java 21**.
 
-A versão **0.1.11-dev** libera a espera por upload GL no encerramento da árvore de LODs, preservando os bytes até o consumo real e o limite de produção durante movimento normal. Acrescenta medição da lista de LODs e das etapas de troca de mundo. O ganho de FPS no modpack ainda não está comprovado. Compilação, testes isolados e revisão de código não substituem execução real do modpack. O projeto preserva a identidade técnica `distanthorizons`, a API e os créditos do upstream; não deve ser instalado junto com outro Distant Horizons.
+A versão **0.1.12-dev** endurece o scheduler e o lifecycle a partir dos problemas confirmados na sessão longa da 0.1.11: starvation com `1 thread / ratio 0.5`, deferred sync após sessão terminal e ruído/publicação tardia de FullData no unload. Adiciona um governor conservador de concorrência de background orientado por heap/GC/frametime, sem alterar qualidade visual nem persistir configurações. Compilação, testes isolados e revisão de código não substituem execução real do modpack. O projeto preserva a identidade técnica `distanthorizons`, a API e os créditos do upstream; não deve ser instalado junto com outro Distant Horizons.
 
 - [Arquitetura, fluxogramas, escopo e critérios de estabilidade](docs/ARQUITETURA-MIRAI.md)
 - [Instalação, comandos e coleta de diagnóstico](docs/DIAGNOSTICO-MIRAI.md)
 - [Plano de homologação da base 0.1.5](docs/HOMOLOGACAO-0.1.5-dev.md)
-- [Alterações desta versão](docs/CHANGELOG-0.1.11-dev.md)
-- [Análise, etapas, fluxograma e próxima coleta](docs/PLANO-E-DIAGNOSTICO-0.1.11.md)
+- [Alterações desta versão](docs/CHANGELOG-0.1.12-dev.md)
+- [Plano, auditoria e homologação da 0.1.12](docs/PLANO-E-DIAGNOSTICO-0.1.12.md)
 - [Auditoria independente da rodada 0.1.10](docs/ANALISE-LOGS-0.1.10.md)
 - [Auditoria independente da rodada 0.1.9](docs/ANALISE-LOGS-0.1.9.md)
 - [Análise da rodada anterior](docs/ANALISE-LOGS-0.1.8.md)
@@ -30,7 +30,7 @@ O daemon Gradle utiliza JDK 25; o alvo distribuído é Java 8, após remapeament
 ./gradlew -PmcVer=1.7.10 build
 ```
 
-Distribua somente o resultado de `:forge17:shadeDowngradedApi`, em `forge17/build/libs/Akashic-Horizons-of-The-Mirai-forge17-0.1.11-dev-1.7.10.jar`. Arquivos intermediários não substituem esse artefato.
+Distribua somente o resultado de `:forge17:shadeDowngradedApi`, em `forge17/build/libs/Akashic-Horizons-of-The-Mirai-forge17-0.1.12-dev-1.7.10.jar`. Arquivos intermediários não substituem esse artefato.
 
 ## Licenças e origem
 

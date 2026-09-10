@@ -52,11 +52,14 @@ public class SyncOnLoadRequestQueue extends AbstractFullDataNetworkRequestQueue
 	@Override
 	protected boolean canSendRequests() { return this.canAcceptSyncRequests(); }
 
+	/** Terminal session closure cannot recover inside this queue instance; do not retain deferred intent. */
+	public synchronized boolean canRetainDeferredRequests()
+	{ return !this.isClosed() && (this.networkState == null || this.networkState.getSession() == null || !this.networkState.getSession().isClosed()); }
+
 	/** Readiness is also checked at atomic admission, after a deferred timestamp read. */
 	public synchronized boolean canAcceptSyncRequests()
 	{
-		return !this.isClosed() && this.networkState.isReady()
-			&& !this.networkState.getSession().isClosed()
+		return this.canRetainDeferredRequests() && this.networkState.isReady()
 			&& this.networkState.sessionConfig.getSynchronizeOnLoad()
 			&& this.getRequestRateLimit() > 0
 			&& !DhApiWorldProxy.INSTANCE.tryGetReadOnly()

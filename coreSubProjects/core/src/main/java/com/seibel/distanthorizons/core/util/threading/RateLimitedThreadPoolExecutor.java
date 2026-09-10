@@ -25,6 +25,7 @@ import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 /**
@@ -39,6 +40,9 @@ public class RateLimitedThreadPoolExecutor extends ThreadPoolExecutor
 	
 	/** When this thread started running its last task */
 	private final ThreadLocal<Long> runStartTime = ThreadLocal.withInitial(() -> -1L);
+	/** Tasks reserved onto workers, including the post-task throttle interval. */
+	private final AtomicInteger reservedWorkerCount = new AtomicInteger();
+	private final Runnable workerAvailableCallback;
 	
 	
 	
@@ -47,15 +51,39 @@ public class RateLimitedThreadPoolExecutor extends ThreadPoolExecutor
 	//==============//
 	
 	public RateLimitedThreadPoolExecutor(int poolSize, ThreadFactory threadFactory, BlockingQueue<Runnable> workQueue)
+	{ this(poolSize, threadFactory, workQueue, null); }
+
+	public RateLimitedThreadPoolExecutor(int poolSize, ThreadFactory threadFactory, BlockingQueue<Runnable> workQueue, Runnable workerAvailableCallback)
 	{
 		super(poolSize, poolSize,
 				0L, TimeUnit.MILLISECONDS,
 				workQueue,
 				threadFactory);
+		this.workerAvailableCallback = workerAvailableCallback;
 	}
+
 	
 	
 	
+	/** Reserve a worker only if the task can start without waiting behind another task's throttle. */
+	public boolean tryExecuteImmediately(Runnable runnable)
+	{
+		while (true)
+		{
+			int reserved = this.reservedWorkerCount.get();
+			if (reserved >= this.getCorePoolSize()) { return false; }
+			if (!this.reservedWorkerCount.compareAndSet(reserved, reserved + 1)) { continue; }
+			try { super.execute(runnable); return true; }
+			catch (RuntimeException | Error failure)
+			{
+				this.reservedWorkerCount.decrementAndGet();
+				throw failure;
+			}
+		}
+	}
+
+	public int getReservedWorkerCount() { return this.reservedWorkerCount.get(); }
+
 	//===========//
 	// overrides //
 	//===========//
@@ -71,25 +99,25 @@ public class RateLimitedThreadPoolExecutor extends ThreadPoolExecutor
 	@Override
 	protected void afterExecute(Runnable runnable, Throwable throwable)
 	{
-		super.afterExecute(runnable, throwable);
-		
-		double ratio = this.runTimeRatioConfig.get();
-		if (ratio >= 1.0)
-		{
-			// Avoid sleeping for 0 time
-			return;
-		}
-		
 		try
 		{
-			long runTime = System.nanoTime() - this.runStartTime.get();
-			Thread.sleep(TimeUnit.NANOSECONDS.toMillis((long) (runTime / ratio - runTime)));
+			super.afterExecute(runnable, throwable);
+			double ratio = this.runTimeRatioConfig.get();
+			if (ratio < 1.0)
+			{
+				long runTime = System.nanoTime() - this.runStartTime.get();
+				Thread.sleep(TimeUnit.NANOSECONDS.toMillis((long) (runTime / ratio - runTime)));
+			}
 		}
-		catch (InterruptedException ignore)
+		catch (InterruptedException ignore) { }
+		finally
 		{
-			// if this thread is interrupted that means the
-			// thread pool is being shut down,
-			// we don't need to log that.
+			this.reservedWorkerCount.decrementAndGet();
+			if (this.workerAvailableCallback != null)
+			{
+				try { this.workerAvailableCallback.run(); }
+				catch (RuntimeException callbackFailure) { LOGGER.warn("Unable to wake DH task picker after throttle.", callbackFailure); }
+			}
 		}
 	}
 	
