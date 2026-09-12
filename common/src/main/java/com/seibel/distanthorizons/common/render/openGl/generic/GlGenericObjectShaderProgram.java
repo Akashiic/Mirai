@@ -46,6 +46,15 @@ public class GlGenericObjectShaderProgram extends GlShaderProgram implements IDh
 	private final int topShadingUniform;
 	private final int bottomShadingUniform;
 	
+	// Render-thread-owned scratch values. Uniform uploads copy their values immediately.
+	private final DhMat4f projectionMvmScratch = new DhMat4f();
+	private final DhMat4f directBoxTransformScratch = new DhMat4f();
+	private final DhMat4f directBoxScaleScratch = new DhMat4f();
+	private final DhApiVec3i offsetChunkScratch = new DhApiVec3i();
+	private final DhVec3f offsetSubChunkScratch = new DhVec3f();
+	private final DhApiVec3i cameraChunkScratch = new DhApiVec3i();
+	private final DhVec3f cameraSubChunkScratch = new DhVec3f();
+
 	
 	
 	//=============//
@@ -123,41 +132,35 @@ public class GlGenericObjectShaderProgram extends GlShaderProgram implements IDh
 			DhApiVec3d camPos
 		)
 	{
-		DhMat4f projectionMvmMatrix = new DhMat4f(renderParameters.dhProjectionMatrix);
-		projectionMvmMatrix.multiply(renderParameters.dhModelViewMatrix);
+		this.projectionMvmScratch.set(renderParameters.dhProjectionMatrix);
+		this.projectionMvmScratch.multiply(renderParameters.dhModelViewMatrix);
 		
 		super.bind();
 		
 		
 		
 		
-		this.setUniform(this.instancedShaderOffsetChunkUniform,
-				new DhApiVec3i(
-						LodUtil.getChunkPosFromDouble(boxGroup.getOriginBlockPos().x),
-						LodUtil.getChunkPosFromDouble(boxGroup.getOriginBlockPos().y),
-						LodUtil.getChunkPosFromDouble(boxGroup.getOriginBlockPos().z)
-				));
-		this.setUniform(this.instancedShaderOffsetSubChunkUniform,
-				new DhVec3f(
-						LodUtil.getSubChunkPosFromDouble(boxGroup.getOriginBlockPos().x),
-						LodUtil.getSubChunkPosFromDouble(boxGroup.getOriginBlockPos().y),
-						LodUtil.getSubChunkPosFromDouble(boxGroup.getOriginBlockPos().z)
-				));
-		
-		this.setUniform(this.instancedShaderCameraChunkPosUniform,
-				new DhApiVec3i(
-						LodUtil.getChunkPosFromDouble(camPos.x),
-						LodUtil.getChunkPosFromDouble(camPos.y),
-						LodUtil.getChunkPosFromDouble(camPos.z)
-				));
-		this.setUniform(this.instancedShaderCameraSubChunkPosUniform,
-				new DhVec3f(
-						LodUtil.getSubChunkPosFromDouble(camPos.x),
-						LodUtil.getSubChunkPosFromDouble(camPos.y),
-						LodUtil.getSubChunkPosFromDouble(camPos.z)
-				));
-		
-		this.setUniform(this.instancedShaderProjectionModelViewMatrixUniform, projectionMvmMatrix);
+		this.offsetChunkScratch.x = LodUtil.getChunkPosFromDouble(boxGroup.getOriginBlockPos().x);
+		this.offsetChunkScratch.y = LodUtil.getChunkPosFromDouble(boxGroup.getOriginBlockPos().y);
+		this.offsetChunkScratch.z = LodUtil.getChunkPosFromDouble(boxGroup.getOriginBlockPos().z);
+		this.setUniform(this.instancedShaderOffsetChunkUniform, this.offsetChunkScratch);
+		this.offsetSubChunkScratch.set(
+				LodUtil.getSubChunkPosFromDouble(boxGroup.getOriginBlockPos().x),
+				LodUtil.getSubChunkPosFromDouble(boxGroup.getOriginBlockPos().y),
+				LodUtil.getSubChunkPosFromDouble(boxGroup.getOriginBlockPos().z));
+		this.setUniform(this.instancedShaderOffsetSubChunkUniform, this.offsetSubChunkScratch);
+
+		this.cameraChunkScratch.x = LodUtil.getChunkPosFromDouble(camPos.x);
+		this.cameraChunkScratch.y = LodUtil.getChunkPosFromDouble(camPos.y);
+		this.cameraChunkScratch.z = LodUtil.getChunkPosFromDouble(camPos.z);
+		this.setUniform(this.instancedShaderCameraChunkPosUniform, this.cameraChunkScratch);
+		this.cameraSubChunkScratch.set(
+				LodUtil.getSubChunkPosFromDouble(camPos.x),
+				LodUtil.getSubChunkPosFromDouble(camPos.y),
+				LodUtil.getSubChunkPosFromDouble(camPos.z));
+		this.setUniform(this.instancedShaderCameraSubChunkPosUniform, this.cameraSubChunkScratch);
+
+		this.setUniform(this.instancedShaderProjectionModelViewMatrixUniform, this.projectionMvmScratch);
 		
 		this.setUniform(this.lightMapUniform, LightMapWrapper.GL_BOUND_INDEX);
 		this.setUniform(this.skyLightUniform, boxGroup.getSkyLight());
@@ -201,19 +204,20 @@ public class GlGenericObjectShaderProgram extends GlShaderProgram implements IDh
 			IDhApiRenderableBoxGroup boxGroup, DhApiRenderableBox box, 
 			DhApiVec3d camPos)
 	{
-		DhMat4f projectionMvmMatrix = new DhMat4f(renderParameters.dhProjectionMatrix);
-		projectionMvmMatrix.multiply(renderParameters.dhModelViewMatrix);
-		
-		DhMat4f boxTransform = DhMat4f.createTranslateMatrix(
-				(float) (box.minPos.x + boxGroup.getOriginBlockPos().x - camPos.x),
-				(float) (box.minPos.y + boxGroup.getOriginBlockPos().y - camPos.y),
-				(float) (box.minPos.z + boxGroup.getOriginBlockPos().z - camPos.z));
-		boxTransform.multiply(DhMat4f.createScaleMatrix(
-				(float) (box.maxPos.x - box.minPos.x),
-				(float) (box.maxPos.y - box.minPos.y),
-				(float) (box.maxPos.z - box.minPos.z)));
-		projectionMvmMatrix.multiply(boxTransform);
-		this.setUniform(this.directShaderTransformUniform, projectionMvmMatrix);
+		this.projectionMvmScratch.set(renderParameters.dhProjectionMatrix);
+		this.projectionMvmScratch.multiply(renderParameters.dhModelViewMatrix);
+
+		this.directBoxTransformScratch.setIdentity();
+		this.directBoxTransformScratch.m03 = (float) (box.minPos.x + boxGroup.getOriginBlockPos().x - camPos.x);
+		this.directBoxTransformScratch.m13 = (float) (box.minPos.y + boxGroup.getOriginBlockPos().y - camPos.y);
+		this.directBoxTransformScratch.m23 = (float) (box.minPos.z + boxGroup.getOriginBlockPos().z - camPos.z);
+		this.directBoxScaleScratch.setIdentity();
+		this.directBoxScaleScratch.m00 = (float) (box.maxPos.x - box.minPos.x);
+		this.directBoxScaleScratch.m11 = (float) (box.maxPos.y - box.minPos.y);
+		this.directBoxScaleScratch.m22 = (float) (box.maxPos.z - box.minPos.z);
+		this.directBoxTransformScratch.multiply(this.directBoxScaleScratch);
+		this.projectionMvmScratch.multiply(this.directBoxTransformScratch);
+		this.setUniform(this.directShaderTransformUniform, this.projectionMvmScratch);
 		
 		this.setUniform(this.directShaderColorUniform, box.color);
 		

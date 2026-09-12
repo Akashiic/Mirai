@@ -56,6 +56,8 @@ public class GlDhTerrainShaderProgram extends GlShaderProgram implements IDhApiS
 	
 	
 	private boolean init = false;
+	private final DhMat4f combinedMatrix = new DhMat4f();
+	private final DhVec3f modelOffsetScratch = new DhVec3f();
 	
 	public GlAbstractVertexAttribute vao;
 	
@@ -204,13 +206,13 @@ public class GlDhTerrainShaderProgram extends GlShaderProgram implements IDhApiS
 	@Override
 	public void fillUniformData(DhApiRenderParam renderParameters)
 	{
-		DhMat4f combinedMatrix = new DhMat4f(renderParameters.dhProjectionMatrix);
-		combinedMatrix.multiply(renderParameters.dhModelViewMatrix);
+		this.combinedMatrix.set(renderParameters.dhProjectionMatrix);
+		this.combinedMatrix.multiply(renderParameters.dhModelViewMatrix);
 		
 		super.bind();
 		
 		// uniforms
-		this.setUniform(this.uCombinedMatrix, combinedMatrix);
+		this.setUniform(this.uCombinedMatrix, this.combinedMatrix);
 		this.setUniform(this.uMircoOffset, 0.01f); // 0.01 block offset
 		
 		this.setUniform(this.uLightMap, LightMapWrapper.GL_BOUND_INDEX);
@@ -257,7 +259,11 @@ public class GlDhTerrainShaderProgram extends GlShaderProgram implements IDhApiS
 	}
 	
 	@Override
-	public void setModelOffsetPos(DhApiVec3f modelOffsetPos) { this.setUniform(this.uModelOffset, new DhVec3f(modelOffsetPos)); }
+	public void setModelOffsetPos(DhApiVec3f modelOffsetPos)
+	{
+		this.modelOffsetScratch.set(modelOffsetPos.x, modelOffsetPos.y, modelOffsetPos.z);
+		this.setUniform(this.uModelOffset, this.modelOffsetScratch);
+	}
 	
 	@Override
 	public int getId() { return this.id; }

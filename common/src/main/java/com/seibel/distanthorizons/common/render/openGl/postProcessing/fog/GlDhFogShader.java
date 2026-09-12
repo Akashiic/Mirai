@@ -48,7 +48,8 @@ public class GlDhFogShader extends GlAbstractShaderRenderer
 	
 	
 	public int frameBuffer;
-	private DhMat4f inverseMvmProjMatrix; 
+	private final DhMat4f inverseMvmProjMatrix = new DhMat4f();
+	private final float[] clearColorScratch = new float[4];
 	private DhApiFogRenderParam fogRenderParams;
 	
 	
@@ -214,7 +215,7 @@ public class GlDhFogShader extends GlAbstractShaderRenderer
 	
 	public void prepUniformObjects(DhApiMat4f modelViewProjectionMatrix, DhApiFogRenderParam fogRenderParams)
 	{
-		this.inverseMvmProjMatrix = new DhMat4f(modelViewProjectionMatrix);
+		this.inverseMvmProjMatrix.set(modelViewProjectionMatrix);
 		this.inverseMvmProjMatrix.invert();
 		
 		this.fogRenderParams = fogRenderParams;
@@ -246,9 +247,8 @@ public class GlDhFogShader extends GlAbstractShaderRenderer
 		if (MC_RENDER.runningLegacyOpenGL())
 		{
 			// in another part of the DH code we set the fog color to opaque, here it needs to be transparent
-			float[] clearColorValues = new float[4];
-			LWJGL.glGetFloatv(GL11.GL_COLOR_CLEAR_VALUE, clearColorValues);
-			LWJGL.glClearColor(clearColorValues[0], clearColorValues[1], clearColorValues[2], 0.0f);
+			LWJGL.glGetFloatv(GL11.GL_COLOR_CLEAR_VALUE, this.clearColorScratch);
+			LWJGL.glClearColor(this.clearColorScratch[0], this.clearColorScratch[1], this.clearColorScratch[2], 0.0f);
 			
 			LWJGL.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 		}

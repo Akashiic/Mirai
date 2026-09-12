@@ -48,6 +48,8 @@ public class GlDhTaaShader extends GlAbstractShaderRenderer
 	
 	// Previous-frame state, captured at the END of render() for use NEXT frame.
 	private final DhMat4f previousDhProjMvmMatrix = new DhMat4f();
+	private final DhMat4f dhProjectionInverse = new DhMat4f();
+	private final DhMat4f dhModelViewInverse = new DhMat4f();
 	private final DhVec3d previousCameraPos = new DhVec3d(0,0,0);
 	
 	
@@ -130,11 +132,11 @@ public class GlDhTaaShader extends GlAbstractShaderRenderer
 	@Override
 	protected void onApplyUniforms(RenderParams renderParams)
 	{
-		DhMat4f dhProjectionInverse = new DhMat4f(renderParams.dhProjectionMatrix);
-		dhProjectionInverse.invert();
+		this.dhProjectionInverse.set(renderParams.dhProjectionMatrix);
+		this.dhProjectionInverse.invert();
 		
-		DhMat4f dhModelViewInverse = new DhMat4f(renderParams.dhModelViewMatrix);
-		dhModelViewInverse.invert();
+		this.dhModelViewInverse.set(renderParams.dhModelViewMatrix);
+		this.dhModelViewInverse.invert();
 		
 		double cameraOffsetX = renderParams.exactCameraPosition.x - this.previousCameraPos.x;
 		double cameraOffsetY = renderParams.exactCameraPosition.y - this.previousCameraPos.y;
@@ -143,8 +145,8 @@ public class GlDhTaaShader extends GlAbstractShaderRenderer
 		
 		// apply uniforms
 		{
-			this.shader.setUniform(this.uDhProjectionInverse, dhProjectionInverse);
-			this.shader.setUniform(this.uDhModelViewInverse, dhModelViewInverse);
+			this.shader.setUniform(this.uDhProjectionInverse, this.dhProjectionInverse);
+			this.shader.setUniform(this.uDhModelViewInverse, this.dhModelViewInverse);
 			this.shader.setUniform(this.uDhPrevProjMvm, this.previousDhProjMvmMatrix);
 			
 			// individual camera items because vec3 byte alignment is cursed and breaks

@@ -61,6 +61,7 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 	private int activeDepthTextureId = -1;
 	private int textureWidth;
 	private int textureHeight;
+	private final float[] clearColorScratch = new float[4];
 	
 	
 	// framebuffer and texture ID's for this renderer
@@ -255,9 +256,8 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		{
 			LWJGL.glClearDepth(1.0);
 			
-			float[] clearColorValues = new float[4];
-			LWJGL.glGetFloatv(GL11.GL_COLOR_CLEAR_VALUE, clearColorValues);
-			LWJGL.glClearColor(clearColorValues[0], clearColorValues[1], clearColorValues[2], 1.0f);
+			LWJGL.glGetFloatv(GL11.GL_COLOR_CLEAR_VALUE, this.clearColorScratch);
+			LWJGL.glClearColor(this.clearColorScratch[0], this.clearColorScratch[1], this.clearColorScratch[2], 1.0f);
 			
 			if (this.usingMcFramebuffer && framebufferOverride == null)
 			{
@@ -454,11 +454,10 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		
 		LWJGL.glClearDepth(1.0);
 		
-		float[] clearColorValues = new float[4];
-		LWJGL.glGetFloatv(GL11.GL_COLOR_CLEAR_VALUE, clearColorValues);
+		LWJGL.glGetFloatv(GL11.GL_COLOR_CLEAR_VALUE, this.clearColorScratch);
 		// alpha of 0 done as a check to make sure DH is only applied to MC's framebuffer
 		// where DH pixels were drawn
-		LWJGL.glClearColor(clearColorValues[0], clearColorValues[1], clearColorValues[2], 0.0f);
+		LWJGL.glClearColor(this.clearColorScratch[0], this.clearColorScratch[1], this.clearColorScratch[2], 0.0f);
 		
 		if (this.usingMcFramebuffer 
 			&& framebufferOverride == null)

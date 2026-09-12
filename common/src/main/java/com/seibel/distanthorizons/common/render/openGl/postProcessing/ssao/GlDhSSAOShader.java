@@ -48,8 +48,8 @@ public class GlDhSSAOShader extends GlAbstractShaderRenderer
 	
 	public int frameBuffer;
 	
-	private DhMat4f projection;
-	private DhMat4f invertedProjection;
+	private final DhMat4f projection = new DhMat4f();
+	private final DhMat4f invertedProjection = new DhMat4f();
 	
 	
 	// uniforms
@@ -98,9 +98,9 @@ public class GlDhSSAOShader extends GlAbstractShaderRenderer
 	
 	public void setProjectionMatrix(DhApiMat4f projectionMatrix)
 	{
-		this.projection = new DhMat4f(projectionMatrix);
+		this.projection.set(projectionMatrix);
 		
-		this.invertedProjection = new DhMat4f(projectionMatrix);
+		this.invertedProjection.set(projectionMatrix);
 		this.invertedProjection.invert();
 	}
 	
