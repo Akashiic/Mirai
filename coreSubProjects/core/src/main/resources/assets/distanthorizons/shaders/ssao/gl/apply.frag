@@ -20,21 +20,37 @@ float Gaussian(const in float sigma, const in float x) {
     return exp(-(x*x) / (2.0 * (sigma*sigma)));
 }
 
+float SpatialGaussianWeight(const in int offset, const in float w0, const in float w1, const in float w2, const in float w3) {
+    int distance = abs(offset);
+    if (distance == 0) return w0;
+    if (distance == 1) return w1;
+    if (distance == 2) return w2;
+    return w3;
+}
+
 float BilateralGaussianBlur(const in vec2 texcoord, const in float linearDepth, const in float g_sigmaV) {
     float g_sigmaX = 1.6;
-    float g_sigmaY = 1.6;
 
     int radius = clamp(gBlurRadius, 1, 3);
+
+    // Spatial Gaussian terms depend only on the integer tap offset.
+    // Cache the exact same Gaussian evaluations once per fragment instead of
+    // recomputing them for every tap in the 2D kernel.
+    // X and Y use the exact same sigma (1.6), so their spatial weights are identical.
+    float g0 = Gaussian(g_sigmaX, 0.0);
+    float g1 = Gaussian(g_sigmaX, 1.0);
+    float g2 = Gaussian(g_sigmaX, 2.0);
+    float g3 = Gaussian(g_sigmaX, 3.0);
     
     vec2 pixelSize = 1.0 / gViewSize;
 
     float accum = 0.0;
     float total = 0.0;
     for (int iy = -radius; iy <= radius; iy++) {
-        float fy = Gaussian(g_sigmaY, iy);
+        float fy = SpatialGaussianWeight(iy, g0, g1, g2, g3);
 
         for (int ix = -radius; ix <= radius; ix++) {
-            float fx = Gaussian(g_sigmaX, ix);
+            float fx = SpatialGaussianWeight(ix, g0, g1, g2, g3);
 
             vec2 sampleTex = texcoord + ivec2(ix, iy) * pixelSize;
             float sampleValue = textureLod(gSSAOMap, sampleTex, 0).r;

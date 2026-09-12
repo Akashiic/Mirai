@@ -88,7 +88,7 @@ public class MiraiGpuProfilerTest
         MiraiGpuProfiler.installBackendFactory(() -> { factoryCalls++; return backend; });
         start(false); MiraiGpuProfiler.endPass(true);
         assertEquals("recording", MiraiGpuProfiler.status());
-        assertEquals(1, factoryCalls); assertEquals(22, backend.created);
+        assertEquals(1, factoryCalls); assertEquals(Stage.values().length * 2, backend.created);
     }
 
     @Test public void unsupportedFactoryAndNarrowCountersFallBackBeforeCreatingQueries()
@@ -114,7 +114,7 @@ public class MiraiGpuProfilerTest
         for (int i = 0; i < 4; i++) { assertFalse(MiraiGpuProfiler.beginPass(false)); }
         assertTrue(MiraiGpuProfiler.status().startsWith("failed:UnsatisfiedLinkError"));
         assertEquals(1, counter(MiraiDiagnostics.Counter.GPU_QUERY_FAILURES));
-        assertEquals(22, backend.deleted.size());
+        assertEquals(Stage.values().length * 2, backend.deleted.size());
         assertTrue(MiraiDiagnostics.enabled()); assertTrue(session.accepting);
         int calls = backend.calls;
         MiraiGpuProfiler.endStage(1); MiraiGpuProfiler.endPass(false);
@@ -129,7 +129,7 @@ public class MiraiGpuProfilerTest
             MiraiGpuProfiler.endPass(true); backend.readyAll(); backend.failOperation = operation;
             assertFalse(MiraiGpuProfiler.beginPass(false));
             assertTrue(MiraiGpuProfiler.status().startsWith("failed:"));
-            assertEquals(22, backend.deleted.size()); assertTrue(MiraiDiagnostics.enabled());
+            assertEquals(Stage.values().length * 2, backend.deleted.size()); assertTrue(MiraiDiagnostics.enabled());
         }
         assertEquals(2, counter(MiraiDiagnostics.Counter.GPU_QUERY_FAILURES));
         assertEquals(0, counter(MiraiDiagnostics.Counter.GPU_SAMPLES));
@@ -156,7 +156,7 @@ public class MiraiGpuProfilerTest
         MiraiDiagnostics.command(new String[]{"gpu", "stop"});
         assertEquals(calls, backend.calls); assertTrue(backend.deleted.isEmpty());
         MiraiGpuProfiler.maintenance();
-        assertEquals(22, backend.deleted.size()); assertEquals(0, backend.reads);
+        assertEquals(Stage.values().length * 2, backend.deleted.size()); assertEquals(0, backend.reads);
         assertEquals("off", MiraiGpuProfiler.status());
         assertTrue(MiraiDiagnostics.enabled());
     }
@@ -166,7 +166,7 @@ public class MiraiGpuProfilerTest
         MiraiGpuProfiler.request(10); start(false); MiraiGpuProfiler.endPass(true);
         set(MiraiGpuProfiler.class, "untilNanos", System.nanoTime() - 1);
         MiraiGpuProfiler.maintenance();
-        assertEquals(22, backend.deleted.size()); assertEquals(0, backend.reads);
+        assertEquals(Stage.values().length * 2, backend.deleted.size()); assertEquals(0, backend.reads);
         assertEquals("off", MiraiGpuProfiler.status());
     }
 
@@ -213,7 +213,7 @@ public class MiraiGpuProfilerTest
         int token = MiraiGpuProfiler.beginStage(Stage.OPAQUE);
         assertFalse(MiraiGpuProfiler.beginPass(true));
         assertTrue(MiraiGpuProfiler.status().startsWith("failed:IllegalStateException"));
-        assertEquals(22, backend.deleted.size());
+        assertEquals(Stage.values().length * 2, backend.deleted.size());
         int calls = backend.calls;
         MiraiGpuProfiler.endStage(token); MiraiGpuProfiler.endPass(true);
         assertEquals(calls, backend.calls); assertEquals(0, counter(MiraiDiagnostics.Counter.GPU_SAMPLES));
@@ -230,7 +230,7 @@ public class MiraiGpuProfilerTest
             else { MiraiGpuProfiler.stop(); }
             assertEquals(2, backend.stamped.size());
             assertFalse(MiraiGpuProfiler.beginPass(true));
-            assertEquals(22, backend.deleted.size());
+            assertEquals(Stage.values().length * 2, backend.deleted.size());
             int callsAfterCleanup = backend.calls;
             int innerToken = MiraiGpuProfiler.beginStage(Stage.SSAO);
             assertEquals(-1, innerToken);
@@ -257,7 +257,7 @@ public class MiraiGpuProfilerTest
         assertFalse(MiraiGpuProfiler.beginPass(false));
         assertEquals(50, counter(MiraiDiagnostics.Counter.GPU_SAMPLES));
         assertEquals(0, counter(MiraiDiagnostics.Counter.GPU_QUERY_FAILURES));
-        assertEquals(22, backend.created); assertEquals(8, session.queued()); assertTrue(session.dropped.get() > 0);
+        assertEquals(Stage.values().length * 2, backend.created); assertEquals(8, session.queued()); assertTrue(session.dropped.get() > 0);
         assertEquals("recording", MiraiGpuProfiler.status());
         assertTrue(MiraiDiagnostics.enabled());
     }

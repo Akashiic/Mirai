@@ -14,7 +14,7 @@ import java.util.function.LongSupplier;
  */
 public final class MiraiGpuQueryRing implements AutoCloseable
 {
-    public enum Stage { PASS, TASKS, OPAQUE, GENERIC_SSAO, SSAO, GENERIC, TRANSPARENT, FOG, FAR_FADE, AA, COMPOSITE }
+    public enum Stage { PASS, TASKS, OPAQUE, GENERIC_SSAO, SSAO, SSAO_RAW, SSAO_APPLY, GENERIC, TRANSPARENT, FOG, FAR_FADE, AA, COMPOSITE }
 
     /** GL_TIMESTAMP ordering: availability of a later timestamp guarantees earlier timestamps are available. */
     public interface Backend

@@ -24,6 +24,8 @@ import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
 import com.seibel.distanthorizons.common.render.openGl.util.GlResourceCleanup;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.render.RenderParams;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiGpuProfiler;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiGpuQueryRing.Stage;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.renderPass.IDhSsaoRenderer;
 import org.lwjgl.opengl.GL11;
@@ -145,12 +147,22 @@ public class GlDhSSAORenderer implements IDhSsaoRenderer
 				this.height = height;
 			}
 			
-			GlDhSSAOShader.INSTANCE.frameBuffer = this.ssaoFramebuffer;
-			GlDhSSAOShader.INSTANCE.setProjectionMatrix(renderParams.dhProjectionMatrix);
-			GlDhSSAOShader.INSTANCE.render(renderParams);
-			
-			GlDhSSAOApplyShader.INSTANCE.ssaoTexture = this.ssaoTexture;
-			GlDhSSAOApplyShader.INSTANCE.render(renderParams);
+			int rawStage = MiraiGpuProfiler.beginStage(Stage.SSAO_RAW);
+			try
+			{
+				GlDhSSAOShader.INSTANCE.frameBuffer = this.ssaoFramebuffer;
+				GlDhSSAOShader.INSTANCE.setProjectionMatrix(renderParams.dhProjectionMatrix);
+				GlDhSSAOShader.INSTANCE.render(renderParams);
+			}
+			finally { MiraiGpuProfiler.endStage(rawStage); }
+
+			int applyStage = MiraiGpuProfiler.beginStage(Stage.SSAO_APPLY);
+			try
+			{
+				GlDhSSAOApplyShader.INSTANCE.ssaoTexture = this.ssaoTexture;
+				GlDhSSAOApplyShader.INSTANCE.render(renderParams);
+			}
+			finally { MiraiGpuProfiler.endStage(applyStage); }
 		}
 	}
 	

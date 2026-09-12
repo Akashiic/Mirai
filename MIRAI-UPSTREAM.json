@@ -1,6 +1,6 @@
 {
   "project": "Akashic: Horizons of The Mirai",
-  "version": "0.1.12-dev",
+  "version": "0.1.13-dev",
   "release_status": "development; runtime certification pending",
   "minecraft": "1.7.10",
   "graphics_backend": "LWJGL2",
@@ -24,10 +24,11 @@
     "source_zip_sha256": "0b5ae0de6cc80a04bb4ac0a0cdc6ea74e5e3e1f6cf8f965dd52a2c22f675a31c"
   },
   "previous_release": {
-    "version": "0.1.11-dev",
-    "commit": "1484fc07025140f5e5a109c26eb4ed58ebc062de",
-    "jar_sha256": "473a4a669811b418e46039e9e9657b2636391da9b4d78243cfa0cdfd5c74b798",
-    "note": "Checkpoint local limpo confirmado antes do desenvolvimento da 0.1.12; hash do JAR final presente no worktree original."
+    "version": "0.1.12-dev",
+    "commit": "48b728fe26f4eae6cba39053f349e4a3105a4f7c",
+    "jar_sha256": "0052901c435ef52da5ea6b3b4762dd92983a1a9c67a8949e7ce29f46d5a864de",
+    "source_zip_sha256": "fd31f5024725dead8361843949e08935f731b8a69d22ea990e25abd11046621b",
+    "note": "Checkpoint visual/funcional aprovado para iniciar a fase GPU 0.1.13; runtime final ainda era development."
   },
   "historical_release_0_1_8": {
     "version": "0.1.8-dev",
@@ -74,5 +75,11 @@
     "commit": "fa91834906f7d643b283e42ce2c5113e1dbdc2d2",
     "jar_sha256": "7bc77b4ba6d42ceacfb12f90353d57e45953cc6f37c5dd5d94c31818bea23fab",
     "source_zip_sha256": "ee650fc6500b0ce6c1f5e5ae5c489b53803636c9c259212644e47219e86739fb"
+  },
+  "historical_release_0_1_11": {
+    "version": "0.1.11-dev",
+    "commit": "1484fc07025140f5e5a109c26eb4ed58ebc062de",
+    "jar_sha256": "473a4a669811b418e46039e9e9657b2636391da9b4d78243cfa0cdfd5c74b798",
+    "note": "Checkpoint local limpo confirmado antes do desenvolvimento da 0.1.12; hash do JAR final presente no worktree original."
   }
 }

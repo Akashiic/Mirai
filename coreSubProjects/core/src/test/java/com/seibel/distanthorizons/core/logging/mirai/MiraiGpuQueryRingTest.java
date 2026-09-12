@@ -36,7 +36,7 @@ public class MiraiGpuQueryRingTest
                 f.ring.endPass(true);
             }
         }
-        assertEquals(44, f.backend.created);
+        assertEquals(Stage.values().length * 2 * 2, f.backend.created);
         assertTrue(f.sink.samples.isEmpty());
         f.backend.readyAll();
         assertFalse(f.ring.beginPass(false));
@@ -81,7 +81,7 @@ public class MiraiGpuQueryRingTest
     {
         Fixture f = new Fixture();
         for (int packet = 0; packet < 6; packet++) { f.start(false); f.ring.endPass(true); }
-        assertEquals(132, f.backend.created);
+        assertEquals(Stage.values().length * 2 * 6, f.backend.created);
         for (int i = 0; i < 4; i++)
         {
             int polls = f.backend.polls;
@@ -89,15 +89,15 @@ public class MiraiGpuQueryRingTest
             assertTrue(f.backend.polls - polls <= 6);
         }
         assertEquals(Collections.singletonList("ring-full"), f.sink.drops);
-        assertEquals(132, f.backend.created);
+        assertEquals(Stage.values().length * 2 * 6, f.backend.created);
         assertEquals(0, f.backend.reads);
         f.backend.readyAll();
         assertFalse(f.ring.beginPass(false));
         assertEquals(6, f.sink.samples.size());
         f.start(false); f.ring.endPass(true);
-        assertEquals(132, f.backend.created);
+        assertEquals(Stage.values().length * 2 * 6, f.backend.created);
         f.ring.close();
-        assertEquals(132, f.backend.deleted.size());
+        assertEquals(Stage.values().length * 2 * 6, f.backend.deleted.size());
     }
 
     @Test public void distinctNestedStagesKeepIndependentIntervals()
@@ -114,6 +114,24 @@ public class MiraiGpuQueryRingTest
         f.ring.close();
     }
 
+    @Test public void ssaoSubStagesNestInsideTheOuterSsaoInterval()
+    {
+        Fixture f = new Fixture(); f.start(false);
+        int ssao = f.ring.beginStage(Stage.SSAO);
+        int raw = f.ring.beginStage(Stage.SSAO_RAW);
+        f.ring.endStage(raw);
+        int apply = f.ring.beginStage(Stage.SSAO_APPLY);
+        f.ring.endStage(apply);
+        f.ring.endStage(ssao); f.ring.endPass(true);
+        f.backend.readyAll(); f.ring.beginPass(false);
+        long[] duration = f.sink.samples.get(0).durations;
+        assertEquals(7, duration[Stage.PASS.ordinal()]);
+        assertEquals(5, duration[Stage.SSAO.ordinal()]);
+        assertEquals(1, duration[Stage.SSAO_RAW.ordinal()]);
+        assertEquals(1, duration[Stage.SSAO_APPLY.ordinal()]);
+        f.ring.close();
+    }
+
     @Test public void abortedAndUnbalancedPassesDrainWithoutReadingOrPublishing()
     {
         for (boolean completed : new boolean[]{false, true})
@@ -127,7 +145,7 @@ public class MiraiGpuQueryRingTest
             assertEquals(0, f.backend.reads);
             assertTrue(f.sink.samples.isEmpty());
             f.start(false); f.ring.endPass(true);
-            assertEquals(22, f.backend.created);
+            assertEquals(Stage.values().length * 2, f.backend.created);
             f.ring.close();
         }
     }
@@ -157,7 +175,7 @@ public class MiraiGpuQueryRingTest
         expect(IllegalStateException.class, () -> f.ring.beginPass(true));
         f.ring.close(); f.ring.endStage(token); f.ring.endPass(true); f.ring.close();
         assertFalse(f.ring.beginPass(false));
-        assertEquals(22, f.backend.deleted.size());
+        assertEquals(Stage.values().length * 2, f.backend.deleted.size());
         assertEquals(0, f.backend.reads); assertTrue(f.sink.samples.isEmpty());
     }
 
@@ -269,7 +287,7 @@ public class MiraiGpuQueryRingTest
                 f.backend.failOperation = operation;
                 expect(RuntimeException.class, () -> f.ring.beginPass(false));
             }
-            f.ring.close(); assertEquals(22, f.backend.deleted.size());
+            f.ring.close(); assertEquals(Stage.values().length * 2, f.backend.deleted.size());
             assertTrue(f.sink.samples.isEmpty());
         }
     }
@@ -280,8 +298,8 @@ public class MiraiGpuQueryRingTest
         f.start(true); f.ring.beginStage(Stage.OPAQUE);
         f.backend.failDelete = 1;
         expect(RuntimeException.class, f.ring::close);
-        assertEquals(44, f.backend.deleted.size()); assertEquals(0, f.backend.reads);
-        f.ring.close(); assertEquals(44, f.backend.deleted.size());
+        assertEquals(Stage.values().length * 2 * 2, f.backend.deleted.size()); assertEquals(0, f.backend.reads);
+        f.ring.close(); assertEquals(Stage.values().length * 2 * 2, f.backend.deleted.size());
     }
 
     @Test public void publishedArraysAreNotReusedAndSinkFailureDoesNotLeakNames()
@@ -293,7 +311,7 @@ public class MiraiGpuQueryRingTest
         f.sink.failSample = true;
         expect(RuntimeException.class, () -> f.ring.beginPass(false));
         assertEquals(123456, first[0]);
-        f.ring.close(); assertEquals(22, f.backend.deleted.size());
+        f.ring.close(); assertEquals(Stage.values().length * 2, f.backend.deleted.size());
     }
 
     static <T extends Throwable> T expect(Class<T> type, Runnable action)
