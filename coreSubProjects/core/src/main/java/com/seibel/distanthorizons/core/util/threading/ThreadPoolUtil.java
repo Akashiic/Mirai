@@ -22,6 +22,8 @@ package com.seibel.distanthorizons.core.util.threading;
 import com.seibel.distanthorizons.core.api.internal.ClientApi;
 import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiThreadPoolSetupTiming;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiThreadPoolSetupTiming.Phase;
 import com.seibel.distanthorizons.core.util.LodUtil;
 import com.seibel.distanthorizons.core.util.ThreadUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftSharedWrapper;
@@ -106,51 +108,55 @@ public class ThreadPoolUtil
 	
 	public static void setupThreadPools()
 	{
-		//==================//
-		// main thread pool //
-		//==================//
-		
-		if (taskPicker != null)
+		long setupId = MiraiThreadPoolSetupTiming.begin();
+		long setupStart = MiraiThreadPoolSetupTiming.overallStart(setupId);
+		boolean completed = false;
+		try
 		{
-			taskPicker.shutdownNow();
+			MiraiThreadPoolSetupTiming.run(setupId, Phase.OLD_PICKER_SHUTDOWN, () -> {
+				if (taskPicker != null) { taskPicker.shutdownNow(); }
+			});
+			MiraiThreadPoolSetupTiming.run(setupId, Phase.PICKER_CREATE, () -> taskPicker = new PriorityTaskPicker());
+			MiraiThreadPoolSetupTiming.run(setupId, Phase.NETWORK_COMPRESSION,
+					() -> networkCompressionThreadPool = taskPicker.createExecutor("Network Compression"));
+			MiraiThreadPoolSetupTiming.run(setupId, Phase.NETWORK_CLIENT_HANDLER, () -> {
+				if (networkClientHandlerThreadPool != null)
+				{
+					ClientApi.discardPluginMessageTasks(networkClientHandlerThreadPool.shutdownNow());
+				}
+				networkClientHandlerThreadPool = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
+						new ArrayBlockingQueue<>(512),
+						new DhThreadFactory("Network Client Handler", Thread.NORM_PRIORITY, false),
+						new ThreadPoolExecutor.AbortPolicy());
+			});
+
+			MiraiThreadPoolSetupTiming.run(setupId, Phase.IO,
+					() -> fileHandlerThreadPool = taskPicker.createExecutor("IO"));
+			MiraiThreadPoolSetupTiming.run(setupId, Phase.RENDER_LOADER,
+					() -> renderSectionLoadThreadPool = taskPicker.createExecutor("Render Loader"));
+			MiraiThreadPoolSetupTiming.run(setupId, Phase.LOD_BUILDER,
+					() -> chunkToLodBuilderThreadPool = taskPicker.createExecutor("LOD Builder"));
+			MiraiThreadPoolSetupTiming.run(setupId, Phase.UPDATE_PROPAGATOR,
+					() -> updatePropagatorThreadPool = taskPicker.createExecutor("Update Propagator", ThreadPoolUtil::updatePropagatorThreadsCanRun));
+			MiraiThreadPoolSetupTiming.run(setupId, Phase.WORLD_GEN,
+					() -> worldGenThreadPool = taskPicker.createExecutor("World Gen", ThreadPoolUtil::worldGenThreadsCanRun));
+
+			MiraiThreadPoolSetupTiming.run(setupId, Phase.BEACON_CULLING, () -> {
+				if (beaconCullingThreadPool != null) { beaconCullingThreadPool.shutdown(); }
+				beaconCullingThreadPool = ThreadUtil.makeSingleThreadPool(BEACON_CULLING_THREAD_NAME);
+			});
+			MiraiThreadPoolSetupTiming.run(setupId, Phase.FULL_DATA_MIGRATION, () -> {
+				if (fullDataMigrationThreadPool != null) { fullDataMigrationThreadPool.shutdown(); }
+				fullDataMigrationThreadPool = ThreadUtil.makeSingleThreadPool(FULL_DATA_MIGRATION_THREAD_NAME);
+			});
+			completed = true;
 		}
-		taskPicker = new PriorityTaskPicker();
-		
-		networkCompressionThreadPool = taskPicker.createExecutor("Network Compression");
-		if (networkClientHandlerThreadPool != null)
+		finally
 		{
-			ClientApi.discardPluginMessageTasks(networkClientHandlerThreadPool.shutdownNow());
+			MiraiThreadPoolSetupTiming.end(setupId, setupStart, completed);
 		}
-		networkClientHandlerThreadPool = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
-				new ArrayBlockingQueue<>(512),
-				new DhThreadFactory("Network Client Handler", Thread.NORM_PRIORITY, false),
-				new ThreadPoolExecutor.AbortPolicy());
-		fileHandlerThreadPool = taskPicker.createExecutor("IO");
-		renderSectionLoadThreadPool = taskPicker.createExecutor("Render Loader");
-		chunkToLodBuilderThreadPool = taskPicker.createExecutor("LOD Builder");
-		updatePropagatorThreadPool = taskPicker.createExecutor("Update Propagator", ThreadPoolUtil::updatePropagatorThreadsCanRun); // the update propagator isn't necessary when moving through the world, so we'll pause it along with the world generator when moving fast
-		worldGenThreadPool = taskPicker.createExecutor("World Gen", ThreadPoolUtil::worldGenThreadsCanRun);
-		
-		
-		
-		//=========================//
-		// standalone thread pools //
-		//=========================//
-		
-		if (beaconCullingThreadPool != null)
-		{
-			beaconCullingThreadPool.shutdown();
-		}
-		beaconCullingThreadPool = ThreadUtil.makeSingleThreadPool(BEACON_CULLING_THREAD_NAME);
-		
-		if (fullDataMigrationThreadPool != null)
-		{
-			fullDataMigrationThreadPool.shutdown();
-		}
-		fullDataMigrationThreadPool = ThreadUtil.makeSingleThreadPool(FULL_DATA_MIGRATION_THREAD_NAME);
-		
 	}
-	
+
 	/** Called from the physical client render owner; dedicated servers never invoke this path. */
 	public static void onClientRenderFrame(boolean gameplayFocused)
 	{

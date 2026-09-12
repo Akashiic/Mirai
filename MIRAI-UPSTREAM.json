@@ -1,6 +1,6 @@
 {
   "project": "Akashic: Horizons of The Mirai",
-  "version": "0.1.14-dev",
+  "version": "0.1.15-dev",
   "release_status": "development; runtime certification pending",
   "minecraft": "1.7.10",
   "graphics_backend": "LWJGL2",
@@ -24,11 +24,11 @@
     "source_zip_sha256": "0b5ae0de6cc80a04bb4ac0a0cdc6ea74e5e3e1f6cf8f965dd52a2c22f675a31c"
   },
   "previous_release": {
-    "version": "0.1.13-dev",
-    "commit": "985d0f8cb0196e579ae6f71143b2ac7973198ad1",
-    "jar_sha256": "b105c663e3009e90413370fd81428bcea3c4342cb70a1825515fe60b95cfa409",
-    "source_zip_sha256": "a1c04ec8980a0ca704465e5b7609ddc767366eb1929ec96f09ce08605a2d7d04",
-    "note": "Checkpoint funcional e visual da fase SSAO; 0.1.14 parte exatamente desta identidade e não altera shaders."
+    "version": "0.1.14-dev",
+    "commit": "50dd0425da472835e81dacd82b473264ff06ce9e",
+    "jar_sha256": "bb1da37e04fc0d16a3fd4b0f09d78beed0bb707e4556fae95f2b6ce27b4bf569",
+    "source_zip_sha256": "c3e551a48b2b3063809c80515b96364da03589da5fd53545398ce745b7538ad0",
+    "note": "Checkpoint de allocation/render-thread hygiene; 0.1.15 parte desta identidade e adiciona somente observabilidade de GLState e setup de pools."
   },
   "historical_release_0_1_8": {
     "version": "0.1.8-dev",

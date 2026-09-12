@@ -21,6 +21,7 @@ package com.seibel.distanthorizons.common.render.openGl.postProcessing.apply;
 
 import com.seibel.distanthorizons.common.render.openGl.GlDhMetaRenderer;
 import com.seibel.distanthorizons.common.render.openGl.glObject.GLState;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiGlStateTiming;
 import com.seibel.distanthorizons.common.render.openGl.glObject.shader.GlShaderProgram;
 import com.seibel.distanthorizons.common.render.openGl.postProcessing.GlScreenQuad;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
@@ -106,7 +107,7 @@ public class GlDhApplyShader extends GlAbstractShaderRenderer
 		}
 		
 		
-		try (GLState state = new GLState())
+		try (GLState state = new GLState(MiraiGlStateTiming.Scope.APPLY))
 		{
 			
 			GLMC.disableDepthTest();
@@ -162,7 +163,7 @@ public class GlDhApplyShader extends GlAbstractShaderRenderer
 		
 		
 		
-		try (GLState state = new GLState())
+		try (GLState state = new GLState(MiraiGlStateTiming.Scope.APPLY))
 		{
 			GLMC.disableDepthTest();
 			

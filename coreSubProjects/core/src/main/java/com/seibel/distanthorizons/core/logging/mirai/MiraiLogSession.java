@@ -62,6 +62,12 @@ final class MiraiLogSession implements AutoCloseable
     }
     void start() { worker.start(); }
     boolean tracing() { return accepting && traceUntilNanos != 0 && System.nanoTime() - traceUntilNanos < 0; }
+    long traceTimingStart()
+    {
+        if (!accepting || traceUntilNanos == 0) { return 0; }
+        long now = System.nanoTime();
+        return now - traceUntilNanos < 0 ? now : 0;
+    }
     boolean event(String kind, String detail) { return offer(new Entry(bounded(kind, 64), bounded(detail, MAX_DETAIL), false)); }
     void metadata(String key, String value) { offer(new Entry(bounded(key, 96), bounded(value, 512), true)); }
     private boolean offer(Entry entry)
@@ -190,6 +196,8 @@ final class MiraiLogSession implements AutoCloseable
         write(System.nanoTime(), "counters", data.toString());
         for (MiraiDiagnostics.Metric metric : MiraiDiagnostics.Metric.values())
         { write(System.nanoTime(), "timing", metric + " " + MiraiTiming.describe(timings[metric.ordinal()].drain())); }
+        String glStateTiming = MiraiGlStateTiming.drainDescription();
+        if (glStateTiming != null) { write(System.nanoTime(), "gl_state", glStateTiming); }
         try { runtimeSnapshot(); }
         catch (RuntimeException | LinkageError unavailable)
         { write(System.nanoTime(), "jvm", "optional_management_metrics_unavailable=" + unavailable.getClass().getName()); }

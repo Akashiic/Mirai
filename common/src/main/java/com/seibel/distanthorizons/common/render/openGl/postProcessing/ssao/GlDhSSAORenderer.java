@@ -20,6 +20,7 @@
 package com.seibel.distanthorizons.common.render.openGl.postProcessing.ssao;
 
 import com.seibel.distanthorizons.common.render.openGl.glObject.GLState;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiGlStateTiming;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
 import com.seibel.distanthorizons.common.render.openGl.util.GlResourceCleanup;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
@@ -133,7 +134,7 @@ public class GlDhSSAORenderer implements IDhSsaoRenderer
 	@Override
 	public void render(RenderParams renderParams)
 	{
-		try(GLState state = new GLState())
+		try(GLState state = new GLState(MiraiGlStateTiming.Scope.SSAO))
 		{
 			this.init();
 			

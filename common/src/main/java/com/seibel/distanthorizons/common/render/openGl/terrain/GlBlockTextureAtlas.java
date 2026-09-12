@@ -21,6 +21,7 @@ package com.seibel.distanthorizons.common.render.openGl.terrain;
 
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
 import com.seibel.distanthorizons.common.render.openGl.glObject.GLState;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiGlStateTiming;
 import com.seibel.distanthorizons.common.render.openGl.util.GlResourceCleanup;
 import com.seibel.distanthorizons.core.dataObjects.render.textures.BlockTextureRegistry;
 import com.seibel.distanthorizons.core.render.AbstractBlockTextureAtlas;
@@ -75,7 +76,7 @@ public class GlBlockTextureAtlas extends AbstractBlockTextureAtlas
 	@Override 
 	protected void tryCreateOrResize(int width, int height)
 	{
-		try (GLState state = new GLState())
+		try (GLState state = new GLState(MiraiGlStateTiming.Scope.BLOCK_TEXTURE_ATLAS))
 		{
 			int newTextureId = LWJGL.glGenTextures();
 			if (newTextureId == 0) throw new IllegalStateException("Unable to allocate block texture atlas");

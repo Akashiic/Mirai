@@ -21,6 +21,7 @@ package com.seibel.distanthorizons.common.render.openGl.postProcessing.fade;
 
 import com.seibel.distanthorizons.common.render.openGl.GlDhMetaRenderer;
 import com.seibel.distanthorizons.common.render.openGl.glObject.GLState;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiGlStateTiming;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
 import com.seibel.distanthorizons.common.render.openGl.util.GlResourceCleanup;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
@@ -158,7 +159,7 @@ public class GlVanillaFadeRenderer implements IDhVanillaFadeRenderer
 		
 		IProfilerWrapper profiler = MC_CLIENT.getProfiler();
 		try (IProfilerWrapper.IProfileBlock fade_profile = profiler.push("DH-Vanilla Fade");
-			GLState mcState = new GLState())
+			GLState mcState = new GLState(MiraiGlStateTiming.Scope.VANILLA_FADE))
 		{
 			this.init();
 			

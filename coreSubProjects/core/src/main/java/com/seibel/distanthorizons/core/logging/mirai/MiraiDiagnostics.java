@@ -49,6 +49,8 @@ public final class MiraiDiagnostics
     static long elapsedMillis(long nanos)
     { MiraiLogSession s = session; return s == null ? -1 : s.elapsedMillis(nanos); }
     public static long startTiming() { return enabled() ? System.nanoTime() : 0; }
+    static long traceTimingStart()
+    { MiraiLogSession s = session; return s == null ? 0 : s.traceTimingStart(); }
     public static void finishTiming(Metric metric, long start)
     { if (start != 0) { duration(metric, System.nanoTime() - start); } }
     /**
@@ -126,7 +128,7 @@ public final class MiraiDiagnostics
             catch (NumberFormatException invalid) { return "Trace duration: 10-120 seconds."; }
             if (seconds < 10 || seconds > 120) { return "Trace duration: 10-120 seconds."; }
             s.traceUntilNanos = System.nanoTime() + seconds * 1_000_000_000L;
-            s.event("trace", "start seconds=" + seconds + "; stack samples are observations, not mod CPU attribution");
+            s.event("trace", "start seconds=" + seconds + "; stack samples are observations, not mod CPU attribution; GLState save/restore wall timing active; no extra GL queries");
             return "Mirai trace enabled for " + seconds + " seconds. Stack sampling has additional overhead.";
         }
         if ("gpu".equals(args[0]) && args.length <= 2)

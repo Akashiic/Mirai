@@ -8,6 +8,7 @@ import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhAp
 import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiTextureCreatedParam;
 import com.seibel.distanthorizons.common.render.openGl.glObject.GLProxy;
 import com.seibel.distanthorizons.common.render.openGl.glObject.GLState;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiGlStateTiming;
 import com.seibel.distanthorizons.common.render.openGl.glObject.GlDhFramebuffer;
 import com.seibel.distanthorizons.common.render.openGl.glObject.texture.*;
 import com.seibel.distanthorizons.common.render.openGl.postProcessing.copy.GlDhCopyShader;
@@ -94,7 +95,7 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 	//region
 	
 	@Override
-	public RenderPassState captureRenderPassState() { return new GLState(); }
+	public RenderPassState captureRenderPassState() { return new GLState(MiraiGlStateTiming.Scope.MAIN_PASS); }
 
 	@Override
 	public void runRenderPassSetup(RenderParams renderParams)

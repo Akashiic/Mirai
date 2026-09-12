@@ -21,6 +21,7 @@ package com.seibel.distanthorizons.common.render.openGl.postProcessing.fade;
 
 import com.seibel.distanthorizons.common.render.openGl.GlDhMetaRenderer;
 import com.seibel.distanthorizons.common.render.openGl.glObject.GLState;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiGlStateTiming;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
 import com.seibel.distanthorizons.common.render.openGl.util.GlResourceCleanup;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
@@ -152,7 +153,7 @@ public class GlDhFarFadeRenderer implements IDhFarFadeRenderer
 		{
 			throw new IllegalStateException("Far-fade composition previously failed; restart Minecraft before retry.", this.initFailure);
 		}
-		try (GLState state = new GLState())
+		try (GLState state = new GLState(MiraiGlStateTiming.Scope.FAR_FADE))
 		{
 			int width = MC_RENDER.getTargetFramebufferViewportWidth();
 			int height = MC_RENDER.getTargetFramebufferViewportHeight();

@@ -43,7 +43,7 @@ public final class ModInfo
 	public static final String NAME = "DistantHorizons";
 	/** Human-readable version of NAME */
 	public static final String READABLE_NAME = "Akashic: Horizons of The Mirai";
-	public static final String VERSION = "0.1.14-dev";
+	public static final String VERSION = "0.1.15-dev";
 	public static final String UPSTREAM_VERSION = "3.2.1-b-dev";
 	/** Fork artifacts must never be replaced by the upstream self-updater. */
 	public static final boolean ALLOW_UPSTREAM_SELF_UPDATE = false;

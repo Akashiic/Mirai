@@ -21,6 +21,7 @@ package com.seibel.distanthorizons.common.render.openGl.glObject;
 
 import com.seibel.distanthorizons.common.render.openGl.glObject.enums.GLEnums;
 import com.seibel.distanthorizons.common.render.openGl.util.GlResourceCleanup;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiGlStateTiming;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.renderPass.IDhMetaRenderer;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
 import org.lwjgl.opengl.*;
@@ -30,6 +31,7 @@ import static com.seibel.distanthorizons.lwjgl.LWJGLServiceProvider.LWJGL;
 public class GLState implements IDhMetaRenderer.RenderPassState
 {
 	private static final MinecraftGLWrapper GLMC = MinecraftGLWrapper.INSTANCE;
+	private final MiraiGlStateTiming.Scope miraiScope;
 	
 	
 	public int program;
@@ -75,11 +77,19 @@ public class GLState implements IDhMetaRenderer.RenderPassState
 	
 	
 	
-	public GLState() { this.saveState(); }
+	public GLState() { this(MiraiGlStateTiming.Scope.UNSCOPED); }
+	public GLState(MiraiGlStateTiming.Scope scope)
+	{
+		this.miraiScope = scope == null ? MiraiGlStateTiming.Scope.UNSCOPED : scope;
+		this.saveState();
+	}
 	
 	public void saveState()
 	{
-		this.program = LWJGL.glGetInteger(GL20.GL_CURRENT_PROGRAM);
+		long miraiTimingStart = MiraiGlStateTiming.start();
+		try
+		{
+			this.program = LWJGL.glGetInteger(GL20.GL_CURRENT_PROGRAM);
 		this.vao = LWJGL.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING);
 		this.vbo = LWJGL.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING);
 		this.ebo = LWJGL.glGetInteger(GL15.GL_ELEMENT_ARRAY_BUFFER_BINDING);
@@ -150,13 +160,21 @@ public class GLState implements IDhMetaRenderer.RenderPassState
 		LWJGL.glGetIntegerv(GL11.GL_VIEWPORT, this.view);
 		this.cull = LWJGL.glIsEnabled(GL11.GL_CULL_FACE);
 		this.cullMode = LWJGL.glGetInteger(GL11.GL_CULL_FACE_MODE);
-		this.polyMode = LWJGL.glGetInteger(GL11.GL_POLYGON_MODE);
+			this.polyMode = LWJGL.glGetInteger(GL11.GL_POLYGON_MODE);
+		}
+		finally
+		{
+			MiraiGlStateTiming.finishSave(this.miraiScope, miraiTimingStart);
+		}
 	}
 	
 	@Override
 	public void close()
 	{
-		// Try every independent group even if one GL call throws. No clears belong
+		long miraiTimingStart = MiraiGlStateTiming.start();
+		try
+		{
+			// Try every independent group even if one GL call throws. No clears belong
 		// here: a failed DH pass must never clear the caller's framebuffer.
 		GlResourceCleanup.run(
 			this::restoreFramebuffers,
@@ -167,7 +185,12 @@ public class GLState implements IDhMetaRenderer.RenderPassState
 			this::restoreStencil,
 			this::restoreViewportAndCull,
 			() -> LWJGL.glClearColor(this.clearColor[0], this.clearColor[1], this.clearColor[2], this.clearColor[3]),
-			() -> LWJGL.glClearDepth(this.clearDepth));
+				() -> LWJGL.glClearDepth(this.clearDepth));
+		}
+		finally
+		{
+			MiraiGlStateTiming.finishRestore(this.miraiScope, miraiTimingStart);
+		}
 	}
 
 	private void restoreFramebuffers()

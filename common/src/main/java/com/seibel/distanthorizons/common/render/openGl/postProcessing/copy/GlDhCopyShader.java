@@ -21,6 +21,7 @@ package com.seibel.distanthorizons.common.render.openGl.postProcessing.copy;
 
 import com.seibel.distanthorizons.common.render.openGl.GlDhMetaRenderer;
 import com.seibel.distanthorizons.common.render.openGl.glObject.GLState;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiGlStateTiming;
 import com.seibel.distanthorizons.common.render.openGl.glObject.shader.GlShaderProgram;
 import com.seibel.distanthorizons.common.render.openGl.postProcessing.GlScreenQuad;
 import com.seibel.distanthorizons.common.render.openGl.util.GlAbstractShaderRenderer;
@@ -103,7 +104,7 @@ public class GlDhCopyShader extends GlAbstractShaderRenderer
 		}
 		
 		
-		try (GLState state = new GLState())
+		try (GLState state = new GLState(MiraiGlStateTiming.Scope.COPY))
 		{
 			
 			GLMC.disableDepthTest();
@@ -153,7 +154,7 @@ public class GlDhCopyShader extends GlAbstractShaderRenderer
 		
 		
 		
-		try (GLState state = new GLState())
+		try (GLState state = new GLState(MiraiGlStateTiming.Scope.COPY))
 		{
 			GLMC.disableDepthTest();
 			

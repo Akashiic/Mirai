@@ -21,6 +21,7 @@ package com.seibel.distanthorizons.common.render.openGl.postProcessing.fog;
 
 import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiFogRenderParam;
 import com.seibel.distanthorizons.common.render.openGl.glObject.GLState;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiGlStateTiming;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
 import com.seibel.distanthorizons.common.render.openGl.util.GlResourceCleanup;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
@@ -132,7 +133,7 @@ public class GlDhFogRenderer implements IDhFogRenderer
 	public void render(RenderParams renderParams, DhApiFogRenderParam fogRenderParams)
 	{
 		// GLState needed in MC 1.16.5 probably due to MC not manually setting each GL state they need before the next rendering step
-		try (GLState state = new GLState())
+		try (GLState state = new GLState(MiraiGlStateTiming.Scope.FOG))
 		{
 			this.init();
 			
