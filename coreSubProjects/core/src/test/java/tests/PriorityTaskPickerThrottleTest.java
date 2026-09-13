@@ -6,7 +6,9 @@ import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /** Regression for a global picker slot being reserved behind post-task throttle. */
@@ -165,4 +167,52 @@ public class PriorityTaskPickerThrottleTest
             Config.Common.MultiThreading.numberOfThreads.setWithoutFiringEvents(oldThreads);
         }
     }
+    @Test
+    public void gracefulShutdownWaitsForActiveTaskWithoutInterruptingIt() throws Exception
+    {
+        Config.Client.threadPresetSetting.get();
+        int oldThreads = Config.Common.MultiThreading.numberOfThreads.get();
+        double oldRatio = Config.Common.MultiThreading.threadRunTimeRatio.get();
+        PriorityTaskPicker picker = null;
+        CountDownLatch release = new CountDownLatch(1);
+        try
+        {
+            Config.Common.MultiThreading.numberOfThreads.setWithoutFiringEvents(1);
+            Config.Common.MultiThreading.threadRunTimeRatio.setWithoutFiringEvents(1.0);
+            picker = new PriorityTaskPicker();
+            PriorityTaskPicker.Executor executor = picker.createExecutor("shutdown-contract");
+            CountDownLatch started = new CountDownLatch(1);
+            AtomicBoolean interrupted = new AtomicBoolean(false);
+            executor.execute(() ->
+            {
+                started.countDown();
+                try { release.await(); }
+                catch (InterruptedException e) { interrupted.set(true); Thread.currentThread().interrupt(); }
+            });
+            assertTrue("active task did not start", started.await(1, TimeUnit.SECONDS));
+            PriorityTaskPicker finalPicker = picker;
+            Thread shutdown = new Thread(finalPicker::shutdownNow, "picker-shutdown-contract");
+            shutdown.start();
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(1);
+            while (!executor.isShutdown() && System.nanoTime() < deadline) { Thread.yield(); }
+            assertTrue("shutdown was not signaled", executor.isShutdown());
+            assertTrue("graceful shutdown returned before active task completed", shutdown.isAlive());
+            assertFalse("graceful shutdown interrupted active task", interrupted.get());
+            release.countDown();
+            shutdown.join(2_000);
+            assertFalse("shutdown did not finish after active task completed", shutdown.isAlive());
+            assertFalse("active task was interrupted during graceful shutdown", interrupted.get());
+            assertTrue("executor did not terminate", executor.isTerminated());
+            assertTrue("termination timestamp was not recorded", executor.getTerminatedAtNanos() > 0);
+            picker = null;
+        }
+        finally
+        {
+            release.countDown();
+            if (picker != null) { picker.shutdownNow(); }
+            Config.Common.MultiThreading.threadRunTimeRatio.setWithoutFiringEvents(oldRatio);
+            Config.Common.MultiThreading.numberOfThreads.setWithoutFiringEvents(oldThreads);
+        }
+    }
+
 }

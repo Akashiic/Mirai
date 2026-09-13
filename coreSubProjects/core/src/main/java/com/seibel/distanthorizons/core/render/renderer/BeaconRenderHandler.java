@@ -38,20 +38,25 @@ import com.seibel.distanthorizons.core.util.math.DhVec3d;
 import com.seibel.distanthorizons.core.util.threading.ThreadPoolUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.renderPass.IDhGenericRenderer;
+import com.seibel.distanthorizons.core.wrapperInterfaces.world.IClientLevelWrapper;
 import com.seibel.distanthorizons.coreapi.ModInfo;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 public class BeaconRenderHandler
 {
 	private static final DhLogger LOGGER = new DhLoggerBuilder().build();
 	private static final IMinecraftRenderWrapper MC_RENDER = SingletonInjector.INSTANCE.get(IMinecraftRenderWrapper.class);
 	private static final IDhApiCustomRenderObjectFactory GENERIC_OBJECT_FACTORY = SingletonInjector.INSTANCE.get(IDhApiCustomRenderObjectFactory.class);
+	private static final BooleanSupplier NEVER_CLOSING = () -> false;
 	
 	/** how often should we check if a beacon should be culled? */
 	private static final int MAX_CULLING_FREQUENCY_IN_MS = 1_000;
@@ -59,14 +64,18 @@ public class BeaconRenderHandler
 	
 	
 	private final ReentrantLock updateLock = new ReentrantLock();
+	private final IMinecraftRenderWrapper minecraftRenderWrapper;
+	@Nullable private final Supplier<IClientLevelWrapper> expectedLevelSupplier;
+	private final BooleanSupplier ownerClosing;
 	
 	/** only contains the beacons currently being rendered (culled beacons will be missing) */
 	private final IDhApiRenderableBoxGroup activeBeaconBoxRenderGroup;
 	/** contains all beacons that could be rendered (including those that are being culled) */
 	private final ArrayList<DhApiRenderableBox> fullBeaconBoxList = new ArrayList<>();
+	private final ArrayList<DhApiRenderableBox> culledBeaconBoxScratch = new ArrayList<>();
 	
-	private boolean cullingThreadRunning = false;
-	private boolean updateRenderDataNextFrame = false;
+	private volatile boolean cullingThreadRunning = false;
+	private volatile boolean updateRenderDataNextFrame = false;
 	
 	
 	
@@ -76,8 +85,20 @@ public class BeaconRenderHandler
 	//region
 	
 	public BeaconRenderHandler(@NotNull IDhGenericRenderer renderer)
+	{ this(renderer, null, NEVER_CLOSING, MC_RENDER, GENERIC_OBJECT_FACTORY); }
+
+	public BeaconRenderHandler(@NotNull IDhGenericRenderer renderer, @NotNull Supplier<IClientLevelWrapper> expectedLevelSupplier,
+			@NotNull BooleanSupplier ownerClosing)
+	{ this(renderer, expectedLevelSupplier, ownerClosing, MC_RENDER, GENERIC_OBJECT_FACTORY); }
+
+	BeaconRenderHandler(@NotNull IDhGenericRenderer renderer, @Nullable Supplier<IClientLevelWrapper> expectedLevelSupplier,
+			@NotNull BooleanSupplier ownerClosing, @NotNull IMinecraftRenderWrapper minecraftRenderWrapper,
+			@NotNull IDhApiCustomRenderObjectFactory objectFactory)
 	{
-		this.activeBeaconBoxRenderGroup = GENERIC_OBJECT_FACTORY.createAbsolutePositionedGroup(ModInfo.NAME+":Beacons", new ArrayList<>(0));
+		this.minecraftRenderWrapper = minecraftRenderWrapper;
+		this.expectedLevelSupplier = expectedLevelSupplier;
+		this.ownerClosing = ownerClosing;
+		this.activeBeaconBoxRenderGroup = objectFactory.createAbsolutePositionedGroup(ModInfo.NAME+":Beacons", new ArrayList<>(0));
 		this.activeBeaconBoxRenderGroup.setBlockLight(LodUtil.MAX_MC_LIGHT);
 		this.activeBeaconBoxRenderGroup.setSkyLight(LodUtil.MAX_MC_LIGHT);
 		this.activeBeaconBoxRenderGroup.setSsaoEnabled(false);
@@ -117,70 +138,65 @@ public class BeaconRenderHandler
 	/** does nothing if the culling thread is already running */
 	private void tryUpdateBeaconCullingAsync()
 	{
+		if (this.ownerClosing.getAsBoolean()) { return; }
 		ThreadPoolExecutor executor = ThreadPoolUtil.getBeaconCullingExecutor();
-		if (executor != null
-			&& !this.cullingThreadRunning)
+		if (executor != null && !this.cullingThreadRunning)
 		{
 			this.cullingThreadRunning = true;
-			
 			try
 			{
 				executor.execute(() ->
 				{
 					try
 					{
-						Thread.sleep(MAX_CULLING_FREQUENCY_IN_MS);
-					}
-					catch (InterruptedException ignore) { }
-					
-					try
-					{
-						// lock to make sure we don't try adding beacons to the arrays while processing them
-						this.updateLock.lock();
-						
-						DhVec3d cameraPos = MC_RENDER.getCameraExactPosition();
-						
-						// fading by the overdraw prevention amount helps reduce beacons from rendering strangely
-						// on the border of DH's render distance
-						float dhFadeDistance = RenderUtil.getNearClipPlaneInBlocks();
-						
-						
-						// Clear the existing box group so we can re-populate it.
-						// Since the box group is only used when we trigger an update, clearing it here
-						// and repopulating it is fine.
-						this.activeBeaconBoxRenderGroup.clear();
-						
-						// While iterating over every beacon isn't a great way of doing this, 
-						// when 940 beacons were tested this only took ~0.9 Milliseconds, so as long as
-						// we aren't freezing the render thread this method of culling works just fine.
-						for (DhApiRenderableBox box : this.fullBeaconBoxList)
-						{
-							// if a beacon is outside the vanilla render distance render it
-							double distance = DhVec3d.getHorizontalDistance(cameraPos, box.minPos);
-							if (distance > dhFadeDistance)
-							{
-								this.activeBeaconBoxRenderGroup.add(box);
-							}
-						}
-						
-						this.updateRenderDataNextFrame = true;
+						try { Thread.sleep(MAX_CULLING_FREQUENCY_IN_MS); }
+						catch (InterruptedException interrupted)
+						{ Thread.currentThread().interrupt(); return; }
+						if (this.ownerClosing.getAsBoolean()) { return; }
+						this.updateBeaconCullingOnce();
 					}
 					catch (Exception e)
 					{
-						LOGGER.error("Unexpected issue while updating beacon culling. Error: " + e.getMessage(), e);
+						if (!this.ownerClosing.getAsBoolean())
+						{ LOGGER.error("Unexpected issue while updating beacon culling. Error: " + e.getMessage(), e); }
 					}
-					finally
-					{
-						this.updateLock.unlock();
-						this.cullingThreadRunning = false;
-					}
+					finally { this.cullingThreadRunning = false; }
 				});
 			}
 			catch (RejectedExecutionException ignore)
-			{ /* If this happens that means everything is already shut down and no culling is necessary */ }
+			{ this.cullingThreadRunning = false; }
 		}
 	}
-	
+
+	/** One culling pass with no sleep. Package-private for lifecycle regression tests. */
+	void updateBeaconCullingOnce()
+	{
+		if (this.ownerClosing.getAsBoolean()) { return; }
+		this.updateLock.lock();
+		try
+		{
+			if (this.ownerClosing.getAsBoolean()) { return; }
+			IClientLevelWrapper expectedLevel = this.expectedLevelSupplier != null ? this.expectedLevelSupplier.get() : null;
+			DhVec3d cameraPos = this.expectedLevelSupplier != null
+					? (expectedLevel == null ? null : this.minecraftRenderWrapper.getCameraPositionForLodTick(expectedLevel))
+					: this.minecraftRenderWrapper.getCameraExactPosition();
+			if (cameraPos == null || this.ownerClosing.getAsBoolean()) { return; }
+			float dhFadeDistance = RenderUtil.getNearClipPlaneInBlocks();
+			this.culledBeaconBoxScratch.clear();
+			for (DhApiRenderableBox box : this.fullBeaconBoxList)
+			{
+				double distance = DhVec3d.getHorizontalDistance(cameraPos, box.minPos);
+				if (distance > dhFadeDistance) { this.culledBeaconBoxScratch.add(box); }
+			}
+			if (this.ownerClosing.getAsBoolean()) { return; }
+			this.activeBeaconBoxRenderGroup.clear();
+			for (DhApiRenderableBox box : this.culledBeaconBoxScratch) { this.activeBeaconBoxRenderGroup.add(box); }
+			if (this.ownerClosing.getAsBoolean()) { return; }
+			this.updateRenderDataNextFrame = true;
+		}
+		finally { this.updateLock.unlock(); }
+	}
+
 	//endregion
 	
 	

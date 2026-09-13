@@ -5,6 +5,7 @@ import com.seibel.distanthorizons.core.config.listeners.IConfigListener;
 import com.seibel.distanthorizons.core.enums.MinecraftTextFormat;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.logging.f3.F3Screen;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiPickerShutdownDiagnostics;
 import com.seibel.distanthorizons.core.util.objects.RollingAverage;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import org.jetbrains.annotations.NotNull;
@@ -55,6 +56,8 @@ public class PriorityTaskPicker
 	private final AtomicBoolean retryRequestedRef = new AtomicBoolean(false);
 	
 	private final AtomicBoolean isShutDownRef = new AtomicBoolean(false);
+	private volatile long miraiShutdownDiagnosticId;
+	private volatile long miraiShutdownStartNanos;
 	
 	
 	
@@ -200,41 +203,44 @@ public class PriorityTaskPicker
 		return stream.iterator();
 	}
 	
-	/** Blocking, shuts down the thread pool immediately, stopping all tasks. */
+	/** Blocking graceful shutdown; queued picker work is abandoned and active worker tasks are allowed to finish. */
 	public void shutdownNow()
 	{
 		LOGGER.info("Shutting down PriorityTaskPicker thread pool...");
+		long diagnosticId = MiraiPickerShutdownDiagnostics.begin(this.executors.size(), this.occupiedThreadsRef.get(),
+				Config.Common.MultiThreading.threadRunTimeRatio.get());
+		long shutdownStart = MiraiPickerShutdownDiagnostics.startNanos(diagnosticId);
+		this.miraiShutdownDiagnosticId = diagnosticId;
+		this.miraiShutdownStartNanos = shutdownStart;
+		boolean completed = false;
 		this.isShutDownRef.set(true);
-		
-		// signal all executors to shutdown
-		for (int i = 0; i < this.executors.size(); i++)
-		{
-			Executor executor = this.executors.get(i);
-			if (executor != null)
-			{
-				executor.shutdown();
-			}
-		}
-		
-		// since they're all already shutting down concurrently, this is bounded by the slowest one
 		try
 		{
-			for (int i = 0; i < this.executors.size(); i++)
+			for (Executor executor : this.executors)
 			{
-				Executor executor = this.executors.get(i);
-				if (executor != null)
-				{
-					if (!executor.awaitTermination(5, TimeUnit.SECONDS))
-					{
-						executor.shutdownNow();
-					}
-				}
+				if (executor == null) { continue; }
+				MiraiPickerShutdownDiagnostics.executorState(diagnosticId, "before_signal", executor.getName(),
+						executor.getQueueSizeUpTo(4096), executor.getRunningTaskCount(), executor.getReservedWorkerCount(),
+						executor.getActiveWorkerCount(), executor.getWorkerQueueSize());
+				executor.shutdown();
 			}
+			for (Executor executor : this.executors)
+			{
+				if (executor == null) { continue; }
+				long waitStart = System.nanoTime();
+				boolean terminated = executor.awaitTermination(5, TimeUnit.SECONDS);
+				long waitNanos = System.nanoTime() - waitStart;
+				boolean forced = !terminated;
+				if (forced) { executor.shutdownNow(); }
+				MiraiPickerShutdownDiagnostics.executorFinished(diagnosticId, shutdownStart, executor.getName(),
+						waitNanos, executor.getTerminatedAtNanos(), forced, executor.getQueueSizeUpTo(4096),
+						executor.getRunningTaskCount(), executor.getReservedWorkerCount(), executor.getActiveWorkerCount(),
+						executor.getWorkerQueueSize());
+			}
+			completed = true;
 		}
-		catch (InterruptedException e)
-		{
-			throw new RuntimeException(e);
-		}
+		catch (InterruptedException e) { throw new RuntimeException(e); }
+		finally { MiraiPickerShutdownDiagnostics.end(diagnosticId, shutdownStart, completed); }
 	}
 	
 	///endregion
@@ -358,6 +364,10 @@ public class PriorityTaskPicker
 		}
 		private boolean tryRunTaskImmediately(@NotNull Runnable command) { return this.threadPoolExecutor.tryExecuteImmediately(command); }
 		public int getReservedWorkerCount() { return this.threadPoolExecutor.getReservedWorkerCount(); }
+		public String getName() { return this.name; }
+		public int getActiveWorkerCount() { return this.threadPoolExecutor.getActiveCount(); }
+		public int getWorkerQueueSize() { return this.threadPoolExecutor.getQueue().size(); }
+		public long getTerminatedAtNanos() { return this.threadPoolExecutor.getTerminatedAtNanos(); }
 		
 		
 		public int getQueueSize() { return this.taskQueue.size(); }
@@ -529,7 +539,8 @@ public class PriorityTaskPicker
 			}
 			finally
 			{
-				long timeElapsed = System.nanoTime() - startTime;
+				long finishedAtNanos = System.nanoTime();
+				long timeElapsed = finishedAtNanos - startTime;
 				this.executor.runTimeInMsRollingAverage.add(TimeUnit.NANOSECONDS.toMillis(timeElapsed));
 				
 				// Update variables related to task status
@@ -537,6 +548,13 @@ public class PriorityTaskPicker
 				this.executor.runningTasksRef.getAndDecrement();
 				this.executor.completedTasksRef.getAndIncrement();
 				this.executor.totalRuntimeNanos.addAndGet(timeElapsed);
+				long diagnosticId = this.parentTaskPicker.miraiShutdownDiagnosticId;
+				if (diagnosticId != 0 && this.parentTaskPicker.isShutDownRef.get())
+				{
+					MiraiPickerShutdownDiagnostics.taskFinished(diagnosticId, this.parentTaskPicker.miraiShutdownStartNanos,
+							this.executor.name, this.command.getClass().getName(), timeElapsed, finishedAtNanos,
+							Thread.currentThread().isInterrupted());
+				}
 				
 				this.parentTaskPicker.tryStartNextTask();
 			}

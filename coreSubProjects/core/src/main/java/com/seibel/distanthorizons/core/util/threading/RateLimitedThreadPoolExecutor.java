@@ -26,6 +26,7 @@ import com.seibel.distanthorizons.core.logging.DhLogger;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
 /**
@@ -42,6 +43,7 @@ public class RateLimitedThreadPoolExecutor extends ThreadPoolExecutor
 	private final ThreadLocal<Long> runStartTime = ThreadLocal.withInitial(() -> -1L);
 	/** Tasks reserved onto workers, including the post-task throttle interval. */
 	private final AtomicInteger reservedWorkerCount = new AtomicInteger();
+	private final AtomicLong terminatedAtNanos = new AtomicLong();
 	private final Runnable workerAvailableCallback;
 	
 	
@@ -83,6 +85,7 @@ public class RateLimitedThreadPoolExecutor extends ThreadPoolExecutor
 	}
 
 	public int getReservedWorkerCount() { return this.reservedWorkerCount.get(); }
+	public long getTerminatedAtNanos() { return this.terminatedAtNanos.get(); }
 
 	//===========//
 	// overrides //
@@ -124,6 +127,7 @@ public class RateLimitedThreadPoolExecutor extends ThreadPoolExecutor
 	@Override
 	protected void terminated() 
 	{
+		this.terminatedAtNanos.compareAndSet(0, System.nanoTime());
 		super.terminated();
 	}
 	

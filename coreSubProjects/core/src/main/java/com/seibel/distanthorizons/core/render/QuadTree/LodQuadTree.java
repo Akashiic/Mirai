@@ -169,7 +169,8 @@ public class LodQuadTree extends QuadTree<LodRenderSection> implements IDebugRen
 		this.blockRenderDistanceDiameter = viewDiameterInBlocks;
 		
 		IDhGenericRenderer genericObjectRenderer = this.level.getGenericRenderer();
-		this.beaconRenderHandler = (genericObjectRenderer != null) ? new BeaconRenderHandler(genericObjectRenderer) : null;
+		this.beaconRenderHandler = (genericObjectRenderer != null)
+				? new BeaconRenderHandler(genericObjectRenderer, this.level::getClientLevelWrapper, this.closing::get) : null;
 		
 		this.beaconBeamRepo = this.level.getBeaconBeamRepo();
 		
