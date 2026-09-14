@@ -118,7 +118,7 @@ public class LodQuadTree extends QuadTree<LodRenderSection> implements IDebugRen
 	private final BeaconBeamRepo beaconBeamRepo;
 	/** used to prevent updating the beacons concurrently */
 	@NotNull
-	private CompletableFuture<Void> beaconUpdateFuture = CompletableFuture.completedFuture(null);
+	private final BeaconRefreshScheduler beaconRefreshScheduler;
 	
 	
 	/** the smallest numerical detail level number that can be rendered */
@@ -165,6 +165,7 @@ public class LodQuadTree extends QuadTree<LodRenderSection> implements IDebugRen
 		DEBUG_RENDERER.register(this, Config.Client.Advanced.Debugging.DebugWireframe.showQuadTreeRenderStatus);
 		
 		this.level = level;
+		this.beaconRefreshScheduler = new BeaconRefreshScheduler(this.closing::get, this::refreshRenderingBeacons);
 		this.fullDataSourceProvider = fullDataSourceProvider;
 		this.blockRenderDistanceDiameter = viewDiameterInBlocks;
 		
@@ -991,46 +992,12 @@ public class LodQuadTree extends QuadTree<LodRenderSection> implements IDebugRen
 	/** gets the active beacon list and stops/starts beacon rendering as necessary */
 	private void tryRefreshRenderingBeaconsAsync(DhBlockPos2D playerPos)
 	{
-		// do nothing if beacon rendering or repos are unavailable
-		if (this.beaconBeamRepo == null
-			|| this.beaconRenderHandler == null)
-		{
-			return;
-		}
-		
-		AbstractExecutorService executor = ThreadPoolUtil.getFileHandlerExecutor();
-		if (executor == null)
-		{
-			// shouldn't normally happen, but just in case
-			return;
-		}
-		
-		if (!this.beaconUpdateFuture.isDone())
-		{
-			return;
-		}
-		CompletableFuture<Void> future = new CompletableFuture<>();
-		this.beaconUpdateFuture = future;
-		
-		try
-		{
-			executor.execute(() ->
-			{
-				this.refreshRenderingBeacons(playerPos);
-				
-				try { Thread.sleep(2_000); } catch (InterruptedException ignore) { }
-				future.complete(null);
-			});
-		}
-		catch (RejectedExecutionException e)
-		{
-			// the thread pool was probably shut down because it's size is being changed, just wait a sec and it should be back
-			future.completeExceptionally(e);
-		}
+		if (this.closing.get() || this.beaconBeamRepo == null || this.beaconRenderHandler == null) { return; }
+		this.beaconRefreshScheduler.trySubmit(ThreadPoolUtil.getFileHandlerExecutor(), playerPos);
 	}
 	private void refreshRenderingBeacons(DhBlockPos2D playerPos)
 	{
-		if (this.beaconBeamRepo == null
+		if (this.closing.get() || this.beaconBeamRepo == null
 			|| this.beaconRenderHandler == null)
 		{
 			return;
@@ -1041,6 +1008,7 @@ public class LodQuadTree extends QuadTree<LodRenderSection> implements IDebugRen
 			// Synchronized to prevent two threads for accessing the array at once
 			synchronized (this.beaconList)
 			{
+				if (this.closing.get()) { return; }
 				// get beacons //
 				
 				int blockDistanceRadius = (this.blockRenderDistanceDiameter / 2);
@@ -1092,7 +1060,7 @@ public class LodQuadTree extends QuadTree<LodRenderSection> implements IDebugRen
 				
 				// only replace the beacons if something changed
 				// this is done to prevent constantly re-uploading the render data
-				if (replaceBeacons)
+				if (replaceBeacons && !this.closing.get())
 				{
 					this.beaconList.clear();
 					this.beaconList.addAll(newBeaconList);

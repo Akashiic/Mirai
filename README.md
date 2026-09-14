@@ -2,13 +2,13 @@
 
 Fork de estabilização do Distant Horizons para **Minecraft 1.7.10**, cliente **LWJGL2** e homologação dedicada em **Crucible / Java 21**.
 
-A versão **0.1.16-dev** investiga o gargalo de `OLD_PICKER_SHUTDOWN` revelado pela 0.1.15 sem reduzir a segurança do shutdown: tasks ativas continuam concluindo graciosamente, com o mesmo timeout/fallback, enquanto a telemetria identifica executor, filas, workers, task class e threads DH presentes no início da parada. Também corrige a race de beacon culling observada em troca de mundo, usando o accessor de câmera/nível seguro para background work e descartando publicação stale. Shaders, Config, AngelicaAccessor, GLState, scheduler/governor e qualidade visual permanecem fora do escopo.
+A versão **0.1.17-dev** corrige o cooldown ocioso de refresh de beacons revelado pela forense da 0.1.16: a consulta continua no executor de IO e preserva o mesmo intervalo de 2 s após sua conclusão, mas o worker não permanece mais em `Thread.sleep(2_000)`. Trabalho realmente ativo continua sendo aguardado graciosamente; troca de picker e fechamento recebem fences para impedir reserva órfã ou publicação stale. Shaders, Config, AngelicaAccessor, GLState, scheduler/governor e qualidade visual permanecem fora do escopo.
 
 - [Arquitetura, fluxogramas, escopo e critérios de estabilidade](docs/ARQUITETURA-MIRAI.md)
 - [Instalação, comandos e coleta de diagnóstico](docs/DIAGNOSTICO-MIRAI.md)
 - [Plano de homologação da base 0.1.5](docs/HOMOLOGACAO-0.1.5-dev.md)
-- [Alterações desta versão](docs/CHANGELOG-0.1.16-dev.md)
-- [Plano, auditoria e homologação da 0.1.14](docs/PLANO-E-DIAGNOSTICO-0.1.14.md)
+- [Alterações desta versão](docs/CHANGELOG-0.1.17-dev.md)
+- [Plano e diagnóstico da 0.1.17](docs/PLANO-E-DIAGNOSTICO-0.1.17.md)
 - [Auditoria independente da rodada 0.1.10](docs/ANALISE-LOGS-0.1.10.md)
 - [Auditoria independente da rodada 0.1.9](docs/ANALISE-LOGS-0.1.9.md)
 - [Análise da rodada anterior](docs/ANALISE-LOGS-0.1.8.md)
