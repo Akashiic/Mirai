@@ -2,13 +2,13 @@
 
 Fork de estabilização do Distant Horizons para **Minecraft 1.7.10**, cliente **LWJGL2** e homologação dedicada em **Crucible / Java 21**.
 
-A versão **0.1.17-dev** corrige o cooldown ocioso de refresh de beacons revelado pela forense da 0.1.16: a consulta continua no executor de IO e preserva o mesmo intervalo de 2 s após sua conclusão, mas o worker não permanece mais em `Thread.sleep(2_000)`. Trabalho realmente ativo continua sendo aguardado graciosamente; troca de picker e fechamento recebem fences para impedir reserva órfã ou publicação stale. Shaders, Config, AngelicaAccessor, GLState, scheduler/governor e qualidade visual permanecem fora do escopo.
+A versão **0.1.18-dev** parte do checkpoint final 0.1.17 e reduz trabalho desperdiçado sem reduzir qualidade: reutiliza staging temporário do quadtree e do refresh de beacons, trata `rendererMode=DISABLED` como opt-out real de novos builds/uploads de render e acrescenta telemetria `gpu_terrain` apenas durante amostras GPU explicitamente solicitadas. Shaders, SSAO, AA, fog, distância, resolução e geometria permanecem inalterados nesta candidata.
 
 - [Arquitetura, fluxogramas, escopo e critérios de estabilidade](docs/ARQUITETURA-MIRAI.md)
 - [Instalação, comandos e coleta de diagnóstico](docs/DIAGNOSTICO-MIRAI.md)
 - [Plano de homologação da base 0.1.5](docs/HOMOLOGACAO-0.1.5-dev.md)
-- [Alterações desta versão](docs/CHANGELOG-0.1.17-dev.md)
-- [Plano e diagnóstico da 0.1.17](docs/PLANO-E-DIAGNOSTICO-0.1.17.md)
+- [Alterações desta versão](docs/CHANGELOG-0.1.18-dev.md)
+- [Plano e diagnóstico da 0.1.18](docs/PLANO-E-DIAGNOSTICO-0.1.18.md)
 - [Auditoria independente da rodada 0.1.10](docs/ANALISE-LOGS-0.1.10.md)
 - [Auditoria independente da rodada 0.1.9](docs/ANALISE-LOGS-0.1.9.md)
 - [Análise da rodada anterior](docs/ANALISE-LOGS-0.1.8.md)

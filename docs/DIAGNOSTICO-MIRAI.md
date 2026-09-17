@@ -1,4 +1,4 @@
-# Diagnóstico local do Akashic Mirai — 0.1.10-dev
+# Diagnóstico local do Akashic Mirai — 0.1.18-dev
 
 O registro básico começa automaticamente em `logs/akashic-mirai/latest.log`, dentro da instalação do Minecraft ou da pasta do servidor. Cada processo tem sua própria sessão. Não é necessário habilitar DEBUG global ou instalar outro mod.
 
@@ -23,6 +23,7 @@ Na 0.1.9, `/miraidiag gpu 60` solicita captura GPU temporária no cliente. É op
 |---|---|
 | Identidade e ambiente | Versão/commit/branch, Java, SO, arquitetura, processadores disponíveis, até 450 IDs/versões de mods e contagem de omissões |
 | Gráficos | Fabricante e renderizador OpenGL, versão/driver reportada, LWJGL, capacidades selecionadas, shaderpack ativo e configurações efetivas incluídas na lista permitida |
+| GPU opt-in | `gpu_sample` por etapa e, na 0.1.18, `gpu_terrain` com containers, VBOs, draws, vértices e índices da mesma passagem amostrada |
 | Cliente | Intervalos entre frames, duração do evento de renderização, tempo decorrido nas chamadas de render do LOD, estado de renderização, cobertura já calculada e seleção de buffers do último passe |
 | Servidor | Duração entre eventos de tick, até oito mundos carregados, contagens residentes e ciclo de vida das dimensões |
 | Trabalho e memória | Filas de executores observadas até 256 entradas (`>=256` quando atinge o limite), tarefas em execução/concluídas, tempo médio de tarefa, heap, GC, pools de buffers e métricas opcionais da JVM/SO |
@@ -47,7 +48,7 @@ Os tempos são inclusivos: uma chamada de upload pode estar dentro de uma tarefa
 
 Contadores são agregados por processo. Em servidor integrado, cliente e servidor compartilham esse agregado. Tokens de mundo relacionam eventos dentro da sessão; não são identificadores permanentes. Snapshots de filas são observações concorrentes, não uma fotografia transacional. Ausência de contagem não prova ausência de problemas fora dos pontos instrumentados.
 
-Amostragem de pilhas é uma pista: encontrar uma classe do Starlight, Angelica ou outro mod em uma pilha não prova que ele consumiu determinada porcentagem da CPU nem causou a queda de FPS. A captura GPU opcional mede intervalos do Mirai; não há perfil completo por mod/worker, tempo do frame GPU inteiro, ocupação exclusiva, VRAM, clocks, temperatura ou identificação garantida do modelo de CPU. Valores não disponíveis permanecem identificados como indisponíveis. A [coleta recomendada para a 0.1.10](PLANO-E-DIAGNOSTICO-0.1.10.md) separa cena estável de handoff.
+Amostragem de pilhas é uma pista: encontrar uma classe do Starlight, Angelica ou outro mod em uma pilha não prova que ele consumiu determinada porcentagem da CPU nem causou a queda de FPS. A captura GPU opcional mede intervalos do Mirai; não há perfil completo por mod/worker, tempo do frame GPU inteiro, ocupação exclusiva, VRAM, clocks, temperatura ou identificação garantida do modelo de CPU. Valores não disponíveis permanecem identificados como indisponíveis. A [coleta recomendada para a 0.1.18](PLANO-E-DIAGNOSTICO-0.1.18.md) separa renderer desligado, catch-up e GPU com LODs ativos.
 
 ## Limites de custo e retenção
 
