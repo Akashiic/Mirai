@@ -1,0 +1,50 @@
+{
+  "variant": "raw-loop6",
+  "exit_code": 0,
+  "seconds": 3.401,
+  "production_raw_sha256": "5491e4a74756ad4b7c5fea128a35541944f2d7e7e454481836cf4075e0671374",
+  "probe_sha256": "0f126deaa52dbf38c4e4be67502e2fee89385c50184f29b095564e61c0dc3c90",
+  "candidate_sha256": "4babf2079013f8fc857cbdbfd891b3f4644b4fc02b132f08df0c208101ccbfb4",
+  "scope": "Native Intel-driver offscreen R16F exact comparison and asynchronous GPU timestamp batches; not Minecraft FPS certification",
+  "result": {
+    "variant": "raw-loop6",
+    "width": 1280,
+    "height": 720,
+    "batch_draws": 4,
+    "cases": [
+      {
+        "scene": 0,
+        "changed_r16f_pixels": 0,
+        "baseline_median_ms": 4.4870315,
+        "candidate_median_ms": 4.4731185,
+        "baseline_ns": "[4498766, 4560518, 4408233, 4546968, 4463449, 4695891, 4403482, 4502936, 4757580, 4424481, 4475297, 4345568]",
+        "candidate_ns": "[4434544, 4986515, 4715313, 4455481, 4285290, 4527587, 4334426, 4409499, 4685640, 4490756, 4560538, 4423298]"
+      },
+      {
+        "scene": 1,
+        "changed_r16f_pixels": 0,
+        "baseline_median_ms": 2.8048495,
+        "candidate_median_ms": 2.703133,
+        "baseline_ns": "[3036243, 2975840, 2927949, 2619417, 2893525, 2657307, 2726487, 2816293, 2766410, 2793406, 2879332, 2659714]",
+        "candidate_ns": "[2540464, 2577004, 2849431, 2528719, 2806354, 2780541, 2625725, 2864433, 2476574, 2805026, 2837189, 2558744]"
+      },
+      {
+        "scene": 2,
+        "changed_r16f_pixels": 113,
+        "baseline_median_ms": 8.398427,
+        "candidate_median_ms": 8.460864,
+        "baseline_ns": "[8821074, 8390822, 8452886, 8262899, 8489240, 8254204, 8211646, 9424484, 8514658, 8368288, 8406032, 8310852]",
+        "candidate_ns": "[8305498, 8439087, 8482641, 8392794, 8272174, 9615384, 8678915, 9969731, 10223462, 8825410, 8180355, 8166515]"
+      },
+      {
+        "scene": 3,
+        "changed_r16f_pixels": 50,
+        "baseline_median_ms": 3.821413,
+        "candidate_median_ms": 3.833365,
+        "baseline_ns": "[3592821, 3849104, 4022844, 3778554, 3636562, 3886060, 3817917, 3750790, 3632702, 4494284, 4252297, 3824909]",
+        "candidate_ns": "[4276824, 3752015, 3629631, 3819452, 3847278, 3609732, 3761435, 3710141, 4081753, 4061771, 3862467, 4050234]"
+      }
+    ]
+  },
+  "stderr": ""
+}
