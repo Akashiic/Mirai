@@ -19,6 +19,7 @@
 
 package com.seibel.distanthorizons.core.render.QuadTree;
 
+import com.seibel.distanthorizons.api.enums.rendering.EDhApiRendererMode;
 import com.seibel.distanthorizons.api.enums.rendering.EDhApiTransparency;
 import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dataObjects.fullData.sources.FullDataSourceV2;
@@ -136,9 +137,14 @@ public class LodRenderSection implements IDebugRenderable, AutoCloseable
 	//======================================//
 	//region render data uploading
 	
+	/** DISABLED is a hard opt-out for new render work; dirty sections retry when rendering returns. */
+	static boolean gpuRenderWorkEnabled()
+	{ return Config.Client.Advanced.Debugging.rendererMode.get() != EDhApiRendererMode.DISABLED; }
+
 	/** @return true if the upload started, false if it wasn't able to for any reason */
 	public synchronized boolean uploadRenderDataToGpuAsync()
 	{
+		if (!gpuRenderWorkEnabled()) { this.renderDataDirty = true; return false; }
 		if (this.closed || this.quadTree.isClosing() || this.clientLevelWrapper.getDhLevel() != this.clientLevel) { return false; }
 		if (this.getAndBuildRenderDataFutureRef.get() != null)
 		{
@@ -171,6 +177,7 @@ public class LodRenderSection implements IDebugRenderable, AutoCloseable
 				try
 				{
 					if (!this.isBuildCurrent(future)) { future.complete(null); return; }
+					if (!gpuRenderWorkEnabled()) { this.renderDataDirty = true; future.complete(null); return; }
 					// build LOD data on a DH thread
 					try (LodQuadBuilder lodQuadBuilder = this.getAndBuildRenderData())
 					{
@@ -191,6 +198,7 @@ public class LodRenderSection implements IDebugRenderable, AutoCloseable
 							ArrayList<ByteBuffer> opaqueBuffers = lodQuadBuilder.makeOpaqueVertexBuffers(opaqueCheckout);
 							ArrayList<ByteBuffer> transparentBuffers = lodQuadBuilder.makeTransparentVertexBuffers(transparentCheckout);
 							if (!this.isBuildCurrent(future)) { future.complete(null); return; }
+							if (!gpuRenderWorkEnabled()) { this.renderDataDirty = true; future.complete(null); return; }
 
 							uploadCompletion = this.uploadToGpuAsync(future, opaqueBuffers, transparentBuffers);
 							// Keep backpressure during ordinary section churn. Closing the whole tree
@@ -369,6 +377,7 @@ public class LodRenderSection implements IDebugRenderable, AutoCloseable
 		ArrayList<ByteBuffer> transparentBuffers)
 	{
 		if (!this.isBuildCurrent(parentFuture)) { return CompletableFuture.completedFuture(null); }
+		if (!gpuRenderWorkEnabled()) { this.renderDataDirty = true; return CompletableFuture.completedFuture(null); }
 		CompletableFuture<LodBufferContainer> uploadFuture = LodBufferContainer.tryMakeAndUploadBuffersAsync(
 			this.pos, this.clientLevelWrapper, 
 			opaqueBuffers, 
