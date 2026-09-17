@@ -262,6 +262,21 @@ public class MiraiGpuProfilerTest
         assertTrue(MiraiDiagnostics.enabled());
     }
 
+    @Test public void terrainStatsAreLimitedToSampledPass() throws Exception
+    {
+        assertFalse(MiraiGpuProfiler.collectingPassDetails());
+        MiraiGpuProfiler.terrainPassStats(true, 99, 99, 99, 99, 99, 99, 99);
+        assertEquals(0, eventDetails("gpu_terrain").size());
+        MiraiGpuProfiler.request(10); start(true);
+        assertTrue(MiraiGpuProfiler.collectingPassDetails());
+        MiraiGpuProfiler.terrainPassStats(true, 12, 10, 18, 15, 400, 600, 3);
+        MiraiGpuProfiler.endPass(true);
+        assertFalse(MiraiGpuProfiler.collectingPassDetails());
+        List<String> details = eventDetails("gpu_terrain");
+        assertEquals(1, details.size());
+        assertEquals("pass=deferred capture=1 terrain=opaque candidates=12 containers=10 vbo_slots=18 draws=15 vertices=400 indices=600 max_vbos_per_container=3", details.get(0));
+    }
+
     @Test public void sampleSchemaPairsCpuGpuAndOriginAcrossSeparateCaptures() throws Exception
     {
         for (int capture = 0; capture < 2; capture++)
@@ -293,7 +308,8 @@ public class MiraiGpuProfilerTest
         fail("No sampled pass within cadence; status=" + MiraiGpuProfiler.status());
     }
     private long counter(MiraiDiagnostics.Counter counter) { return session.counters.get(counter.ordinal()); }
-    private List<String> sampleDetails() throws Exception
+    private List<String> sampleDetails() throws Exception { return eventDetails("gpu_sample"); }
+    private List<String> eventDetails(String expectedKind) throws Exception
     {
         Field queue = MiraiLogSession.class.getDeclaredField("queue"); queue.setAccessible(true);
         List<String> result = new ArrayList<>();
@@ -301,7 +317,7 @@ public class MiraiGpuProfilerTest
         {
             Field kind = entry.getClass().getDeclaredField("kind"); kind.setAccessible(true);
             Field detail = entry.getClass().getDeclaredField("detail"); detail.setAccessible(true);
-            if ("gpu_sample".equals(kind.get(entry))) { result.add((String) detail.get(entry)); }
+            if (expectedKind.equals(kind.get(entry))) { result.add((String) detail.get(entry)); }
         }
         return result;
     }
@@ -312,6 +328,7 @@ public class MiraiGpuProfilerTest
         set(MiraiGpuProfiler.class, "factory", null); set(MiraiGpuProfiler.class, "ring", null);
         set(MiraiGpuProfiler.class, "backend", null); set(MiraiGpuProfiler.class, "untilNanos", 0L);
         set(MiraiGpuProfiler.class, "status", "off"); set(MiraiGpuProfiler.class, "passInvalid", false);
+        set(MiraiGpuProfiler.class, "sampledPassActive", false); set(MiraiGpuProfiler.class, "sampledPassDeferred", false);
         set(MiraiGpuProfiler.class, "captureId", 0L);
     }
     private static final class Backend extends MiraiGpuQueryRingTest.FakeBackend implements MiraiGpuProfiler.ContextBackend
