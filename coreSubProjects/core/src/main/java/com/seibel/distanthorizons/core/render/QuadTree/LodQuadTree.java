@@ -112,6 +112,7 @@ public class LodQuadTree extends QuadTree<LodRenderSection> implements IDebugRen
 	 * if this list is modified the {@link LodQuadTree#beaconRenderHandler} should be updated to match.
 	 */
 	private final ArrayList<BeaconRenderHandler.BeaconBeamWithWidth> beaconList = new ArrayList<>();
+	private final ArrayList<BeaconRenderHandler.BeaconBeamWithWidth> beaconRefreshScratch = new ArrayList<>();
 	@Nullable
 	private final BeaconRenderHandler beaconRenderHandler;
 	@Nullable
@@ -1035,7 +1036,8 @@ public class LodQuadTree extends QuadTree<LodRenderSection> implements IDebugRen
 				
 				// convert DB beacons //
 				
-				ArrayList<BeaconRenderHandler.BeaconBeamWithWidth> newBeaconList = new ArrayList<>(this.beaconList.size());
+				this.beaconRefreshScratch.clear();
+				ArrayList<BeaconRenderHandler.BeaconBeamWithWidth> newBeaconList = this.beaconRefreshScratch;
 				for (BeaconBeamDTO beaconBeam : dbBeacons)
 				{
 					byte beaconDetailLevel = this.calcExpectedDetailLevel(playerPos, beaconBeam.blockPos.getX(), beaconBeam.blockPos.getZ());
@@ -1081,6 +1083,10 @@ public class LodQuadTree extends QuadTree<LodRenderSection> implements IDebugRen
 		catch (Exception e)
 		{
 			LOGGER.error("Unexpected issue updating beacons, error: ["+e.getMessage()+"].", e);
+		}
+		finally
+		{
+			synchronized (this.beaconList) { this.beaconRefreshScratch.clear(); }
 		}
 	}
 	
