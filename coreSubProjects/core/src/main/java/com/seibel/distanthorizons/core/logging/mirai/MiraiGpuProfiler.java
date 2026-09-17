@@ -19,12 +19,16 @@ public final class MiraiGpuProfiler
     private static ContextBackend backend;
     private static MiraiGpuQueryRing ring;
     private static boolean passInvalid;
+    private static boolean sampledPassActive;
+    private static boolean sampledPassDeferred;
     private static long captureId;
     private static final Stage[] STAGES = Stage.values();
     private MiraiGpuProfiler() { }
 
     public static void installBackendFactory(BackendFactory value) { factory = value; }
     public static String status() { return status; }
+    /** Render-thread-only detail collection for the pass selected by the GPU query cadence. */
+    public static boolean collectingPassDetails() { return sampledPassActive; }
     public static String request(int seconds)
     {
         if (seconds < 10 || seconds > 120) { return "GPU duration: 10-120 seconds."; }
@@ -68,6 +72,8 @@ public final class MiraiGpuProfiler
 
     public static boolean beginPass(boolean deferred)
     {
+        sampledPassActive = false;
+        sampledPassDeferred = deferred;
         if (!requested()) { maintenance(); return false; }
         long started = System.nanoTime();
         try
@@ -98,7 +104,8 @@ public final class MiraiGpuProfiler
             }
             status = "recording";
             passInvalid = false;
-            return ring.beginPass(deferred);
+            sampledPassActive = ring.beginPass(deferred);
+            return sampledPassActive;
         }
         catch (RuntimeException | LinkageError failure) { failed(failure); return false; }
         finally { MiraiDiagnostics.duration(MiraiDiagnostics.Metric.GPU_OBSERVER_WALL, System.nanoTime() - started); }
@@ -121,11 +128,25 @@ public final class MiraiGpuProfiler
     }
     public static void endPass(boolean completed)
     {
-        if (ring == null) { return; }
+        if (ring == null) { sampledPassActive = false; return; }
         long started = System.nanoTime();
         try { ring.endPass(completed && !passInvalid); }
         catch (RuntimeException | LinkageError failure) { failed(failure); }
-        finally { MiraiDiagnostics.duration(MiraiDiagnostics.Metric.GPU_OBSERVER_WALL, System.nanoTime() - started); }
+        finally
+        {
+            sampledPassActive = false;
+            MiraiDiagnostics.duration(MiraiDiagnostics.Metric.GPU_OBSERVER_WALL, System.nanoTime() - started);
+        }
+    }
+    public static void terrainPassStats(boolean opaque, int candidates, int containers, int vboSlots,
+            int draws, long vertices, long indices, int maxVbosPerContainer)
+    {
+        if (!sampledPassActive) { return; }
+        MiraiDiagnostics.event("gpu_terrain", "pass=" + (sampledPassDeferred ? "deferred" : "main")
+                + " capture=" + captureId + " terrain=" + (opaque ? "opaque" : "transparent")
+                + " candidates=" + candidates + " containers=" + containers + " vbo_slots=" + vboSlots
+                + " draws=" + draws + " vertices=" + vertices + " indices=" + indices
+                + " max_vbos_per_container=" + maxVbosPerContainer);
     }
     /** The renderer may catch its own error; such a partial pass is not a successful sample. */
     public static void invalidatePass() { passInvalid = true; }
@@ -155,6 +176,7 @@ public final class MiraiGpuProfiler
     private static void closeCurrent()
     {
         MiraiGpuQueryRing previous = ring; ContextBackend owner = backend;
+        sampledPassActive = false;
         ring = null; backend = null;
         if (previous != null && owner != null && owner.isCurrentContext()) { previous.close(); }
     }

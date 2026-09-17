@@ -21,6 +21,7 @@ import com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding.LodQuad
 import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
+import com.seibel.distanthorizons.core.logging.mirai.MiraiGpuProfiler;
 import com.seibel.distanthorizons.core.render.RenderParams;
 import com.seibel.distanthorizons.core.util.RenderUtil;
 import com.seibel.distanthorizons.core.util.math.DhMat4f;
@@ -283,6 +284,10 @@ public class GlDhTerrainShaderProgram extends GlShaderProgram implements IDhApiS
 	
 	public void render(RenderParams renderEventParam, boolean opaquePass, SortedArraySet<LodBufferContainer> bufferContainers, IProfilerWrapper profiler)
 	{
+		boolean collectDrawStats = MiraiGpuProfiler.collectingPassDetails();
+		int statsCandidates = bufferContainers == null ? 0 : bufferContainers.size();
+		int statsContainers = 0, statsVboSlots = 0, statsDraws = 0, statsMaxVbos = 0;
+		long statsVertices = 0L, statsIndices = 0L;
 		//=======================//
 		// debug wireframe setup //
 		//=======================//
@@ -363,6 +368,12 @@ public class GlDhTerrainShaderProgram extends GlShaderProgram implements IDhApiS
 				}
 				
 				IVertexBufferWrapper[] vertexBuffers = (opaquePass ? bufferContainer.vboOpaqueWrappers : bufferContainer.vboTransparentWrappers);
+				if (collectDrawStats)
+				{
+					statsContainers++;
+					statsVboSlots += vertexBuffers.length;
+					statsMaxVbos = Math.max(statsMaxVbos, vertexBuffers.length);
+				}
 				for (int vboIndex = 0; vboIndex < vertexBuffers.length; vboIndex++)
 				{
 					GLVertexBuffer vbo = (GLVertexBuffer) vertexBuffers[vboIndex];
@@ -401,6 +412,12 @@ public class GlDhTerrainShaderProgram extends GlShaderProgram implements IDhApiS
 							GL11.GL_TRIANGLES,
 							indexCount,
 							vbo.getQuadIBO().getGlType(), 0);
+						if (collectDrawStats)
+						{
+							statsDraws++;
+							statsVertices += vbo.getVertexCount();
+							statsIndices += indexCount;
+						}
 						
 						vbo.unbind();
 						vbo.getQuadIBO().unbind();
@@ -412,6 +429,11 @@ public class GlDhTerrainShaderProgram extends GlShaderProgram implements IDhApiS
 					}
 				}
 			}
+		}
+		if (collectDrawStats)
+		{
+			MiraiGpuProfiler.terrainPassStats(opaquePass, statsCandidates, statsContainers, statsVboSlots,
+					statsDraws, statsVertices, statsIndices, statsMaxVbos);
 		}
 		
 		
