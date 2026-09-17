@@ -20,6 +20,7 @@
 package com.seibel.distanthorizons.core.file.fullDatafile;
 
 import com.seibel.distanthorizons.core.logging.mirai.MiraiDiagnostics;
+import com.seibel.distanthorizons.core.render.MiraiRendererQuiescence;
 import com.google.common.cache.CacheBuilder;
 import com.seibel.distanthorizons.core.dataObjects.fullData.sources.FullDataSourceV2;
 import com.seibel.distanthorizons.core.file.structure.ISaveStructure;
@@ -108,7 +109,9 @@ public class RemoteFullDataSourceProvider extends GeneratedFullDataSourceProvide
 	{
 		if (this.syncOnLoadRequestQueue != null && !this.synchronizationStopped())
 		{
-			if (!this.trySynchronize(pos)) { this.deferPosition(pos); }
+			if (MiraiRendererQuiescence.isActive())
+			{ MiraiDiagnostics.count(MiraiDiagnostics.Counter.QUIESCENT_REMOTE_SYNC_SUPPRESSED); }
+			else if (!this.trySynchronize(pos)) { this.deferPosition(pos); }
 		}
 		// Local data remains available regardless of handshake or synchronization permission.
 		return super.get(pos);
@@ -120,6 +123,7 @@ public class RemoteFullDataSourceProvider extends GeneratedFullDataSourceProvide
 	/** True means no deferred intent is needed (already pending, checked, or admitted). */
 	private boolean trySynchronize(long pos)
 	{
+		if (MiraiRendererQuiescence.isActive()) { return true; }
 		if (this.synchronizationStopped() || !this.syncOnLoadRequestQueue.canRetainDeferredRequests()) { return true; }
 		if (this.unavailablePositions.contains(pos) || this.visitedPositions.contains(pos)
 			|| !this.pendingPositions.add(pos)) { return true; }
@@ -220,6 +224,7 @@ public class RemoteFullDataSourceProvider extends GeneratedFullDataSourceProvide
 	/** Called by the existing current-level tick, outside the queue's monitor. */
 	public void tickDeferredSynchronization()
 	{
+		if (MiraiRendererQuiescence.isActive()) { return; }
 		if (this.syncOnLoadRequestQueue == null || this.synchronizationStopped()) { return; }
 		if (!this.syncOnLoadRequestQueue.canRetainDeferredRequests())
 		{

@@ -107,6 +107,7 @@ public class ForgeClientProxy implements AbstractModInitializer.IEventProxy
 	{
 		if (event.world == null || !event.world.isRemote) { return; }
 		ForgeMiraiDiagnostics.world("client_unload", event.world);
+		LegacyClientRendererQuiescence.onWorldUnload(event.world);
 		ClientApi.INSTANCE.discardWaitingChunksForWorld(event.world);
 		com.seibel.distanthorizons.core.world.AbstractDhWorld world = SharedApi.getAbstractDhWorld();
 		if (world instanceof com.seibel.distanthorizons.core.world.DhClientWorld)
@@ -127,6 +128,7 @@ public class ForgeClientProxy implements AbstractModInitializer.IEventProxy
             && Minecraft.getMinecraft().theWorld == level
             && MC.clientConnectedToDedicatedServer())
 		{
+            if (LegacyClientRendererQuiescence.suppressAndRemember(level, blockX >> 4, blockZ >> 4)) { return; }
             ILevelWrapper wrappedLevel = ProxyUtil.getLevelWrapper(level);
             if (SharedApi.isChunkAtBlockPosAlreadyUpdating(wrappedLevel, blockX, blockZ))
 			{
@@ -142,6 +144,7 @@ public class ForgeClientProxy implements AbstractModInitializer.IEventProxy
                     {
                         return;
                     }
+                    if (LegacyClientRendererQuiescence.suppressAndRemember(level, blockX >> 4, blockZ >> 4)) { return; }
                     Chunk chunk = level.getChunkFromBlockCoords(blockX, blockZ);
                     ChunkWrapper chunkWrapper = new ChunkWrapper(chunk, wrappedLevel);
                     SharedApi.INSTANCE.applyChunkUpdate(chunkWrapper, wrappedLevel, true);
@@ -161,6 +164,7 @@ public class ForgeClientProxy implements AbstractModInitializer.IEventProxy
 		{
 			return;
 		}
+		if (LegacyClientRendererQuiescence.suppressAndRemember(level, chunk.xPosition, chunk.zPosition)) { return; }
 		
 		ILevelWrapper wrappedLevel = ProxyUtil.getLevelWrapper(level);
 		ChunkWrapper chunkWrapper = new ChunkWrapper(chunk, wrappedLevel);
@@ -177,6 +181,12 @@ public class ForgeClientProxy implements AbstractModInitializer.IEventProxy
 	}
 	
 	//endregion
+
+    @SubscribeEvent
+    public void clientTickEvent(TickEvent.ClientTickEvent event)
+    {
+        if (event.phase == TickEvent.Phase.END) { LegacyClientRendererQuiescence.clientTick(); }
+    }
 	
 	
 	

@@ -1,6 +1,7 @@
 package com.seibel.distanthorizons.core.multiplayer.client;
 
 import com.seibel.distanthorizons.core.config.Config;
+import com.seibel.distanthorizons.core.render.MiraiRendererQuiescence;
 import com.seibel.distanthorizons.core.generation.queues.RemoteWorldRetrievalQueue;
 import com.seibel.distanthorizons.core.generation.tasks.DataSourceRetrievalResult;
 import com.seibel.distanthorizons.core.level.DhClientLevel;
@@ -59,7 +60,8 @@ public class SyncOnLoadRequestQueue extends AbstractFullDataNetworkRequestQueue
 	/** Readiness is also checked at atomic admission, after a deferred timestamp read. */
 	public synchronized boolean canAcceptSyncRequests()
 	{
-		return this.canRetainDeferredRequests() && this.networkState.isReady()
+		return !MiraiRendererQuiescence.isActive()
+			&& this.canRetainDeferredRequests() && this.networkState.isReady()
 			&& this.networkState.sessionConfig.getSynchronizeOnLoad()
 			&& this.getRequestRateLimit() > 0
 			&& !DhApiWorldProxy.INSTANCE.tryGetReadOnly()

@@ -39,6 +39,7 @@ import com.seibel.distanthorizons.core.network.event.ScopedNetworkEventSource;
 import com.seibel.distanthorizons.core.network.messages.fullData.FullDataPartialUpdateMessage;
 import com.seibel.distanthorizons.core.pos.DhChunkPos;
 import com.seibel.distanthorizons.core.render.RenderBufferHandler;
+import com.seibel.distanthorizons.core.render.MiraiRendererQuiescence;
 import com.seibel.distanthorizons.core.pos.blockPos.DhBlockPos2D;
 import com.seibel.distanthorizons.core.sql.dto.FullDataSourceV2DTO;
 import com.seibel.distanthorizons.core.util.threading.ThreadPoolUtil;
@@ -179,6 +180,15 @@ public class DhClientLevel extends AbstractDhLevel implements IDhClientLevel
 			{
 				return;
 			}
+			if (MiraiRendererQuiescence.isActive()
+					&& this.syncOnLoadRequestQueue != null
+					&& this.networkState.sessionConfig.getSynchronizeOnLoad()
+					&& this.networkState.sessionConfig.getSyncOnLoginRateLimit() > 0)
+			{
+				com.seibel.distanthorizons.core.logging.mirai.MiraiDiagnostics.count(
+						com.seibel.distanthorizons.core.logging.mirai.MiraiDiagnostics.Counter.QUIESCENT_PARTIAL_UPDATE_SUPPRESSED);
+				return;
+			}
 			
 			try (FullDataSourceV2DTO dataSourceDto = this.networkState.fullDataPayloadReceiver.decodeDataSource(message.payload))
 			{
@@ -235,6 +245,7 @@ public class DhClientLevel extends AbstractDhLevel implements IDhClientLevel
 			}
 			
 			if (!this.clientside.clientTickForCurrentWorld()) { return; }
+			if (MiraiRendererQuiescence.isActive()) { return; }
 			
 			if (this.syncOnLoadRequestQueue != null)
 			{

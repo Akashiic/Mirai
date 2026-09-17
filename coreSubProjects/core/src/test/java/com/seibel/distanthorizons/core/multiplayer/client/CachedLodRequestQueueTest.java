@@ -1,6 +1,8 @@
 package com.seibel.distanthorizons.core.multiplayer.client;
 
 import com.seibel.distanthorizons.api.enums.config.EDhApiDataCompressionMode;
+import com.seibel.distanthorizons.api.enums.rendering.EDhApiRendererMode;
+import com.seibel.distanthorizons.core.config.types.ConfigEntry;
 import com.seibel.distanthorizons.core.api.internal.SharedApi;
 import com.seibel.distanthorizons.core.dataObjects.fullData.sources.FullDataSourceV2;
 import com.seibel.distanthorizons.core.generation.tasks.DataSourceRetrievalResult;
@@ -187,6 +189,21 @@ public class CachedLodRequestQueueTest
 			try { this.queue.close(); this.receiver.close(); this.session.close(); }
 			finally { field(SharedApi.class, "currentWorld").set(null, this.previousWorld); }
 		}
+	}
+
+	@Test public void disabledRendererQuiescenceRejectsSyncAdmission() throws Exception
+	{
+		ConfigEntry<EDhApiRendererMode> mode = com.seibel.distanthorizons.core.config.Config.Client.Advanced.Debugging.rendererMode;
+		EDhApiRendererMode previous = mode.getTrueValue();
+		try (Fixture fixture = new Fixture(() -> Runnable::run, 8))
+		{
+			mode.setWithoutFiringEvents(EDhApiRendererMode.DISABLED);
+			Assert.assertFalse(fixture.queue.canAcceptSyncRequests());
+			Assert.assertNull(fixture.queue.trySubmitRequest(POS, FullDataSourceRequestMessage.CACHE_ONLY_TIMESTAMP));
+			Assert.assertFalse(fixture.queue.tick(TARGET));
+			Assert.assertTrue(fixture.session.messages.isEmpty());
+		}
+		finally { mode.setWithoutFiringEvents(previous); }
 	}
 
 	@Test public void cachedQueryIsSentWithWorldGenerationDisabledAndClockSkew() throws Exception

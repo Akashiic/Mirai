@@ -28,6 +28,7 @@ import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.pos.blockPos.DhBlockPos2D;
 import com.seibel.distanthorizons.core.render.QuadTree.LodQuadTree;
 import com.seibel.distanthorizons.core.render.RenderBufferHandler;
+import com.seibel.distanthorizons.core.render.MiraiRendererQuiescence;
 import com.seibel.distanthorizons.core.util.LodUtil;
 import com.seibel.distanthorizons.core.util.math.DhVec3d;
 import com.seibel.distanthorizons.core.wrapperInterfaces.IWrapperFactory;
@@ -50,6 +51,7 @@ public class ClientLevelModule implements Closeable, IDataSourceUpdateListenerFu
 	private static final IWrapperFactory WRAPPER_FACTORY = SingletonInjector.INSTANCE.get(IWrapperFactory.class);
 	
 	private final IDhClientLevel clientLevel;
+	private boolean rendererStoppedForQuiescence;
 	
 	@WillNotClose
 	public final FullDataSourceProviderV2 fullDataSourceProvider;
@@ -75,6 +77,7 @@ public class ClientLevelModule implements Closeable, IDataSourceUpdateListenerFu
 		
 		this.fullDataSourceProvider = this.clientLevel.getFullDataProvider();
 		this.fullDataSourceProvider.addDataSourceUpdateListener(this);
+		this.rendererStoppedForQuiescence = MiraiRendererQuiescence.isActive();
 	}
 	
 	
@@ -96,6 +99,19 @@ public class ClientLevelModule implements Closeable, IDataSourceUpdateListenerFu
 		if (!MC_CLIENT.playerExists())
 		{
 			return false;
+		}
+
+		if (MiraiRendererQuiescence.isActive())
+		{
+			this.rendererStoppedForQuiescence = true;
+			return true;
+		}
+		if (this.rendererStoppedForQuiescence)
+		{
+			ClientRenderState staleState = this.ClientRenderStateRef.getAndSet(null);
+			if (staleState != null) { staleState.close(); }
+			this.rendererStoppedForQuiescence = false;
+			if (this.ClientRenderStateRef.get() == null) { this.startRenderer(); }
 		}
 		
 		ClientRenderState clientRenderState = this.ClientRenderStateRef.get();
@@ -143,6 +159,11 @@ public class ClientLevelModule implements Closeable, IDataSourceUpdateListenerFu
 	
 	public void startRenderer()
 	{
+		if (MiraiRendererQuiescence.isActive())
+		{
+			this.rendererStoppedForQuiescence = true;
+			return;
+		}
 		ClientRenderState clientRenderState = new ClientRenderState(this.clientLevel, this.clientLevel.getFullDataProvider());
 		if (!this.ClientRenderStateRef.compareAndSet(null, clientRenderState))
 		{
@@ -151,7 +172,8 @@ public class ClientLevelModule implements Closeable, IDataSourceUpdateListenerFu
 		}
 	}
 	
-	public boolean isRendering() { return this.ClientRenderStateRef.get() != null; }
+	public boolean isRendering()
+	{ return !MiraiRendererQuiescence.isActive() && this.ClientRenderStateRef.get() != null; }
 	
 	public void stopRenderer()
 	{
@@ -177,6 +199,7 @@ public class ClientLevelModule implements Closeable, IDataSourceUpdateListenerFu
 	@Override
 	public void OnDataSourceUpdated(FullDataSourceV2 updatedFullDataSource)
 	{
+		if (MiraiRendererQuiescence.isActive()) { return; }
 		// if rendering, also update the render sources
 		ClientRenderState ClientRenderState = this.ClientRenderStateRef.get();
 		if (ClientRenderState != null)
