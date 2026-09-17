@@ -134,8 +134,9 @@ public class LodQuadTree extends QuadTree<LodRenderSection> implements IDebugRen
 	/** the {@link DhSectionPos} that need to be retrieved/generated */
 	private final Set<Long> missingGenerationPosSet = Collections.newSetFromMap(new ConcurrentHashMap<>()); // concurrency is annoying but required due to needing to add/remove items in the world gen future
 	private final Set<Long> queuedGenerationPosSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
-	/** cached array to prevent having to re-allocate it each tick */
+	/** cached arrays owned by treeTickLock to avoid steady-state tick allocations */
 	private final ArrayList<Long> sortedMissingPosList = new ArrayList<>();
+	private final ArrayList<LodRenderSection> loadSectionScratch = new ArrayList<>();
 	private final ArrayList<LodRenderSection> debugNodeList = new ArrayList<>();
 	/** cached to prevent re-allocating each tick */
 	private final QuadTreeTickNodeHolder tickNodeHolder = new QuadTreeTickNodeHolder();
@@ -779,31 +780,40 @@ public class LodQuadTree extends QuadTree<LodRenderSection> implements IDebugRen
 	}
 	private void loadQueuedSections(DhBlockPos2D playerPos, HashSet<LodRenderSection> nodesNeedingLoading)
 	{
-		ArrayList<LodRenderSection> loadSectionList = new ArrayList<>(nodesNeedingLoading);
-		loadSectionList.sort((LodRenderSection a, LodRenderSection b) ->
+		this.loadSectionScratch.clear();
+		try
 		{
-			// lower-detail LODs first
-			byte aDetailLevel = DhSectionPos.getDetailLevel(a.pos);
-			byte bDetailLevel = DhSectionPos.getDetailLevel(b.pos);
-			if (aDetailLevel != bDetailLevel)
+			this.loadSectionScratch.addAll(nodesNeedingLoading);
+			this.loadSectionScratch.sort((LodRenderSection a, LodRenderSection b) ->
 			{
-				return Byte.compare(bDetailLevel, aDetailLevel); // larger numbers first
+				// lower-detail LODs first
+				byte aDetailLevel = DhSectionPos.getDetailLevel(a.pos);
+				byte bDetailLevel = DhSectionPos.getDetailLevel(b.pos);
+				if (aDetailLevel != bDetailLevel)
+				{
+					return Byte.compare(bDetailLevel, aDetailLevel); // larger numbers first
+				}
+
+				// closer LODs first
+				int aDist = DhSectionPos.getManhattanBlockDistance(a.pos, playerPos);
+				int bDist = DhSectionPos.getManhattanBlockDistance(b.pos, playerPos);
+				return Integer.compare(aDist, bDist); // smaller numbers first
+			});
+
+			for (int i = 0; i < this.loadSectionScratch.size(); i++)
+			{
+				LodRenderSection renderSection = this.loadSectionScratch.get(i);
+				if (!renderSection.gpuUploadInProgress()
+					&& !renderSection.gpuUploadComplete())
+				{
+					renderSection.uploadRenderDataToGpuAsync();
+				}
 			}
-			
-			// closer LODs first
-			int aDist = DhSectionPos.getManhattanBlockDistance(a.pos, playerPos);
-			int bDist = DhSectionPos.getManhattanBlockDistance(b.pos, playerPos);
-			return Integer.compare(aDist, bDist); // smaller numbers first
-		});
-		
-		for (int i = 0; i < loadSectionList.size(); i++)
+		}
+		finally
 		{
-			LodRenderSection renderSection = loadSectionList.get(i);
-			if (!renderSection.gpuUploadInProgress() 
-				&& !renderSection.gpuUploadComplete())
-			{
-				renderSection.uploadRenderDataToGpuAsync();
-			}
+			// Do not retain render sections across ticks or after tree teardown.
+			this.loadSectionScratch.clear();
 		}
 	}
 	
