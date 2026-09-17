@@ -142,36 +142,58 @@ public class FullDataUpdaterV2 implements IDebugRenderable, AutoCloseable
         long diagnosticStart = MiraiDiagnostics.startTiming();
 		try
 		{
-			updateLock.lock();
+			long lockStart = MiraiDiagnostics.startTraceTiming();
+			boolean traceUpdate = lockStart != 0;
+			try { updateLock.lock(); }
+			finally { MiraiDiagnostics.finishTiming(MiraiDiagnostics.Metric.LOD_UPDATE_LOCK_WAIT, lockStart); }
 			locked = true;
 			if (this.isShutdownRef.get()) { throw new CancellationException("Data updater closed before write"); }
 			this.lockedPosSet.add(updatePos);
 			// Check at commit time, under the same lock as local/live updates. A
 			// timestamp check before queuing leaves a stale-snapshot overwrite race.
-            if (onlyIfAbsent && this.provider.repo.existsWithKeyChecked(updatePos))
+            if (onlyIfAbsent)
             {
-                MiraiDiagnostics.section(MiraiDiagnostics.Counter.COLD_PRESERVED_LOCAL, updatePos, "local_record_already_exists");
-                return;
+                long existsStart = MiraiDiagnostics.startTracePhase(traceUpdate);
+                boolean exists;
+                try { exists = this.provider.repo.existsWithKeyChecked(updatePos); }
+                finally { MiraiDiagnostics.finishTiming(MiraiDiagnostics.Metric.LOD_UPDATE_EXISTS_CHECK, existsStart); }
+                if (exists)
+                {
+                    MiraiDiagnostics.section(MiraiDiagnostics.Counter.COLD_PRESERVED_LOCAL, updatePos, "local_record_already_exists");
+                    return;
+                }
             }
-			try (FullDataSourceV2 recipientDataSource = this.provider.get(updatePos))
+			try (FullDataSourceV2 recipientDataSource = this.getDataSourceWithDiagnostics(updatePos, traceUpdate))
 			{
 				if (recipientDataSource == null) { throw new CancellationException("Data destination is unavailable"); }
-				boolean dataModified = recipientDataSource.updateFromDataSource(inputData);
+				long mergeStart = MiraiDiagnostics.startTracePhase(traceUpdate);
+				boolean dataModified;
+				try { dataModified = recipientDataSource.updateFromDataSource(inputData); }
+				finally { MiraiDiagnostics.finishTiming(MiraiDiagnostics.Metric.LOD_UPDATE_MERGE, mergeStart); }
 				if (dataModified && DhSectionPos.getDetailLevel(updatePos) == DhSectionPos.SECTION_BLOCK_DETAIL_LEVEL)
 				{
-					DhLightingEngine.INSTANCE.bakeDataSourceSkyLight(recipientDataSource,
-							this.provider.levelWrapper.hasSkyLight() ? LodUtil.MAX_MC_LIGHT : LodUtil.MIN_MC_LIGHT);
+					long skylightStart = MiraiDiagnostics.startTracePhase(traceUpdate);
+					try
+					{
+						DhLightingEngine.INSTANCE.bakeDataSourceSkyLight(recipientDataSource,
+								this.provider.levelWrapper.hasSkyLight() ? LodUtil.MAX_MC_LIGHT : LodUtil.MIN_MC_LIGHT);
+					}
+					finally { MiraiDiagnostics.finishTiming(MiraiDiagnostics.Metric.LOD_UPDATE_SKYLIGHT, skylightStart); }
 				}
 				// An unchanged merge can target an empty, never-persisted record. Always
 				// obtain an actual write acknowledgement before hashes/migration advance.
-				try (FullDataSourceV2DTO dto = this.createDtoFromDataSource(recipientDataSource))
+				try (FullDataSourceV2DTO dto = this.createDtoFromDataSource(recipientDataSource, traceUpdate))
 				{
 					if (dto == null) { throw new IllegalStateException("Unable to encode data source"); }
-					if (!this.provider.repo.saveChecked(dto)) { throw new IllegalStateException("Data source write was not committed"); }
+					long saveStart = MiraiDiagnostics.startTracePhase(traceUpdate);
+					boolean saved;
+					try { saved = this.provider.repo.saveChecked(dto); }
+					finally { MiraiDiagnostics.finishTiming(MiraiDiagnostics.Metric.LOD_UPDATE_DB_SAVE, saveStart); }
+					if (!saved) { throw new IllegalStateException("Data source write was not committed"); }
 					committed = true;
                     MiraiDiagnostics.count(MiraiDiagnostics.Counter.DB_COMMITTED);
 				}
-				if (dataModified) { this.notifyCommittedUpdate(recipientDataSource); }
+				if (dataModified) { this.notifyCommittedUpdate(recipientDataSource, traceUpdate); }
 			}
 		}
 		catch (Throwable failure)
@@ -205,31 +227,45 @@ public class FullDataUpdaterV2 implements IDebugRenderable, AutoCloseable
 		}
 	}
 
-	private void notifyCommittedUpdate(FullDataSourceV2 dataSource)
+	private FullDataSourceV2 getDataSourceWithDiagnostics(long updatePos, boolean traceUpdate)
 	{
-		ArrayList<IDataSourceUpdateListenerFunc<FullDataSourceV2>> listeners;
-		ReentrantReadWriteLock.ReadLock readLock = this.updateListenerReadWriteLock.readLock();
-		readLock.lock();
-		try { listeners = new ArrayList<>(this.dateSourceUpdateListeners); }
-		finally { readLock.unlock(); }
-		// Do not call external listeners while holding the registration lock: listeners
-		// may add/remove themselves. Failures do not suppress subsequent observers.
-		for (IDataSourceUpdateListenerFunc<FullDataSourceV2> listener : listeners)
-		{
-			if (listener == null) { continue; }
-			try { listener.OnDataSourceUpdated(dataSource); }
-			catch (RuntimeException failure) { LOGGER.error("Data update listener failed after commit at [" + DhSectionPos.toString(dataSource.getPos()) + "].", failure); }
-		}
+		long loadStart = MiraiDiagnostics.startTracePhase(traceUpdate);
+		try { return this.provider.get(updatePos); }
+		finally { MiraiDiagnostics.finishTiming(MiraiDiagnostics.Metric.LOD_UPDATE_LOAD, loadStart); }
 	}
 
-	private FullDataSourceV2DTO createDtoFromDataSource(FullDataSourceV2 dataSource)
+	private void notifyCommittedUpdate(FullDataSourceV2 dataSource, boolean traceUpdate)
 	{
+		long notifyStart = MiraiDiagnostics.startTracePhase(traceUpdate);
+		try
+		{
+			ArrayList<IDataSourceUpdateListenerFunc<FullDataSourceV2>> listeners;
+			ReentrantReadWriteLock.ReadLock readLock = this.updateListenerReadWriteLock.readLock();
+			readLock.lock();
+			try { listeners = new ArrayList<>(this.dateSourceUpdateListeners); }
+			finally { readLock.unlock(); }
+			// Do not call external listeners while holding the registration lock: listeners
+			// may add/remove themselves. Failures do not suppress subsequent observers.
+			for (IDataSourceUpdateListenerFunc<FullDataSourceV2> listener : listeners)
+			{
+				if (listener == null) { continue; }
+				try { listener.OnDataSourceUpdated(dataSource); }
+				catch (RuntimeException failure) { LOGGER.error("Data update listener failed after commit at [" + DhSectionPos.toString(dataSource.getPos()) + "].", failure); }
+			}
+		}
+		finally { MiraiDiagnostics.finishTiming(MiraiDiagnostics.Metric.LOD_UPDATE_NOTIFY, notifyStart); }
+	}
+
+	private FullDataSourceV2DTO createDtoFromDataSource(FullDataSourceV2 dataSource, boolean traceUpdate)
+	{
+		long encodeStart = MiraiDiagnostics.startTracePhase(traceUpdate);
 		try
 		{
 			EDhApiDataCompressionMode compressionModeEnum = Config.Common.LodBuilding.dataCompression.get();
 			return FullDataSourceV2DTO.CreateFromDataSource(dataSource, compressionModeEnum);
 		}
 		catch (IOException failure) { throw new CompletionException("Unable to encode data source", failure); }
+		finally { MiraiDiagnostics.finishTiming(MiraiDiagnostics.Metric.LOD_UPDATE_ENCODE, encodeStart); }
 	}
 
 	private void beginWrite()

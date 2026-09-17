@@ -44,7 +44,8 @@ final class MiraiLogSession implements AutoCloseable
     private final Thread worker;
     volatile boolean accepting = true;
     volatile String status = "starting";
-    volatile long traceUntilNanos, clientThreadId, serverThreadId;
+    final AtomicLong traceUntilNanos = new AtomicLong();
+    volatile long clientThreadId, serverThreadId;
     volatile long stackSamples;
     private BufferedWriter output;
     private long bytes, lastFlush, lastSnapshot, lastTrace;
@@ -61,12 +62,23 @@ final class MiraiLogSession implements AutoCloseable
         this.worker.setDaemon(true);
     }
     void start() { worker.start(); }
-    boolean tracing() { return accepting && traceUntilNanos != 0 && System.nanoTime() - traceUntilNanos < 0; }
+    boolean tracing()
+    {
+        long until = traceUntilNanos.get();
+        if (!accepting || until == 0) { return false; }
+        long now = System.nanoTime();
+        if (now - until < 0) { return true; }
+        traceUntilNanos.compareAndSet(until, 0);
+        return false;
+    }
     long traceTimingStart()
     {
-        if (!accepting || traceUntilNanos == 0) { return 0; }
+        long until = traceUntilNanos.get();
+        if (!accepting || until == 0) { return 0; }
         long now = System.nanoTime();
-        return now - traceUntilNanos < 0 ? now : 0;
+        if (now - until < 0) { return now; }
+        traceUntilNanos.compareAndSet(until, 0);
+        return 0;
     }
     boolean event(String kind, String detail) { return offer(new Entry(bounded(kind, 64), bounded(detail, MAX_DETAIL), false)); }
     void metadata(String key, String value) { offer(new Entry(bounded(key, 96), bounded(value, 512), true)); }
@@ -250,7 +262,7 @@ final class MiraiLogSession implements AutoCloseable
             sampleThread(bean, "server_main", serverThreadId);
         }
         catch (RuntimeException unsupported)
-        { write(System.nanoTime(), "stack_sample", "unavailable=" + unsupported.getClass().getName()); traceUntilNanos = 0; }
+        { write(System.nanoTime(), "stack_sample", "unavailable=" + unsupported.getClass().getName()); traceUntilNanos.set(0); }
     }
     private void sampleThread(ThreadMXBean bean, String role, long id) throws IOException
     {

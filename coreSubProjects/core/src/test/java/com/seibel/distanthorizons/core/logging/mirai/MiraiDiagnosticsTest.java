@@ -143,7 +143,7 @@ public class MiraiDiagnosticsTest
         Path path = directory(); MiraiLogSession s = session(path, 64, 65536); s.start(); ready(s);
         Field field = MiraiDiagnostics.class.getDeclaredField("session"); field.setAccessible(true); field.set(null, s);
         boolean before = ManagementFactory.getThreadMXBean().isThreadCpuTimeEnabled();
-        assertTrue(MiraiDiagnostics.command(new String[]{"trace", "99999999"}).contains("10-120")); assertEquals(0, s.traceUntilNanos);
+        assertTrue(MiraiDiagnostics.command(new String[]{"trace", "99999999"}).contains("10-120")); assertEquals(0, s.traceUntilNanos.get());
         assertTrue(MiraiDiagnostics.command(new String[]{"mark", "../unsafe\n"}).contains("Marker:"));
         assertTrue(MiraiDiagnostics.command(new String[]{"mark", "sky_white"}).contains("queued"));
         MiraiDiagnostics.ownerThread(true);
@@ -156,6 +156,26 @@ public class MiraiDiagnosticsTest
         s.close(); s.awaitTermination(5000);
         String log = text(path.resolve("latest.log")); assertTrue(log.contains("mod_attribution=none")); assertTrue(log.contains("sky_white"));
     }
+    @Test public void traceSubphaseTimingOnlyRecordsInsideTraceWindow() throws Exception
+    {
+        MiraiLogSession s = session(directory().resolve("not_created"), 4, 4096); install(s);
+        assertEquals(0, MiraiDiagnostics.startTraceTiming());
+        assertEquals(0, MiraiDiagnostics.startTracePhase(false));
+        MiraiDiagnostics.finishTiming(MiraiDiagnostics.Metric.LOD_UPDATE_LOAD, 0);
+        assertEquals(0, s.timings[MiraiDiagnostics.Metric.LOD_UPDATE_LOAD.ordinal()].drain()[0]);
+        s.traceUntilNanos.set(System.nanoTime() + TimeUnit.SECONDS.toNanos(10));
+        long start = MiraiDiagnostics.startTraceTiming(); assertTrue(start != 0);
+        MiraiDiagnostics.finishTiming(MiraiDiagnostics.Metric.LOD_UPDATE_LOAD, start);
+        assertEquals(1, s.timings[MiraiDiagnostics.Metric.LOD_UPDATE_LOAD.ordinal()].drain()[0]);
+        s.traceUntilNanos.set(System.nanoTime() - 1);
+        assertEquals(0, MiraiDiagnostics.startTraceTiming());
+        assertEquals("Expired trace deadline must be cleared without touching future traces", 0, s.traceUntilNanos.get());
+        s.traceUntilNanos.set(System.nanoTime() + TimeUnit.SECONDS.toNanos(10));
+        assertTrue("A fresh trace after expiry must become observable", MiraiDiagnostics.startTraceTiming() != 0);
+        assertTrue(MiraiDiagnostics.startTracePhase(true) != 0);
+        assertEquals(MiraiDiagnostics.Metric.LOD_RENDER_LIST_WALL.ordinal() + 1, MiraiDiagnostics.Metric.LOD_UPDATE_LOCK_WAIT.ordinal());
+    }
+
     private void install(MiraiLogSession s) throws Exception
     { Field field = MiraiDiagnostics.class.getDeclaredField("session"); field.setAccessible(true); field.set(null, s); }
 

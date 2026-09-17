@@ -20,7 +20,9 @@ public final class MiraiDiagnostics
         CLIENT_RENDER_PASS_WALL, CLIENT_DEFERRED_PASS_WALL, RENDER_TASK_QUEUE_WALL, RENDER_TASK_WALL,
         GL_STORAGE_UPLOAD_WALL, GL_DATA_UPLOAD_WALL, GL_SUB_DATA_UPLOAD_WALL,
         GPU_MAIN_PASS, GPU_DEFERRED_PASS, GPU_SAMPLED_PASS_WALL, GPU_OBSERVER_WALL,
-        LOD_RENDER_LIST_WALL }
+        LOD_RENDER_LIST_WALL,
+        LOD_UPDATE_LOCK_WAIT, LOD_UPDATE_EXISTS_CHECK, LOD_UPDATE_LOAD, LOD_UPDATE_MERGE,
+        LOD_UPDATE_SKYLIGHT, LOD_UPDATE_ENCODE, LOD_UPDATE_DB_SAVE, LOD_UPDATE_NOTIFY }
     public enum ErrorKind { RENDER, DATABASE, NETWORK, SNAPSHOT, INITIALIZATION, DH_LOG }
     private static volatile MiraiLogSession session;
     private static final AtomicInteger marks = new AtomicInteger();
@@ -51,6 +53,10 @@ public final class MiraiDiagnostics
     public static long startTiming() { return enabled() ? System.nanoTime() : 0; }
     static long traceTimingStart()
     { MiraiLogSession s = session; return s == null ? 0 : s.traceTimingStart(); }
+    /** High-detail timing is deliberately opt-in via /miraidiag trace. */
+    public static long startTraceTiming() { return traceTimingStart(); }
+    /** Reuses one trace decision for nested phases of the same operation. */
+    public static long startTracePhase(boolean traceActive) { return traceActive ? System.nanoTime() : 0; }
     public static void finishTiming(Metric metric, long start)
     { if (start != 0) { duration(metric, System.nanoTime() - start); } }
     /**
@@ -127,7 +133,7 @@ public final class MiraiDiagnostics
             try { if (args.length == 2) { seconds = Integer.parseInt(args[1]); } }
             catch (NumberFormatException invalid) { return "Trace duration: 10-120 seconds."; }
             if (seconds < 10 || seconds > 120) { return "Trace duration: 10-120 seconds."; }
-            s.traceUntilNanos = System.nanoTime() + seconds * 1_000_000_000L;
+            s.traceUntilNanos.set(System.nanoTime() + seconds * 1_000_000_000L);
             s.event("trace", "start seconds=" + seconds + "; stack samples are observations, not mod CPU attribution; GLState save/restore wall timing active; no extra GL queries");
             return "Mirai trace enabled for " + seconds + " seconds. Stack sampling has additional overhead.";
         }
@@ -142,7 +148,7 @@ public final class MiraiDiagnostics
             return MiraiGpuProfiler.request(seconds);
         }
         if (args.length == 1 && "stop".equals(args[0]))
-        { s.traceUntilNanos = 0; MiraiGpuProfiler.stop(); s.event("trace", "stopped_by_user; baseline_logging_continues"); return "Mirai trace and GPU capture stopped; baseline logging continues."; }
+        { s.traceUntilNanos.set(0); MiraiGpuProfiler.stop(); s.event("trace", "stopped_by_user; baseline_logging_continues"); return "Mirai trace and GPU capture stopped; baseline logging continues."; }
         return "Mirai diagnostics: status | mark [label] | trace [10-120 seconds] | gpu [10-120 seconds|stop] | stop";
     }
 }
