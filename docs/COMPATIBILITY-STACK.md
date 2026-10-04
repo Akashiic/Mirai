@@ -17,7 +17,7 @@ Regra de leitura: **presença simultânea de mods, aviso genérico de Forge ou r
 | EndlessIDs | 1.7.4 | companion 1.0.1 vs. Mirai 0.1.16/0.1.17 | Revalidar contra 0.1.19 |
 | CubicChunks | fork `v0.1.21-akashic-crucible-0.1.0-dev.N` (dev.4 na auditoria 0.1.7; dev.6 na rodada 0.1.9; dev.7 na 0.1.10; **versão atual não verificada**) | — | Crash CoreTweaks×CubicChunks conhecido (§3) |
 | UniMixins / ArchaicFix / PlayerAPI / Backhand / ThePatcher | 0.3.1 / 0.8.0 / 1.5.0 / 1.8.13 / 1.1.0-beta.34 | — | Sem interação observada |
-| Java cliente | 1.8.0_51 | 8u362 e 21.0.11 (testes/replay) | Quirk do C2 (§4) |
+| Java cliente | 1.8.0_51 | 8u362 e 21.0.11 (testes/replay) | Quirk do C2 (§3) |
 | Servidor | Crucible, Java 21 | companions offline | Sem teste dedicado da 0.1.19 |
 
 **Ação aberta**: reexecutar `tests/angelicaabi/audit.py` com os JARs *exatos* do pack (Angelica 2.2.20, GTNHLib 0.11.51) — Issue "ABI vs runtime".
