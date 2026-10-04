@@ -1,0 +1,44 @@
+{
+  "version": "0.1.18-dev",
+  "commit": "a77e157826954d41ed746dc23e31d98a0f5ffede",
+  "branch": "akashic/mirai-0.1.18-dev",
+  "status": "approved_for_controlled_runtime_test; stable_pending_runtime",
+  "runtime_gate": false,
+  "jar": {
+    "name": "Akashic-Horizons-of-The-Mirai-forge17-0.1.18-dev-1.7.10.jar",
+    "sha256": "29e549b1ce457f0e907585250d5c9cb75d4a64187d4240750e290887c604064e",
+    "bytes": 45401331
+  },
+  "source_zip": {
+    "name": "Akashic-Mirai-0.1.18-dev-sources.zip",
+    "sha256": "a434b4729166cce5c37c9e24e213ca97bcb4c86eb3fd6dbbdbe5d26a07dad6e5",
+    "bytes": 25959544
+  },
+  "baseline": {
+    "version": "0.1.17-dev",
+    "commit": "cffe7fdd3db08db32535c6638b020315ae1d8e43",
+    "jar_sha256": "8196b43495eddb89b554a0846c8035f317df91fe38b64620304b5496240c02dc"
+  },
+  "claims": {
+    "tick_upload_staging_reused": true,
+    "beacon_refresh_staging_reused": true,
+    "disabled_renderer_blocks_new_render_builds_and_gpu_uploads": true,
+    "gpu_terrain_telemetry_opt_in_only": true,
+    "shader_sources_changed": false,
+    "packaged_shaders_byte_identical_to_0_1_17": true,
+    "visual_quality_changed": false,
+    "runtime_transition_gate_passed": false
+  },
+  "tests": {
+    "core": {"tests": 329, "failures": 0, "errors": 0, "skipped": 1},
+    "api": {"tests": 5, "failures": 0, "errors": 0, "skipped": 0},
+    "java8_replay": true,
+    "java21_replay": true,
+    "angelica_2_1_5_abi": true,
+    "angelica_2_2_8_abi": true
+  },
+  "limitations": [
+    "Minecraft/Crucible runtime certification is still pending.",
+    "Historical 0.1.0/0.1.1 negative-control JARs are no longer present locally and were not reexecuted; compatibility continuity against final 0.1.17 was verified byte-for-byte."
+  ]
+}

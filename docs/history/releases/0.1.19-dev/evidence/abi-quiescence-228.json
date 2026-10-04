@@ -1,0 +1,162 @@
+{
+  "artifact": {
+    "path": "C:\\Users\\User\\Desktop\\Codex\\akashic-mirai-disabled-quiescence-lab\\forge17\\build\\libs\\Akashic-Horizons-of-The-Mirai-forge17-0.1.19-dev-1.7.10.jar",
+    "sha256": "481d6f7b0f175465b00b278c37837cf65d7af90b3ba6d065c65819bf647986ea",
+    "bytes": 45408316
+  },
+  "dependencies_in_precedence_order": [
+    {
+      "path": "C:\\Users\\User\\AppData\\Roaming\\.technic\\modpacks\\forbidden-series\\mods\\angelica-2.2.8.jar",
+      "sha256": "2b26826e5c9cb1ec208b097165a67662cdedbedb8c84ff96dc26c17b198cf84f",
+      "bytes": 9759163
+    },
+    {
+      "path": "C:\\Users\\User\\AppData\\Roaming\\.technic\\modpacks\\forbidden-series\\mods\\gtnhlib-0.11.41.jar",
+      "sha256": "055b799dfa17a4cd49986c1c18df03e28dc90168d230ed8c4318b18dda1c0800",
+      "bytes": 1393639
+    }
+  ],
+  "scope": "All final-JAR member references for private-type leaks; direct Angelica/GTNHLib/Iris/Sodium class/member descriptors resolved against supplied original JARs.",
+  "limitations": [
+    "No Minecraft, OpenGL, class initialization, mixin application or network session executed.",
+    "Does not audit unrelated external libraries, invocation opcodes or all JVM access/default-method rules.",
+    "Dependency member resolution uses base classes (Java 8); every candidate class, including multi-release entries, is scanned."
+  ],
+  "classes_scanned": 12539,
+  "member_references_scanned": 234914,
+  "external_target_classes": [
+    "com/gtnewhorizons/angelica/config/AngelicaConfig",
+    "com/gtnewhorizons/angelica/glsm/GLStateManager",
+    "com/gtnewhorizons/angelica/glsm/stacks/FogStateStack",
+    "net/coderbot/iris/rendertarget/IRenderTargetExt"
+  ],
+  "external_target_member_references": [
+    {
+      "caller": "com/seibel/distanthorizons/forge17/modAccessor/AngelicaAccessor",
+      "kind": "method",
+      "constant_pool_tag": 11,
+      "owner": "net/coderbot/iris/rendertarget/IRenderTargetExt",
+      "name": "iris$getDepthTextureId",
+      "descriptor": "()I",
+      "resolved": {
+        "declaring_class": "net/coderbot/iris/rendertarget/IRenderTargetExt",
+        "access_flags": 1025
+      }
+    },
+    {
+      "caller": "com/seibel/distanthorizons/forge17/modAccessor/AngelicaAccessor",
+      "kind": "field",
+      "constant_pool_tag": 9,
+      "owner": "com/gtnewhorizons/angelica/config/AngelicaConfig",
+      "name": "enableIris",
+      "descriptor": "Z",
+      "resolved": {
+        "declaring_class": "com/gtnewhorizons/angelica/config/AngelicaConfig",
+        "access_flags": 9
+      }
+    },
+    {
+      "caller": "com/seibel/distanthorizons/forge17/modAccessor/AngelicaAccessor",
+      "kind": "method",
+      "constant_pool_tag": 10,
+      "owner": "com/gtnewhorizons/angelica/glsm/GLStateManager",
+      "name": "getFogState",
+      "descriptor": "()Lcom/gtnewhorizons/angelica/glsm/stacks/FogStateStack;",
+      "resolved": {
+        "declaring_class": "com/gtnewhorizons/angelica/glsm/GLStateManager",
+        "access_flags": 9
+      }
+    },
+    {
+      "caller": "com/seibel/distanthorizons/forge17/modAccessor/AngelicaAccessor",
+      "kind": "method",
+      "constant_pool_tag": 10,
+      "owner": "com/gtnewhorizons/angelica/glsm/stacks/FogStateStack",
+      "name": "getFogColorBuffer",
+      "descriptor": "()Ljava/nio/FloatBuffer;",
+      "resolved": {
+        "declaring_class": "com/gtnewhorizons/angelica/glsm/states/FogState",
+        "access_flags": 1
+      }
+    }
+  ],
+  "private_types_in_external_descriptors": [],
+  "missing_private_dependency_references": [
+    {
+      "caller": "dh_sqlite/util/LoggerFactory$SLF4JLogger",
+      "kind": "method",
+      "constant_pool_tag": 10,
+      "owner": "DistantHorizons/libraries/slf4j/LoggerFactory",
+      "name": "getLogger",
+      "descriptor": "(Ljava/lang/Class;)LDistantHorizons/libraries/slf4j/Logger;"
+    },
+    {
+      "caller": "dh_sqlite/util/LoggerFactory$SLF4JLogger",
+      "kind": "method",
+      "constant_pool_tag": 11,
+      "owner": "DistantHorizons/libraries/slf4j/Logger",
+      "name": "isTraceEnabled",
+      "descriptor": "()Z"
+    },
+    {
+      "caller": "dh_sqlite/util/LoggerFactory$SLF4JLogger",
+      "kind": "method",
+      "constant_pool_tag": 11,
+      "owner": "DistantHorizons/libraries/slf4j/Logger",
+      "name": "trace",
+      "descriptor": "(Ljava/lang/String;)V"
+    },
+    {
+      "caller": "dh_sqlite/util/LoggerFactory$SLF4JLogger",
+      "kind": "method",
+      "constant_pool_tag": 11,
+      "owner": "DistantHorizons/libraries/slf4j/Logger",
+      "name": "isInfoEnabled",
+      "descriptor": "()Z"
+    },
+    {
+      "caller": "dh_sqlite/util/LoggerFactory$SLF4JLogger",
+      "kind": "method",
+      "constant_pool_tag": 11,
+      "owner": "DistantHorizons/libraries/slf4j/Logger",
+      "name": "info",
+      "descriptor": "(Ljava/lang/String;)V"
+    },
+    {
+      "caller": "dh_sqlite/util/LoggerFactory$SLF4JLogger",
+      "kind": "method",
+      "constant_pool_tag": 11,
+      "owner": "DistantHorizons/libraries/slf4j/Logger",
+      "name": "isWarnEnabled",
+      "descriptor": "()Z"
+    },
+    {
+      "caller": "dh_sqlite/util/LoggerFactory$SLF4JLogger",
+      "kind": "method",
+      "constant_pool_tag": 11,
+      "owner": "DistantHorizons/libraries/slf4j/Logger",
+      "name": "warn",
+      "descriptor": "(Ljava/lang/String;)V"
+    },
+    {
+      "caller": "dh_sqlite/util/LoggerFactory$SLF4JLogger",
+      "kind": "method",
+      "constant_pool_tag": 11,
+      "owner": "DistantHorizons/libraries/slf4j/Logger",
+      "name": "isErrorEnabled",
+      "descriptor": "()Z"
+    },
+    {
+      "caller": "dh_sqlite/util/LoggerFactory$SLF4JLogger",
+      "kind": "method",
+      "constant_pool_tag": 11,
+      "owner": "DistantHorizons/libraries/slf4j/Logger",
+      "name": "error",
+      "descriptor": "(Ljava/lang/String;Ljava/lang/Throwable;)V"
+    }
+  ],
+  "sqlite_logger_guard_sha256": "c51f4750eacf45032c3287d536ef710b073e3ee255bf84c9b2f5513931c7d6a2",
+  "missing_private_dependency_note": "Listed separately, never silently discarded: SQLite has an optional SLF4J branch guarded by Class.forName(private Logger), with JDKLogger fallback when absent. This list is not evidence that an optional branch executes.",
+  "failures": [],
+  "passed": true
+}

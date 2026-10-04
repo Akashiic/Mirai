@@ -1,0 +1,26 @@
+{
+  "source_files": 1361,
+  "evidence_files": 268,
+  "artifacts": [
+    {
+      "name": "Akashic-Horizons-of-The-Mirai-forge17-0.1.8-dev-1.7.10.jar",
+      "size": 45347821,
+      "sha256": "da4e797882a2da4387fcd03764b25bd7fa0f15952790be71e046ee151b1ad929"
+    },
+    {
+      "name": "Akashic-Mirai-0.1.8-dev-Fontes.zip",
+      "size": 25938875,
+      "sha256": "56f0f56cda3df54bb992f2e3b5ca3eafbe14825e7bcacb4ef06004bd108a7dd6"
+    },
+    {
+      "name": "Akashic-Mirai-0.1.8-dev-Evidencias.zip",
+      "size": 298353,
+      "sha256": "1dcfef98a0f233fabb696866c03a5d25803e35b25e7a931a29fcf57bd93e343c"
+    },
+    {
+      "name": "Akashic-Mirai-0.1.8-Relatorio-de-Entrega.md",
+      "size": 12792,
+      "sha256": "1d7e2089d349b827cc14e70a9d3868cbebc5adf9aac6cc0ddb75d66441838f69"
+    }
+  ]
+}

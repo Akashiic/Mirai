@@ -1,0 +1,12 @@
+[
+  {
+    "modid": "akashic_dh_rejected_logout_guard",
+    "name": "Akashic DH Rejected Logout Guard",
+    "description": "Server-only guard for incomplete/rejected Forge 1.7.10 logout events reaching Akashic: Horizons of The Mirai.",
+    "version": "1.0.0",
+    "mcversion": "1.7.10",
+    "serverSideOnly": true,
+    "clientSideOnly": false,
+    "authors": ["Akashic"]
+  }
+]

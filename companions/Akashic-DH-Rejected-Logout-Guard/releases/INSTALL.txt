@@ -1,0 +1,23 @@
+AKASHIC DH REJECTED LOGOUT GUARD 1.0.0 — SERVER ONLY
+=====================================================
+
+Alvo validado:
+Akashic: Horizons of The Mirai 0.1.19-dev / Minecraft 1.7.10 / Crucible.
+Mirai SHA-256: 04B35D2484229CA146786B5A0A0C9C1C2833BF97B9584537E9C1B66F90ED2B45
+
+Instalação:
+1. Desligue completamente o backend Crucible.
+2. MANTENHA Akashic-DH-Logout-Lifecycle-Fix-1.0.1-serveronly.jar instalado.
+3. Adicione Akashic-DH-Rejected-Logout-Guard-1.0.0-serveronly.jar em /mods.
+4. NÃO instale este patch no cliente, Velocity, Paper/lobby ou /plugins.
+5. Ligue o Crucible novamente; não use /reload ou hot reload.
+
+Sinais esperados no boot:
+- Akashic DH Rejected Logout Guard 1.0.0 armed (server-only; Forge/Crucible 1.7.10).
+- Patched Distant Horizons 0.1.19 rejected/incomplete logout guard at ...playerLoggedOutEvent.
+
+Quando uma conexão incompleta for rejeitada, pode aparecer:
+- Suppressed incomplete Distant Horizons logout lifecycle event: ... (count=N).
+
+O patch NÃO torna um cliente incompatível compatível. Ele impede que uma rejeição FML
+com lifecycle incompleto derrube o servidor dentro do listener de logout do Horizons.

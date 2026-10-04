@@ -1,0 +1,14 @@
+[
+  {
+    "modid": "akashic_dh_endlessids_compat",
+    "name": "Akashic DH EndlessIDs Compat",
+    "description": "Server-side compatibility guard for Akashic Mirai/Distant Horizons with EndlessIDs biome extension.",
+    "version": "1.0.1",
+    "mcversion": "1.7.10",
+    "url": "",
+    "authorList": ["Rede Akashic"],
+    "credits": "Compatibility patch for the Rede Akashic 1.7.10 stack.",
+    "requiredMods": [],
+    "dependencies": []
+  }
+]

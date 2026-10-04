@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+FMLCorePlugin: com.akashic.compat.dhendlessids.DHEndlessIDsCompatLoadingPlugin
+FMLCorePluginContainsFMLMod: true
+ForceLoadAsMod: true
+Implementation-Title: Akashic DH EndlessIDs Compat
+Implementation-Version: 1.0.1
+

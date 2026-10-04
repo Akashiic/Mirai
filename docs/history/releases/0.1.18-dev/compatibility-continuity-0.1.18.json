@@ -1,0 +1,16 @@
+{
+  "checks": {
+    "fastutil_class_paths_identical": true,
+    "fastutil_class_count_preserved": true,
+    "all_private_fastutil_classes_byte_identical": true,
+    "angelica_accessor_classes_byte_identical": true
+  },
+  "fastutil_class_count": 10772,
+  "fastutil_differences": [],
+  "compatibility_classes": {
+    "com/seibel/distanthorizons/forge17/modAccessor/AngelicaAccessor.class": true,
+    "com/seibel/distanthorizons/core/wrapperInterfaces/modAccessor/IAngelicaAccessor.class": true
+  },
+  "scope": "Continuity from final 0.1.17 JAR; does not replace missing historical negative controls.",
+  "passed": true
+}

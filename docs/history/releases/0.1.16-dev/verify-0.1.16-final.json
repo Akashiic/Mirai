@@ -1,0 +1,14 @@
+{
+  "file": "Akashic-Horizons-of-The-Mirai-forge17-0.1.16-dev-1.7.10.jar",
+  "size_bytes": 45396631,
+  "sha256": "bb0748c9da9ce145a7f9e7bc066202856852875af8be9784650f6887e397442c",
+  "root_class_major_counts": {
+    "51": 197,
+    "52": 12226,
+    "46": 111
+  },
+  "multi_release_class_major_counts": {},
+  "checks_passed": true,
+  "failures": [],
+  "scope": "ZIP integrity, metadata, required entries and class format only; no runtime certification"
+}

@@ -1,0 +1,14 @@
+7e57612cf138ed9d755793080be544f0ea0eae17e84746c3b5b68dabaf32ce2a  abi-angelica-2.1.5-0.1.16-final.json
+c820e9438a07bd3e521860665bf84a21a24c1cb4d4368243f89aae14128a11e9  abi-angelica-2.2.8-0.1.16-final.json
+bb0748c9da9ce145a7f9e7bc066202856852875af8be9784650f6887e397442c  Akashic-Horizons-of-The-Mirai-forge17-0.1.16-dev-1.7.10.jar
+e6916cb3ad0a8c627a902f434bdc0cf9d1058ae272421c806e2cbe92b8eb6930  Akashic-Mirai-0.1.16-dev-sources.zip
+25ae801c4128ae4dfdc07a8e10597de7a76ec0612a6c4f985af5129e9bf855d9  CHANGELOG-0.1.16-dev.md
+6d30fc385a550e0c96fccf9cf4be397ede6b7bcd1dbf25ab4e645b6049b6635f  jar-contract-0.1.16-final.json
+68d8118fe1e653eda8f14fc5e52a1be68b774d476467463f00166d72781ddd31  MIRAI-UPSTREAM.json
+516fc360a07708b2a1b4f0fa03fa25efa13fef0f06b0867f0beec88b8e34e9dc  PLANO-E-DIAGNOSTICO-0.1.16.md
+dedde4f7490c05349f68c6a54f40907f8de099b99b8bf3d7d5f4a63056492b11  RELATORIO-ENTREGA-0.1.16-dev.md
+29def3aebf89ce797854352b625e373ac8929569456775b72f1eb27c70f25d2c  release-identity-0.1.16-final.json
+16746015fe73580a4103247b48ccce305615be311166d89aee9f9e41ad29f88a  RELEASE-MANIFEST.json
+18192523b298f884a792e08e1be22264b4873bdf20c0869b68e4b2660f3ad037  replay-tests-0.1.16-final-report.json
+8d7fef63efede7ffdd45a7b46f488a200baf2eb2b66cadef2d9c40e9eff734d7  source-contract-0.1.16-final.json
+84c2550a2bdda9583cd2bc43e8fffab65e2a44a8b05b5cf42186f3bb5bbe8611  verify-0.1.16-final.json

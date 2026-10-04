@@ -1,0 +1,11 @@
+{
+  "jar_sha256": "29e549b1ce457f0e907585250d5c9cb75d4a64187d4240750e290887c604064e",
+  "duplicate_entries": [],
+  "class_major_counts": {
+    "46": 111,
+    "51": 197,
+    "52": 12228
+  },
+  "unexpected_class_majors": [],
+  "passed": true
+}

@@ -1,0 +1,65 @@
+{
+  "baseline_commit": "716ba89d4eb35ca7c82de6b01d25b0655e13fa41",
+  "candidate_commit": "cffe7fdd3db08db32535c6638b020315ae1d8e43",
+  "scope": "Source/packaging scope gate, NOT proof of in-game visual equivalence.",
+  "checks": {
+    "beacon_query_and_geometry_unchanged_except_closing_guards": true,
+    "tree_close_unchanged": true,
+    "only_allowed_production_files": true,
+    "no_sleep_or_new_timer_in_refresh": true,
+    "same_two_second_delay": true,
+    "no_old_future_consumers": true,
+    "baseline_jar_identity": true,
+    "all_45_shaders_byte_equal": true,
+    "expected_functional_classes_changed": true,
+    "only_version_inlining_outside_functional_classes": true,
+    "only_scheduler_classes_added": true,
+    "no_class_removed": true
+  },
+  "modified_production": [
+    "coreSubProjects/api/src/main/java/com/seibel/distanthorizons/coreapi/ModInfo.java",
+    "coreSubProjects/core/src/main/java/com/seibel/distanthorizons/core/render/QuadTree/BeaconRefreshScheduler.java",
+    "coreSubProjects/core/src/main/java/com/seibel/distanthorizons/core/render/QuadTree/LodQuadTree.java"
+  ],
+  "new_production": [],
+  "source_hashes": {
+    "coreSubProjects/api/src/main/java/com/seibel/distanthorizons/coreapi/ModInfo.java": "015fc0f7dfe438f1c0fd1fe8255a294a16c41066b3dff78ce8d1fcbdc961eabf",
+    "coreSubProjects/core/src/main/java/com/seibel/distanthorizons/core/render/QuadTree/BeaconRefreshScheduler.java": "65314e1d6b6cfd9ad3cf970cb55b0811a67f5e33ac93f4605cda16272783b19b",
+    "coreSubProjects/core/src/main/java/com/seibel/distanthorizons/core/render/QuadTree/LodQuadTree.java": "95c83007d224ca0ec0fe3cbc01cea3c81c0617bab2eb74deeebb0d04c2712ed4"
+  },
+  "jar": {
+    "sha256": "8196b43495eddb89b554a0846c8035f317df91fe38b64620304b5496240c02dc",
+    "baseline_sha256": "bb0748c9da9ce145a7f9e7bc066202856852875af8be9784650f6887e397442c",
+    "shader_count": 45,
+    "shader_differences": [],
+    "changed_classes": [
+      "com/seibel/distanthorizons/api/DhApi.class",
+      "com/seibel/distanthorizons/common/AbstractModInitializer.class",
+      "com/seibel/distanthorizons/common/wrappers/gui/classicConfig/DhConfigScreen.class",
+      "com/seibel/distanthorizons/common/wrappers/gui/updater/UpdateModScreen.class",
+      "com/seibel/distanthorizons/core/api/internal/ClientApi.class",
+      "com/seibel/distanthorizons/core/logging/f3/F3Screen.class",
+      "com/seibel/distanthorizons/core/render/QuadTree/LodQuadTree.class",
+      "com/seibel/distanthorizons/coreapi/ModInfo.class",
+      "com/seibel/distanthorizons/forge17/ForgeMain.class",
+      "com/seibel/distanthorizons/forge17/ForgeMiraiDiagnostics.class"
+    ],
+    "version_only_changed_classes": [
+      "com/seibel/distanthorizons/api/DhApi.class",
+      "com/seibel/distanthorizons/common/AbstractModInitializer.class",
+      "com/seibel/distanthorizons/common/wrappers/gui/classicConfig/DhConfigScreen.class",
+      "com/seibel/distanthorizons/common/wrappers/gui/updater/UpdateModScreen.class",
+      "com/seibel/distanthorizons/core/api/internal/ClientApi.class",
+      "com/seibel/distanthorizons/core/logging/f3/F3Screen.class",
+      "com/seibel/distanthorizons/forge17/ForgeMain.class",
+      "com/seibel/distanthorizons/forge17/ForgeMiraiDiagnostics.class"
+    ],
+    "unexpected_changed_classes": [],
+    "added_classes": [
+      "com/seibel/distanthorizons/core/render/QuadTree/BeaconRefreshScheduler$Submission.class",
+      "com/seibel/distanthorizons/core/render/QuadTree/BeaconRefreshScheduler.class"
+    ],
+    "removed_classes": []
+  },
+  "passed": true
+}

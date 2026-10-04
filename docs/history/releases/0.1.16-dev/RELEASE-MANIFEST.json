@@ -1,0 +1,44 @@
+{
+  "project": "Akashic: Horizons of The Mirai",
+  "version": "0.1.16-dev",
+  "minecraft": "1.7.10",
+  "commit": "716ba89d4eb35ca7c82de6b01d25b0655e13fa41",
+  "branch": "akashic/mirai-0.1.16-dev",
+  "status": "approved_for_controlled_runtime_test; stable_pending_runtime",
+  "runtime_gate": false,
+  "jar": {
+    "file": "Akashic-Horizons-of-The-Mirai-forge17-0.1.16-dev-1.7.10.jar",
+    "sha256": "bb0748c9da9ce145a7f9e7bc066202856852875af8be9784650f6887e397442c",
+    "bytes": 45396631
+  },
+  "sources": {
+    "file": "Akashic-Mirai-0.1.16-dev-sources.zip",
+    "sha256": "e6916cb3ad0a8c627a902f434bdc0cf9d1058ae272421c806e2cbe92b8eb6930",
+    "bytes": 25940582
+  },
+  "checkpoint": {
+    "version": "0.1.15-dev",
+    "commit": "e89f350cf8dce791d5754664215d34451134776e",
+    "jar_sha256": "758bb3731cc5041cc4bc3b1f9b4286aa5990ed998906815ab451b2621883204c"
+  },
+  "gates": {
+    "core_tests": 308,
+    "core_failures": 0,
+    "core_assumption_skips": 1,
+    "api_tests": 5,
+    "api_failures": 0,
+    "java8_replay": true,
+    "java21_replay": true,
+    "angelica_2_1_5_abi": true,
+    "angelica_2_2_8_abi": true,
+    "shader_contract_45_of_45": true,
+    "shutdown_policy_preserved": true,
+    "beacon_lifecycle_tests": 4
+  },
+  "claims": {
+    "picker_stall_fixed": false,
+    "picker_stall_forensics_ready": true,
+    "beacon_transition_hardening": true,
+    "visual_quality_changed": false
+  }
+}

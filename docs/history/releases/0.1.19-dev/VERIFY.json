@@ -1,0 +1,38 @@
+{
+  "version": "0.1.19-dev",
+  "commit": "afef9d7e4f085c0d1dccba66d763db22878714ca",
+  "branch": "akashic/mirai-0.1.19-disabled-quiescence",
+  "jar": {
+    "bytes": 45408316,
+    "sha256": "481d6f7b0f175465b00b278c37837cf65d7af90b3ba6d065c65819bf647986ea",
+    "zip_bad": null
+  },
+  "source_zip": {
+    "bytes": 25965824,
+    "sha256": "67ff126973cce330f76ca6b30d8174dd268bfa48a860b5fefb22e2c5d9e94848",
+    "zip_bad": null
+  },
+  "build_info": {
+    "info_git_commit": "afef9d7e4f085c0d1dccba66d763db22878714ca",
+    "info_git_branch": "akashic/mirai-0.1.19-disabled-quiescence",
+    "info_build_source": "User"
+  },
+  "tests": {
+    "core": {
+      "tests": 335,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    "api": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "shader_resources_identical_to_diagnostic_0_1_19": 45,
+  "angelica_2_1_5_abi": true,
+  "angelica_2_2_8_abi": true,
+  "runtime_gate": false
+}

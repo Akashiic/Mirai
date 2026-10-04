@@ -1,0 +1,18 @@
+{
+  "jar": "C:\\Users\\User\\Desktop\\Codex\\akashic-mirai-gpt-0.1.16\\forge17\\build\\libs\\Akashic-Horizons-of-The-Mirai-forge17-0.1.16-dev-1.7.10.jar",
+  "sha256": "bb0748c9da9ce145a7f9e7bc066202856852875af8be9784650f6887e397442c",
+  "runs": [
+    {
+      "jdk": "C:\\Program Files\\Java\\jdk-1.8",
+      "exit_code": 0,
+      "output": "PASS: packaged VERSION, Git_Commit, Git_Branch and Build_Source\n2026-09-13T01:37:25.134Z main ERROR Log4j API could not find a logging provider.\n"
+    },
+    {
+      "jdk": "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.11.10-hotspot",
+      "exit_code": 0,
+      "output": "PASS: packaged VERSION, Git_Commit, Git_Branch and Build_Source\n2026-09-13T01:37:25.429576200Z main ERROR Log4j API could not find a logging provider.\n"
+    }
+  ],
+  "scope": "Actual packaged metadata classes only; no Forge/OpenGL/game initialization.",
+  "passed": true
+}

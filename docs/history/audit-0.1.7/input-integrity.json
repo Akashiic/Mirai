@@ -1,0 +1,58 @@
+{
+  "external_checks": [
+    {
+      "name": "Akashic-Horizons-of-The-Mirai-forge17-0.1.7-dev-1.7.10.jar",
+      "expected_sha256": "b46cac2c39e63fce350c97687c4ffe36308d380ff84dda4a81db81dfb83e39ac",
+      "actual_sha256": "b46cac2c39e63fce350c97687c4ffe36308d380ff84dda4a81db81dfb83e39ac",
+      "match": true,
+      "bytes": 45346957
+    },
+    {
+      "name": "Akashic-Mirai-0.1.7-dev-Fontes.zip",
+      "expected_sha256": "426dd06cb3e0fc1922e6f2e08385e8bf3f50e37e3bc97e4b5f4cb11319880888",
+      "actual_sha256": "086c631210bd8d6e0bc3d73a3a8c566fcd465277f228f84ef0890264967c2709",
+      "match": false,
+      "bytes": 25726468
+    },
+    {
+      "name": "Akashic-Mirai-0.1.7-dev-Evidencias.zip",
+      "expected_sha256": "4bd3df27bbd9fd0d067e3f96734cd1b19418087e185586d257df4b1d7e2ba504",
+      "actual_sha256": "4bd3df27bbd9fd0d067e3f96734cd1b19418087e185586d257df4b1d7e2ba504",
+      "match": true,
+      "bytes": 274912
+    },
+    {
+      "name": "Akashic-Mirai-0.1.7-Relatorio-de-Entrega.md",
+      "expected_sha256": "dd53849826068dff5a5878ede93bfef0a5dcc3c15e3ae096911d8116593ce66b",
+      "actual_sha256": "dd53849826068dff5a5878ede93bfef0a5dcc3c15e3ae096911d8116593ce66b",
+      "match": true,
+      "bytes": 9516
+    }
+  ],
+  "source_manifest_commit": "2ae4158f66a3416a165741a8041ed0c4a966973d",
+  "internal_source_files": 1349,
+  "internal_source_failures": [],
+  "logs": [
+    {
+      "name": "latest.log",
+      "sha256": "7b6e2f21edef722c1da3fbe1f8af609d19eecc88764751c52fe83ee611e88993",
+      "bytes": 512931
+    },
+    {
+      "name": "log.txt",
+      "sha256": "aeea473d75f51378ea8622fbdc17b98ec74b24677f0d02f293b158570fcf9069",
+      "bytes": 2123539
+    },
+    {
+      "name": "previous-1.log",
+      "sha256": "c4e7c047d05569f49c80600e22b6fc2fae065ad68414511ddb67c4ca4f877b98",
+      "bytes": 1145844
+    },
+    {
+      "name": "previous-2.log",
+      "sha256": "54a438cb85f3cdb107a5b530367571dd8d29bd1ef5e755fcf2cfa49f16381375",
+      "bytes": 2798980
+    }
+  ],
+  "interpretation": "Supplied source archive differs from final manifest; all internal file hashes match candidate commit. Original archives and logs preserved."
+}

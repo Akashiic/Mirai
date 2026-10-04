@@ -1,0 +1,18 @@
+{
+  "jar": "C:\\Users\\User\\Desktop\\Codex\\akashic-mirai-disabled-quiescence-lab\\forge17\\build\\libs\\Akashic-Horizons-of-The-Mirai-forge17-0.1.19-dev-1.7.10.jar",
+  "sha256": "481d6f7b0f175465b00b278c37837cf65d7af90b3ba6d065c65819bf647986ea",
+  "runs": [
+    {
+      "jdk": "C:\\Users\\User\\.gradle\\jdks\\temurin-8-amd64-windows\\jdk8u362-b09",
+      "exit_code": 0,
+      "output": "PASS: packaged VERSION, Git_Commit, Git_Branch and Build_Source\nERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...\n"
+    },
+    {
+      "jdk": "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.11.10-hotspot",
+      "exit_code": 0,
+      "output": "PASS: packaged VERSION, Git_Commit, Git_Branch and Build_Source\nERROR StatusLogger Log4j2 could not find a logging implementation. Please add log4j-core to the classpath. Using SimpleLogger to log to the console...\n"
+    }
+  ],
+  "scope": "Actual packaged metadata classes only; no Forge/OpenGL/game initialization.",
+  "passed": true
+}

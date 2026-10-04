@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+FMLCorePlugin: com.akashic.compat.dhrejectedlogout.RejectedLogoutGuardLoadingPlugin
+FMLCorePluginContainsFMLMod: true
+ForceLoadAsMod: true
+Implementation-Title: Akashic DH Rejected Logout Guard
+Implementation-Version: 1.0.0
+

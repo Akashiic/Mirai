@@ -1,0 +1,19 @@
+{
+  "baseline_jar_sha256": "758bb3731cc5041cc4bc3b1f9b4286aa5990ed998906815ab451b2621883204c",
+  "candidate_jar_sha256": "bb0748c9da9ce145a7f9e7bc066202856852875af8be9784650f6887e397442c",
+  "baseline_shader_entries": 45,
+  "candidate_shader_entries": 45,
+  "shader_entry_sets_equal": true,
+  "shader_differences": [],
+  "protected_class_byte_equal": {
+    "com/seibel/distanthorizons/core/config/Config.class": true,
+    "com/seibel/distanthorizons/core/api/internal/SharedApi.class": true,
+    "com/seibel/distanthorizons/forge17/modAccessor/AngelicaAccessor.class": true,
+    "com/seibel/distanthorizons/common/render/openGl/glObject/GLState.class": true
+  },
+  "new_forensics_classes_present": {
+    "com/seibel/distanthorizons/core/logging/mirai/MiraiPickerShutdownDiagnostics.class": true
+  },
+  "scope": "Packaged-JAR comparison against final 0.1.15; renderer shaders and protected compatibility classes must remain byte-identical.",
+  "passed": true
+}

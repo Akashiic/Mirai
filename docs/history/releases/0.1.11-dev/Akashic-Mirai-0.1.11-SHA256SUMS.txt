@@ -1,0 +1,5 @@
+473a4a669811b418e46039e9e9657b2636391da9b4d78243cfa0cdfd5c74b798  Akashic-Horizons-of-The-Mirai-forge17-0.1.11-dev-1.7.10.jar
+eaa307ca6dd5f05e6f9e075d601c31e9a2b53c962d85e8a4c36f3d00bfdb65a8  Akashic-Mirai-0.1.11-dev-Fontes.zip
+6bead00246a223503a7663003deaf489b8e2d6987e5e1a66ce8c6dbdb78d6ce7  Akashic-Mirai-0.1.11-dev-Evidencias.zip
+83c3f0f1defa21548eb15d6bf4892e922b6749be246fde841f3509d84483e37f  Akashic-Mirai-0.1.11-Relatorio-de-Entrega.md
+71ea675edfe616c3f90e62fb283869ac2a5b4dac83ddb8a3c2d0b43e0bafdb75  Coletar-Logs-Mirai-0.1.11.ps1

@@ -1,0 +1,46 @@
+{
+  "baseline": {
+    "path": "C:\\Users\\User\\Desktop\\Codex\\Akashic-Mirai-0.1.17-dev-release\\Akashic-Horizons-of-The-Mirai-forge17-0.1.17-dev-1.7.10.jar",
+    "sha256": "8196b43495eddb89b554a0846c8035f317df91fe38b64620304b5496240c02dc",
+    "bytes": 45400031
+  },
+  "candidate": {
+    "path": "C:\\Users\\User\\Desktop\\Codex\\akashic-mirai-gpt-0.1.18\\forge17\\build\\libs\\Akashic-Horizons-of-The-Mirai-forge17-0.1.18-dev-1.7.10.jar",
+    "sha256": "29e549b1ce457f0e907585250d5c9cb75d4a64187d4240750e290887c604064e",
+    "bytes": 45401331
+  },
+  "checks": {
+    "baseline_sha256_matches_release": true,
+    "candidate_sha256_matches_measured": true,
+    "no_classes_removed": true,
+    "no_unexpected_classes_added": true,
+    "shader_count_45": true,
+    "shader_paths_identical": true,
+    "all_shaders_byte_identical": true,
+    "no_unexpected_class_changes": true
+  },
+  "functional_changed_classes": [
+    "com/seibel/distanthorizons/common/render/openGl/terrain/GlDhTerrainShaderProgram.class",
+    "com/seibel/distanthorizons/core/logging/mirai/MiraiGpuProfiler$1.class",
+    "com/seibel/distanthorizons/core/logging/mirai/MiraiGpuProfiler.class",
+    "com/seibel/distanthorizons/core/render/QuadTree/LodQuadTree.class",
+    "com/seibel/distanthorizons/core/render/QuadTree/LodRenderSection.class",
+    "com/seibel/distanthorizons/coreapi/ModInfo.class"
+  ],
+  "version_only_changed_classes": [
+    "com/seibel/distanthorizons/api/DhApi.class",
+    "com/seibel/distanthorizons/common/AbstractModInitializer.class",
+    "com/seibel/distanthorizons/common/wrappers/gui/classicConfig/DhConfigScreen.class",
+    "com/seibel/distanthorizons/common/wrappers/gui/updater/UpdateModScreen.class",
+    "com/seibel/distanthorizons/core/api/internal/ClientApi.class",
+    "com/seibel/distanthorizons/core/logging/f3/F3Screen.class",
+    "com/seibel/distanthorizons/forge17/ForgeMain.class",
+    "com/seibel/distanthorizons/forge17/ForgeMiraiDiagnostics.class"
+  ],
+  "unexpected_changed_classes": [],
+  "added_classes": [],
+  "removed_classes": [],
+  "shader_count": 45,
+  "shader_differences": [],
+  "passed": true
+}

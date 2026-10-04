@@ -1,0 +1,29 @@
+{
+  "version": "0.1.17-dev",
+  "commit": "cffe7fdd3db08db32535c6638b020315ae1d8e43",
+  "branch": "akashic/mirai-0.1.17-dev",
+  "status": "approved_for_controlled_runtime_test; stable_pending_runtime",
+  "runtime_gate": false,
+  "jar": {
+    "name": "Akashic-Horizons-of-The-Mirai-forge17-0.1.17-dev-1.7.10.jar",
+    "sha256": "8196b43495eddb89b554a0846c8035f317df91fe38b64620304b5496240c02dc",
+    "bytes": 45400031
+  },
+  "source_zip": {
+    "name": "Akashic-Mirai-0.1.17-dev-sources.zip",
+    "sha256": "6ccc2faa42036de15148fc307a81bd1c1b91e5aab47e3befab5aa3da2bd71128",
+    "bytes": 25952244
+  },
+  "baseline": {
+    "version": "0.1.16-dev",
+    "commit": "716ba89d4eb35ca7c82de6b01d25b0655e13fa41",
+    "jar_sha256": "bb0748c9da9ce145a7f9e7bc066202856852875af8be9784650f6887e397442c"
+  },
+  "claims": {
+    "idle_beacon_sleep_removed": true,
+    "beacon_refresh_delay_seconds_after_completion": 2,
+    "active_query_still_graceful": true,
+    "visual_quality_changed": false,
+    "runtime_transition_gate_passed": false
+  }
+}

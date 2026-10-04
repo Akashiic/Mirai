@@ -1,0 +1,24 @@
+AKASHIC DH REJECTED LOGOUT GUARD 1.0.0 — VALIDATION
+==================================================
+
+[PASS] Production compiled with javac --release 8 and -Werror.
+[PASS] All deployable classes are class major 52 (Java 8).
+[PASS] GuardLogicVerification passed: null event/player/handler and SRG/MCP field names.
+[PASS] Unknown lifecycle shape fails open instead of being suppressed speculatively.
+[PASS] TransformerVerification passed against the exact Mirai 0.1.19-dev JAR.
+[PASS] Target shape requires exactly one getServerPlayerWrapper call and one disconnect call.
+[PASS] Transformer is idempotent; a second transform produces no second guard.
+[PASS] Original wrapper/disconnect path remains present for valid player sessions.
+[PASS] ASM stack analysis passed after injection.
+[PASS] JAR contains no cpw/, net/minecraft/ or org/objectweb/asm/ classes.
+[PASS] acceptableRemoteVersions="*" is present in the Forge @Mod annotation.
+[PASS] mcmod.info declares serverSideOnly=true and clientSideOnly=false.
+
+Target Mirai SHA-256:
+04B35D2484229CA146786B5A0A0C9C1C2833BF97B9584537E9C1B66F90ED2B45
+
+Patch JAR SHA-256:
+49C05E800B435E04AE330D3B0B500A3F755613FAA5C17ADE1C7F333B71EF1CAD
+
+Live acceptance still required: reproduce an FML-rejected connection and confirm that the
+backend remains online while the incomplete DH logout event is suppressed.

@@ -1,0 +1,25 @@
+{
+  "version": "0.1.18-dev",
+  "commit": "a77e157826954d41ed746dc23e31d98a0f5ffede",
+  "status": "approved_for_controlled_runtime_test; stable_pending_runtime",
+  "runtime_gate": false,
+  "checks": {
+    "identity": true,
+    "abi_215": true,
+    "abi_228": true,
+    "jar_contract": true,
+    "source_contract": true,
+    "compat_continuity": true,
+    "bytecode": true,
+    "tests": true,
+    "replay": true,
+    "jar_hash": true,
+    "source_hash": true,
+    "git_clean": true,
+    "head": true,
+    "final_build": true
+  },
+  "historical_negative_controls_reexecuted": false,
+  "negative_control_note": "0.1.0/0.1.1 historical JARs used by old negative-control probes are no longer present in the current filesystem/Git. Current positive ABI passed; 10,772 private fastutil classes and Angelica accessor classes are byte-identical to final 0.1.17, whose historical controls passed.",
+  "passed": true
+}

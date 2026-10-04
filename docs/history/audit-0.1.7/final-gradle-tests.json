@@ -1,0 +1,16 @@
+[
+  {
+    "failures": 0,
+    "errors": 0,
+    "module": "core",
+    "tests": 242,
+    "skipped": 1
+  },
+  {
+    "failures": 0,
+    "errors": 0,
+    "module": "api",
+    "tests": 5,
+    "skipped": 0
+  }
+]

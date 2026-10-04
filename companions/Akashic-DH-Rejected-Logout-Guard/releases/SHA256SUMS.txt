@@ -1,0 +1,4 @@
+49c05e800b435e04ae330d3b0b500a3f755613faa5c17ade1c7f333b71ef1cad  Akashic-DH-Rejected-Logout-Guard-1.0.0-serveronly.jar
+49fdeb3afcbc55ac1d130221c3deee37bc3b39b6b3f3cbc87c434f5bd67ff2b1  Akashic-DH-Rejected-Logout-Guard-1.0.0-sources.zip
+28e408e270fd6094d5a6d6bcb096b4bd5fab38f3121e20ead59c5ad9ef3b97b1  INSTALL.txt
+94a280673f9346612ad419eef275930b9366580bf48597274b2853649804eaab  VALIDATION.txt

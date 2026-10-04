@@ -1,0 +1,28 @@
+{
+  "version": "0.1.18-dev",
+  "commit": "a77e157826954d41ed746dc23e31d98a0f5ffede",
+  "minecraft": "1.7.10",
+  "loader": "forge17",
+  "modules": {
+    "core": {
+      "tests": 329,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "suites": 55,
+      "passed": true
+    },
+    "api": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 2,
+      "passed": true
+    }
+  },
+  "final_build_successful": true,
+  "target_confirmed": true,
+  "build_tasks_43": true,
+  "passed": true
+}
