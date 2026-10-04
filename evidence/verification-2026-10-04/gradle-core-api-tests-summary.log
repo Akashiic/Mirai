@@ -1,0 +1,20 @@
+﻿START 2026-10-04T02:46:14.7932793-03:00
+HEAD: afef9d7e4f085c0d1dccba66d763db22878714ca
+Starting a Gradle Daemon, 1 busy Daemon could not be reused, use --status for details
+Available MC versions: [1.7.10, 1.12.2, 1.16.5, 1.17.1, 1.18.2, 1.19.2, 1.19.4, 1.20.1, 1.20.2, 1.20.4, 1.20.6, 1.21.1, 1.21.3, 1.21.4, 1.21.5, 1.21.6, 1.21.8, 1.21.9, 1.21.10, 1.21.11, 26.1.2, 26.2.0]
+Loading properties file: 1.7.10.properties
+Adding loader: forge17
+> Task :api:compileJava FROM-CACHE
+> Task :core:compileJava FROM-CACHE
+> Task :core:compileTestJava FROM-CACHE
+> Task :core:processTestResources NO-SOURCE
+> Task :core:testClasses UP-TO-DATE
+> Task :core:test
+> Task :api:compileTestJava FROM-CACHE
+> Task :api:processTestResources NO-SOURCE
+> Task :api:testClasses UP-TO-DATE
+> Task :api:test
+BUILD SUCCESSFUL in 1m 16s
+18 actionable tasks: 6 executed, 4 from cache, 8 up-to-date
+EXIT 0
+END 2026-10-04T02:47:31.8370192-03:00

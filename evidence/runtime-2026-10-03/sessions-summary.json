@@ -1,0 +1,382 @@
+{
+  "log_dir_files": [
+    "latest.log",
+    "previous-1.log",
+    "previous-2.log",
+    "previous-3.log",
+    "previous-4.log"
+  ],
+  "sessions": [
+    {
+      "session": "fee21e04",
+      "segments": [
+        "previous-1.log",
+        "previous-2.log",
+        "previous-3.log",
+        "previous-4.log"
+      ],
+      "first_utc": "2026-10-03T21:45:31.548Z",
+      "last_utc": "2026-10-03T23:46:43.052Z",
+      "identity": {
+        "env.java.version": "1.8.0_51",
+        "env.java.vendor": "Oracle Corporation",
+        "env.java.vm.name": "Java HotSpot(TM) 64-Bit Server VM",
+        "env.os.arch": "amd64",
+        "env.processors": "8",
+        "version": "0.1.19-dev",
+        "commit": "afef9d7e4f085c0d1dccba66d763db22878714ca",
+        "branch": "akashic/mirai-0.1.19-disabled-quiescence",
+        "forge": "10.13.4.1614"
+      },
+      "mods": {
+        "PlayerAPI": "1.5.0",
+        "endlessids_biome": "1.7.4",
+        "endlessids_blockitem": "1.7.4",
+        "endlessids_datawatcher": "1.7.4",
+        "endlessids_enchantment": "1.7.4",
+        "endlessids_potion": "1.7.4",
+        "GTNHLib Core": "0.11.51",
+        "gtnhlib": "0.11.51",
+        "backhand": "1.8.13",
+        "akashicthepatcher": "1.1.0-beta.34",
+        "unimixins": "0.3.1",
+        "unimixins-mixin": "0.3.1",
+        "unimixins-compat": "0.3.1",
+        "archaicfix": "0.8.0",
+        "hodgepodge": "2.7.189",
+        "angelica": "2.2.20",
+        "coretweaks": "0.3.4.7-GTNH",
+        "endlessids": "1.7.4",
+        "entityculling": "@VER@"
+      },
+      "renderer_mode_timeline": [
+        [
+          "2026-10-03T21:45:31.549Z",
+          "DISABLED"
+        ],
+        [
+          "2026-10-03T23:11:46.659Z",
+          "DEFAULT"
+        ],
+        [
+          "2026-10-03T23:12:16.825Z",
+          "DISABLED"
+        ]
+      ],
+      "vbo_render_count_max": {
+        "rendered": 59,
+        "candidates": 147
+      },
+      "jvm": {
+        "heap_used_peak": 5057691720,
+        "heap_max": 6442450944,
+        "gc_count_total": 899,
+        "gc_ms_total": 63227,
+        "system_ram_total": 17023455232,
+        "live_threads": 72
+      },
+      "timing_wall_totals": {
+        "CLIENT_RENDER_PASS_WALL": {
+          "count": 384217,
+          "mean_us": 56,
+          "max_us": 1730302
+        },
+        "FRAME_EVENT_SPAN": {
+          "count": 384384,
+          "mean_us": 12887,
+          "max_us": 1766842
+        },
+        "FRAME_INTERVAL": {
+          "count": 384383,
+          "mean_us": 18900,
+          "max_us": 6498409
+        },
+        "GL_DATA_UPLOAD_WALL": {
+          "count": 4,
+          "mean_us": 5235,
+          "max_us": 17863
+        },
+        "GL_STORAGE_UPLOAD_WALL": {
+          "count": 8,
+          "mean_us": 582,
+          "max_us": 1295
+        },
+        "LOD_RENDER_LIST_WALL": {
+          "count": 393,
+          "mean_us": 369,
+          "max_us": 19089
+        },
+        "LOD_RENDER_WALL": {
+          "count": 393,
+          "mean_us": 14834,
+          "max_us": 1608654
+        },
+        "LOD_UPDATE_WALL": {
+          "count": 760,
+          "mean_us": 9751,
+          "max_us": 162571
+        },
+        "NETWORK_REQUEST_WALL": {
+          "count": 247,
+          "mean_us": 82930,
+          "max_us": 455568
+        },
+        "RENDER_TASK_QUEUE_WALL": {
+          "count": 384217,
+          "mean_us": 0,
+          "max_us": 47918
+        },
+        "RENDER_TASK_WALL": {
+          "count": 449,
+          "mean_us": 437,
+          "max_us": 47744
+        }
+      },
+      "counters_nonzero_sum": {
+        "NETWORK_FRAGMENT_BYTES": 5083682,
+        "GL_DATA_UPLOAD_BYTES": 786912,
+        "GL_STORAGE_UPLOAD_BYTES": 248064,
+        "QUIESCENT_CHUNK_DEFERRED": 8339,
+        "DB_COMMITTED": 722,
+        "QUIESCENT_PARTIAL_UPDATE_SUPPRESSED": 327,
+        "COLD_REQUEST": 247,
+        "NETWORK_SENT": 247,
+        "NETWORK_RECEIVED": 247,
+        "QUIESCENT_REMOTE_SYNC_SUPPRESSED": 90,
+        "COLD_MISSING": 56,
+        "QUIESCENT_CATCHUP_SUBMITTED": 39,
+        "COLD_PRESERVED_LOCAL": 38,
+        "CHUNK_SUBMITTED": 34,
+        "DH_ERROR_REPORTS": 3,
+        "errors_DH_LOG": 2,
+        "NETWORK_CANCELLED": 1,
+        "errors_NETWORK": 1
+      },
+      "errors": [
+        {
+          "utc": "2026-10-03T23:11:47.238Z",
+          "segment": "previous-2.log",
+          "message": "NETWORK cause=com.seibel.distanthorizons.core.util.LodUtil$AssertFailureException <- com.seibel.distanthorizons.common.wrappers.WrapperFactory.getPlainsBiomeWrapper:163 <- com.seibel.distanthorizons.core.wrapperInterfaces.IWrapperFactory.deserializeBiomeWrapperOrGetDefault:59 <- com.seibel.distanthorizons.core.dataObjects.fullData.FullDataPointIdMap.deserialize:309 <- com.seibel.distanthorizons.core.sql.dto.FullDataSourceV2DTO.readBlobToDataMapping:747 <- com.seibel.distanthorizons.core.sql.dto.FullDataSourceV2DTO.populateDataSource:295 <- com.seibel.distanthorizons.core.sql.dto.FullDataSourceV2DTO.createPopulatedDataSource:178 <- com.seibel.distanthorizons.core.sql.dto.FullDataSourceV2DTO.createDataSource:169 <- com.seibel.distanthorizons.core.multiplayer.client.AbstractFullDataNetworkRequestQueue.handleNetResponse:327 <- com.seibel.distanthorizons.core.multiplayer.client.AbstractFullDataNetworkRequestQueue.lambda$sendNextRequest$3:264 <- com.seibel.distanthorizons.core.multiplayer.client.AbstractFullDataNetworkRequestQueue$$Lambda$3772/487051772.run:-1 <- com.seibel.distanthorizons.core.util.threading.PriorityTaskPicker$TrackedRunnable.run:538 <- java.util.concurrent.ThreadPoolExecutor.runWorker:1142"
+        },
+        {
+          "utc": "2026-10-03T23:11:47.239Z",
+          "segment": "previous-2.log",
+          "message": "DH_LOG cause=com.seibel.distanthorizons.core.util.LodUtil$AssertFailureException <- com.seibel.distanthorizons.common.wrappers.WrapperFactory.getPlainsBiomeWrapper:163 <- com.seibel.distanthorizons.core.wrapperInterfaces.IWrapperFactory.deserializeBiomeWrapperOrGetDefault:59 <- com.seibel.distanthorizons.core.dataObjects.fullData.FullDataPointIdMap.deserialize:309 <- com.seibel.distanthorizons.core.sql.dto.FullDataSourceV2DTO.readBlobToDataMapping:747 <- com.seibel.distanthorizons.core.sql.dto.FullDataSourceV2DTO.populateDataSource:295 <- com.seibel.distanthorizons.core.sql.dto.FullDataSourceV2DTO.createPopulatedDataSource:178 <- com.seibel.distanthorizons.core.sql.dto.FullDataSourceV2DTO.createDataSource:169 <- com.seibel.distanthorizons.core.multiplayer.client.AbstractFullDataNetworkRequestQueue.handleNetResponse:327 <- com.seibel.distanthorizons.core.multiplayer.client.AbstractFullDataNetworkRequestQueue.lambda$sendNextRequest$3:264 <- com.seibel.distanthorizons.core.multiplayer.client.AbstractFullDataNetworkRequestQueue$$Lambda$3772/487051772.run:-1 <- com.seibel.distanthorizons.core.util.threading.PriorityTaskPicker$TrackedRunnable.run:538 <- java.util.concurrent.ThreadPoolExecutor.runWorker:1142"
+        },
+        {
+          "utc": "2026-10-03T23:21:52.708Z",
+          "segment": "previous-2.log",
+          "message": "DH_LOG cause=java.lang.IllegalArgumentException <- com.seibel.distanthorizons.core.multiplayer.fullData.FullDataPayloadReceiver.receiveChunk:93 <- com.seibel.distanthorizons.core.multiplayer.client.ClientNetworkState$$Lambda$2378/1200857351.accept:-1 <- com.seibel.distanthorizons.core.network.event.AbstractNetworkEventSource.lambda$registerHandler$2:150 <- com.seibel.distanthorizons.core.network.event.AbstractNetworkEventSource$$Lambda$2368/1062767459.accept:-1 <- com.seibel.distanthorizons.core.network.event.AbstractNetworkEventSource.handleMessage:86 <- com.seibel.distanthorizons.core.network.session.NetworkSession.tryHandleMessage:89 <- com.seibel.distanthorizons.core.api.internal.ClientApi$PluginMessageTask.run:387 <- java.util.concurrent.ThreadPoolExecutor.runWorker:1142 <- java.util.concurrent.ThreadPoolExecutor$Worker.run:617 <- java.lang.Thread.run:745"
+        }
+      ],
+      "session_end": [
+        "normal_shutdown; queued=0 dropped_total=0"
+      ],
+      "renderer_active_windows": {
+        "windows": 6,
+        "frames": 564,
+        "mean_frame_interval_ms": 56.42,
+        "mean_fps_equiv": 17.7,
+        "worst_frame_interval_ms": 1770.5
+      },
+      "renderer_active_window_detail": [
+        {
+          "utc": "2026-10-03T23:11:51",
+          "frames": 61,
+          "frame_mean_ms": 109.0,
+          "frame_max_ms": 1770.5,
+          "lod_render_mean_ms": 36.19,
+          "lod_render_max_ms": 1608.7,
+          "vbo": [
+            13,
+            25
+          ]
+        },
+        {
+          "utc": "2026-10-03T23:11:56",
+          "frames": 75,
+          "frame_mean_ms": 67.2,
+          "frame_max_ms": 118.0,
+          "lod_render_mean_ms": 10.44,
+          "lod_render_max_ms": 26.9,
+          "vbo": [
+            21,
+            44
+          ]
+        },
+        {
+          "utc": "2026-10-03T23:12:01",
+          "frames": 84,
+          "frame_mean_ms": 60.2,
+          "frame_max_ms": 98.9,
+          "lod_render_mean_ms": 10.64,
+          "lod_render_max_ms": 22.4,
+          "vbo": [
+            31,
+            84
+          ]
+        },
+        {
+          "utc": "2026-10-03T23:12:06",
+          "frames": 72,
+          "frame_mean_ms": 69.2,
+          "frame_max_ms": 119.1,
+          "lod_render_mean_ms": 10.56,
+          "lod_render_max_ms": 26.6,
+          "vbo": [
+            37,
+            99
+          ]
+        },
+        {
+          "utc": "2026-10-03T23:12:11",
+          "frames": 82,
+          "frame_mean_ms": 61.4,
+          "frame_max_ms": 113.5,
+          "lod_render_mean_ms": 11.3,
+          "lod_render_max_ms": 67.8,
+          "vbo": [
+            51,
+            135
+          ]
+        },
+        {
+          "utc": "2026-10-03T23:12:16",
+          "frames": 190,
+          "frame_mean_ms": 26.6,
+          "frame_max_ms": 103.1,
+          "lod_render_mean_ms": 12.38,
+          "lod_render_max_ms": 18.3,
+          "vbo": [
+            59,
+            147
+          ]
+        }
+      ],
+      "other_windows": {
+        "windows": 1437,
+        "frames": 383819,
+        "mean_frame_interval_ms": 18.85,
+        "mean_fps_equiv": 53.1,
+        "worst_frame_interval_ms": 6498.4
+      }
+    },
+    {
+      "session": "2f3a6ba1",
+      "segments": [
+        "latest.log"
+      ],
+      "first_utc": "2026-10-03T23:48:50.587Z",
+      "last_utc": "2026-10-04T00:11:30.851Z",
+      "identity": {
+        "env.java.version": "1.8.0_51",
+        "env.java.vendor": "Oracle Corporation",
+        "env.java.vm.name": "Java HotSpot(TM) 64-Bit Server VM",
+        "env.os.arch": "amd64",
+        "env.processors": "8",
+        "version": "0.1.19-dev",
+        "commit": "afef9d7e4f085c0d1dccba66d763db22878714ca",
+        "branch": "akashic/mirai-0.1.19-disabled-quiescence",
+        "forge": "10.13.4.1614"
+      },
+      "mods": {
+        "PlayerAPI": "1.5.0",
+        "endlessids_biome": "1.7.4",
+        "endlessids_blockitem": "1.7.4",
+        "endlessids_datawatcher": "1.7.4",
+        "endlessids_enchantment": "1.7.4",
+        "endlessids_potion": "1.7.4",
+        "GTNHLib Core": "0.11.51",
+        "gtnhlib": "0.11.51",
+        "backhand": "1.8.13",
+        "akashicthepatcher": "1.1.0-beta.34",
+        "unimixins": "0.3.1",
+        "unimixins-mixin": "0.3.1",
+        "unimixins-compat": "0.3.1",
+        "archaicfix": "0.8.0",
+        "hodgepodge": "2.7.189",
+        "angelica": "2.2.20",
+        "coretweaks": "0.3.4.7-GTNH",
+        "endlessids": "1.7.4",
+        "entityculling": "@VER@"
+      },
+      "renderer_mode_timeline": [
+        [
+          "2026-10-03T23:51:23.621Z",
+          "DISABLED"
+        ]
+      ],
+      "vbo_render_count_max": {
+        "rendered": 0,
+        "candidates": 0
+      },
+      "jvm": {
+        "heap_used_peak": 3825690536,
+        "heap_max": 6442450944,
+        "gc_count_total": 286,
+        "gc_ms_total": 19026,
+        "system_ram_total": 17023455232,
+        "live_threads": 68
+      },
+      "timing_wall_totals": {
+        "CLIENT_RENDER_PASS_WALL": {
+          "count": 56351,
+          "mean_us": 101,
+          "max_us": 2029360
+        },
+        "FRAME_EVENT_SPAN": {
+          "count": 56569,
+          "mean_us": 13153,
+          "max_us": 9915509
+        },
+        "FRAME_INTERVAL": {
+          "count": 56568,
+          "mean_us": 19854,
+          "max_us": 19749943
+        },
+        "RENDER_TASK_QUEUE_WALL": {
+          "count": 56351,
+          "mean_us": 1,
+          "max_us": 56994
+        },
+        "RENDER_TASK_WALL": {
+          "count": 1,
+          "mean_us": 52524,
+          "max_us": 52524
+        }
+      },
+      "counters_nonzero_sum": {
+        "NETWORK_FRAGMENT_BYTES": 1400612,
+        "QUIESCENT_CHUNK_DEFERRED": 2457,
+        "QUIESCENT_PARTIAL_UPDATE_SUPPRESSED": 128,
+        "DH_ERROR_REPORTS": 2,
+        "errors_DH_LOG": 1
+      },
+      "errors": [
+        {
+          "utc": "2026-10-04T00:00:49.053Z",
+          "segment": "latest.log",
+          "message": "DH_LOG cause=java.lang.IllegalArgumentException <- com.seibel.distanthorizons.core.multiplayer.fullData.FullDataPayloadReceiver.receiveChunk:93 <- com.seibel.distanthorizons.core.multiplayer.client.ClientNetworkState$$Lambda$2386/50205018.accept:-1 <- com.seibel.distanthorizons.core.network.event.AbstractNetworkEventSource.lambda$registerHandler$2:150 <- com.seibel.distanthorizons.core.network.event.AbstractNetworkEventSource$$Lambda$2376/2037638141.accept:-1 <- com.seibel.distanthorizons.core.network.event.AbstractNetworkEventSource.handleMessage:86 <- com.seibel.distanthorizons.core.network.session.NetworkSession.tryHandleMessage:89 <- com.seibel.distanthorizons.core.api.internal.ClientApi$PluginMessageTask.run:387 <- java.util.concurrent.ThreadPoolExecutor.runWorker:1142 <- java.util.concurrent.ThreadPoolExecutor$Worker.run:617 <- java.lang.Thread.run:745"
+        }
+      ],
+      "session_end": [
+        "normal_shutdown; queued=0 dropped_total=0"
+      ],
+      "renderer_active_windows": {
+        "windows": 0,
+        "frames": 0,
+        "mean_frame_interval_ms": null,
+        "mean_fps_equiv": null,
+        "worst_frame_interval_ms": 0.0
+      },
+      "renderer_active_window_detail": [],
+      "other_windows": {
+        "windows": 216,
+        "frames": 56376,
+        "mean_frame_interval_ms": 19.84,
+        "mean_fps_equiv": 50.4,
+        "worst_frame_interval_ms": 19749.9
+      }
+    }
+  ]
+}

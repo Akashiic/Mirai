@@ -1,0 +1,609 @@
+{
+  "generated_utc": "2026-10-04T05:48:22.895521Z",
+  "tool": "collect_verification.py (session of 2026-10-04); see docs/HOMOLOGATION-0.1.19.md",
+  "jars": {
+    "release_dir_quiescence": {
+      "file_name": "Akashic-Horizons-of-The-Mirai-forge17-0.1.19-dev-1.7.10.jar",
+      "bytes": 45408316,
+      "sha256": "481d6f7b0f175465b00b278c37837cf65d7af90b3ba6d065c65819bf647986ea",
+      "zip_testzip": null,
+      "entries": 13068,
+      "class_major_counts": {
+        "51": 197,
+        "52": 12231,
+        "46": 111
+      },
+      "build_info": {
+        "info_git_commit": "afef9d7e4f085c0d1dccba66d763db22878714ca",
+        "info_git_branch": "akashic/mirai-0.1.19-disabled-quiescence",
+        "info_build_source": "User"
+      },
+      "mcmod_version": "0.1.19-dev",
+      "mcmod_name": "Akashic: Horizons of The Mirai"
+    },
+    "lab_build_libs_quiescence": {
+      "file_name": "Akashic-Horizons-of-The-Mirai-forge17-0.1.19-dev-1.7.10.jar",
+      "bytes": 45408316,
+      "sha256": "481d6f7b0f175465b00b278c37837cf65d7af90b3ba6d065c65819bf647986ea",
+      "zip_testzip": null,
+      "entries": 13068,
+      "class_major_counts": {
+        "51": 197,
+        "52": 12231,
+        "46": 111
+      },
+      "build_info": {
+        "info_git_commit": "afef9d7e4f085c0d1dccba66d763db22878714ca",
+        "info_git_branch": "akashic/mirai-0.1.19-disabled-quiescence",
+        "info_build_source": "User"
+      },
+      "mcmod_version": "0.1.19-dev",
+      "mcmod_name": "Akashic: Horizons of The Mirai"
+    },
+    "technic_mods_installed": {
+      "file_name": "Akashic-Horizons-of-The-Mirai-forge17-0.1.19-dev-1.7.10.jar",
+      "bytes": 45408316,
+      "sha256": "481d6f7b0f175465b00b278c37837cf65d7af90b3ba6d065c65819bf647986ea",
+      "zip_testzip": null,
+      "entries": 13068,
+      "class_major_counts": {
+        "51": 197,
+        "52": 12231,
+        "46": 111
+      },
+      "build_info": {
+        "info_git_commit": "afef9d7e4f085c0d1dccba66d763db22878714ca",
+        "info_git_branch": "akashic/mirai-0.1.19-disabled-quiescence",
+        "info_build_source": "User"
+      },
+      "mcmod_version": "0.1.19-dev",
+      "mcmod_name": "Akashic: Horizons of The Mirai"
+    },
+    "release_dir_diagnostic": {
+      "file_name": "Akashic-Horizons-of-The-Mirai-forge17-0.1.19-dev-1.7.10.jar",
+      "bytes": 45402547,
+      "sha256": "04b35d2484229ca146786b5a0a0c9c1c2833bf97b9584537e9c1b66f90ed2b45",
+      "zip_testzip": null,
+      "entries": 13065,
+      "class_major_counts": {
+        "51": 197,
+        "52": 12228,
+        "46": 111
+      },
+      "build_info": {
+        "info_git_commit": "69645ace4573756f3014c66ff32c0e93ab55d027",
+        "info_git_branch": "akashic/mirai-0.1.19-perf-lab",
+        "info_build_source": "User"
+      },
+      "mcmod_version": "0.1.19-dev",
+      "mcmod_name": "Akashic: Horizons of The Mirai"
+    },
+    "perf_lab_build_libs_diagnostic": {
+      "file_name": "Akashic-Horizons-of-The-Mirai-forge17-0.1.19-dev-1.7.10.jar",
+      "bytes": 45402547,
+      "sha256": "04b35d2484229ca146786b5a0a0c9c1c2833bf97b9584537e9c1b66f90ed2b45",
+      "zip_testzip": null,
+      "entries": 13065,
+      "class_major_counts": {
+        "51": 197,
+        "52": 12228,
+        "46": 111
+      },
+      "build_info": {
+        "info_git_commit": "69645ace4573756f3014c66ff32c0e93ab55d027",
+        "info_git_branch": "akashic/mirai-0.1.19-perf-lab",
+        "info_build_source": "User"
+      },
+      "mcmod_version": "0.1.19-dev",
+      "mcmod_name": "Akashic: Horizons of The Mirai"
+    }
+  },
+  "sources_zip_vs_git_tree": {
+    "sources_zip": "Akashic-Mirai-0.1.19-dev-disabled-quiescence-sources.zip",
+    "sources_zip_sha256": "67ff126973cce330f76ca6b30d8174dd268bfa48a860b5fefb22e2c5d9e94848",
+    "git_commit": "afef9d7e4f085c0d1dccba66d763db22878714ca",
+    "files_in_zip": 1423,
+    "files_in_git_tree": 1423,
+    "differences": 0,
+    "method": "git archive afef9d7 vs Expand-Archive(sources.zip); per-file SHA-256 comparison"
+  },
+  "gradle_unit_tests_reexecuted": {
+    "command": "gradlew.bat \"-PmcVer=1.7.10\" --max-workers=4 --no-parallel :core:test :api:test",
+    "worktree_commit": "afef9d7e4f085c0d1dccba66d763db22878714ca",
+    "result": "BUILD SUCCESSFUL (exit 0)",
+    "modules": {
+      "core": {
+        "totals": {
+          "tests": 335,
+          "skipped": 1,
+          "failures": 0,
+          "errors": 0
+        },
+        "suites": [
+          {
+            "name": "com.seibel.distanthorizons.core.api.internal.ClientPluginChannelLifecycleTest",
+            "tests": 7,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.816
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.api.internal.PendingClientChunkUpdatesTest",
+            "tests": 6,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.022
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.dataObjects.transformers.FullDataEmptySentinelTest",
+            "tests": 3,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 1.897
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.file.fullDatafile.CachedLodProviderTest",
+            "tests": 21,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 1.37
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.file.fullDatafile.V2.DataMigratorLifecycleTest",
+            "tests": 5,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.185
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.file.structure.ClientOnlySaveStructureRetentionTest",
+            "tests": 3,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.071
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.file.structure.UnidentifiedClientCacheTest",
+            "tests": 7,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.079
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.level.ClientLevelQuiescenceTest",
+            "tests": 1,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.005
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.logging.mirai.MiraiDiagnosticsTest",
+            "tests": 16,
+            "skipped": 1,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 1.961
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.logging.mirai.MiraiGlStateTimingTest",
+            "tests": 3,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.001
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.logging.mirai.MiraiGpuProfilerTest",
+            "tests": 18,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.023
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.logging.mirai.MiraiGpuQueryRingTest",
+            "tests": 20,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.014
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.logging.mirai.MiraiThreadPoolSetupTimingTest",
+            "tests": 2,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.003
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.logging.mirai.MiraiWorldLifecycleTest",
+            "tests": 4,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.055
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.multiplayer.client.CachedLodRequestQueueTest",
+            "tests": 18,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.16
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.multiplayer.fullData.FullDataPayloadReceiverTest",
+            "tests": 6,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.018
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.multiplayer.fullData.FullDataPayloadSenderTest",
+            "tests": 10,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.162
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.multiplayer.server.CachedLodServerReadTest",
+            "tests": 2,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.342
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.multiplayer.server.RequestQuotaLeaseTest",
+            "tests": 5,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.215
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.multiplayer.server.ServerRequestPolicyTest",
+            "tests": 2,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.014
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.render.MiraiRendererQuiescenceTest",
+            "tests": 3,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.017
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.render.QuadTree.BeaconRefreshPickerIntegrationTest",
+            "tests": 2,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.1
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.render.QuadTree.BeaconRefreshSchedulerTest",
+            "tests": 16,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.009
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.render.QuadTree.LodRenderDisabledModeTest",
+            "tests": 2,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.003
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.render.RenderListTimingTest",
+            "tests": 3,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 2.828
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.render.RenderTaskMaintenanceTest",
+            "tests": 9,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 3.05
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.render.RenderTaskScopeTest",
+            "tests": 2,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.526
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.render.renderer.BeaconRenderLifecycleTest",
+            "tests": 4,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.01
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.render.renderer.CloudRenderCameraTest",
+            "tests": 6,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.189
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.render.renderer.cullingFrustum.DhFrustumBoundsTest",
+            "tests": 4,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.154
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.util.ChunkDataCoverageTest",
+            "tests": 4,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.081
+          },
+          {
+            "name": "com.seibel.distanthorizons.core.util.threading.MiraiRuntimeGovernorTest",
+            "tests": 2,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.001
+          },
+          {
+            "name": "tests.CachedLodRequestMessageTest",
+            "tests": 4,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.005
+          },
+          {
+            "name": "tests.ChunkHashBatchSqliteTest",
+            "tests": 3,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.085
+          },
+          {
+            "name": "tests.DataSourceRepoTests",
+            "tests": 1,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.535
+          },
+          {
+            "name": "tests.DelayedChunkBatchTest",
+            "tests": 6,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.037
+          },
+          {
+            "name": "tests.DependencyInjectorTest",
+            "tests": 4,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.008
+          },
+          {
+            "name": "tests.DhApiConfigTest",
+            "tests": 1,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.002
+          },
+          {
+            "name": "tests.DhRepoLifecycleTest",
+            "tests": 11,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.279
+          },
+          {
+            "name": "tests.DhRepoSqliteTest",
+            "tests": 3,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 1.065
+          },
+          {
+            "name": "tests.DhSectionPosTest",
+            "tests": 15,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.004
+          },
+          {
+            "name": "tests.ExampleCoreTest",
+            "tests": 1,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.0
+          },
+          {
+            "name": "tests.FullDataChecksumTest",
+            "tests": 3,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.009
+          },
+          {
+            "name": "tests.FullDataMinMaxPosTest",
+            "tests": 1,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.0
+          },
+          {
+            "name": "tests.FullDataUpdaterAcknowledgementTest",
+            "tests": 19,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.672
+          },
+          {
+            "name": "tests.GLMessageTest",
+            "tests": 2,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.003
+          },
+          {
+            "name": "tests.KeyedLockTest",
+            "tests": 1,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.001
+          },
+          {
+            "name": "tests.NetworkDecodeBoundsTest",
+            "tests": 6,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.004
+          },
+          {
+            "name": "tests.NetworkSessionCloseTest",
+            "tests": 1,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.001
+          },
+          {
+            "name": "tests.PriorityTaskPickerThrottleTest",
+            "tests": 5,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 6.296
+          },
+          {
+            "name": "tests.QuadTreeTest",
+            "tests": 17,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.066
+          },
+          {
+            "name": "tests.RaycastingTest",
+            "tests": 4,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.004
+          },
+          {
+            "name": "tests.RenderScratchReuseEquivalenceTest",
+            "tests": 3,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.042
+          },
+          {
+            "name": "tests.SqliteSetupTest",
+            "tests": 1,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.018
+          },
+          {
+            "name": "tests.SquareIntersectTest",
+            "tests": 5,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.003
+          },
+          {
+            "name": "tests.SsaoBlurEquivalenceTest",
+            "tests": 1,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.015
+          },
+          {
+            "name": "tests.VarintTest",
+            "tests": 1,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.002
+          }
+        ]
+      },
+      "api": {
+        "totals": {
+          "tests": 5,
+          "skipped": 0,
+          "failures": 0,
+          "errors": 0
+        },
+        "suites": [
+          {
+            "name": "tests.EventInjectorTest",
+            "tests": 4,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.088
+          },
+          {
+            "name": "tests.ExampleApiTest",
+            "tests": 1,
+            "skipped": 0,
+            "failures": 0,
+            "errors": 0,
+            "time_s": 0.0
+          }
+        ]
+      }
+    }
+  }
+}

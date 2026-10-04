@@ -53,5 +53,7 @@ accesstransformer.cfg
 __pycache__/
 *.pyc
 
-# Local verification artifacts are delivered in the separate evidence package.
-/evidence/
+# (AOTM handoff repo) /evidence/ is tracked on purpose: it holds the sanitised runtime summaries and the
+# artifact/test verification. Do NOT commit raw Mirai logs or build outputs there.
+/evidence/**/*.log
+!/evidence/**/gradle-core-api-tests-summary.log
