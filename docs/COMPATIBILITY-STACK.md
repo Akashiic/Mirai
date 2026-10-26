@@ -38,6 +38,9 @@ Regra de leitura: **presença simultânea de mods, aviso genérico de Forge ou r
 
 * **CoreTweaks `LightFixStare` × CubicChunks**: `ArrayIndexOutOfBoundsException: 16` em `Chunk.getEBS_CubicChunks` na pilha do tick do cliente,
   sem frame Akashic. Corrigir no armazenamento do fork CubicChunks; **não** mascarar no render do Mirai (R-09).
+* **Shaders (Angelica ≥ 2.2.18, Iris DH support):** o Angelica só reconhece o DH pelo nome `DistantHorizonsTweaker` (upstream ≥ 2026-09-10);
+  a 0.1.19 precisa da ponte da AkashicThePatcher ≥ `1.1.0-beta.42` para os LODs passarem pelo shaderpack. No Java 8 o Angelica ainda
+  ignora as pastas `world0/` de shaderpacks `.zip` sem `dimension.properties` (BSL) — a mesma beta.42 corrige. Ver [SHADERS-ANGELICA-DH.md](SHADERS-ANGELICA-DH.md).
 * **Angelica 2.2.8 issue #2038** (flicker em iGPU Intel com Indirect/CPU-only culling): relato com Java25/lwjgl3ify; hipótese a reproduzir, sem trocar opções automaticamente.
 * **Forestry × C2 (Java 8u51)**: `forestry.core.genetics.Genome.getChromosomes` derruba o compilador C2. Contorno no launcher do pack:
   `-XX:CompileCommand=exclude,forestry/core/genetics/Genome.getChromosomes` (documentado desde 0.1.7; o Mirai não injeta).

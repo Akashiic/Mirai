@@ -29,6 +29,7 @@ Status: `development; runtime certification pending`.
 - [ ] AOTM-12 Licença e visibilidade do repositório/JAR
 - [ ] AOTM-13 (condicional) IBO/batching guiado por `gpu_terrain`
 - [ ] AOTM-14 Crash CoreTweaks × CubicChunks (terceiros)
+- [ ] AOTM-15 Shaders do Angelica: portar `DistantHorizonsTweaker` + passe translúcido adiado do upstream
 
 ### Regras do jogo
 
@@ -200,3 +201,14 @@ Qualquer proposta exige prova de equivalência e A/B no pack real. **Não inicia
 `ArrayIndexOutOfBoundsException: 16` em `Chunk.getEBS_CubicChunks` na pilha do tick do cliente (sem frame Akashic). A correção correta é no armazenamento do
 fork **CubicChunks** (`Akashiic/CubicChunks1710`, branch Crucible) ou na integração da API de altura — **não** capturando a exceção no render do Mirai (R-09).
 Item de rastreio: reproduzir com o fork instalado e registrar a coordenada exata.
+
+## ISSUE-15 — Shaders do Angelica: portar `DistantHorizonsTweaker` + passe translúcido adiado do upstream
+<!-- labels: compatibility, p1 | milestone: 0.1.20 — Candidato | pin: no -->
+
+Com shaders do Angelica o terreno distante não passava pelo shaderpack: o Angelica (≥ 2.2.18) só liga o suporte a DH se achar
+`com.seibel.distanthorizons.DistantHorizonsTweaker` (nome adotado pelo upstream em `dfca6541`, depois do nosso pin `b4abe2f`), e o
+`renderDeferredLodsDuringTranslucentSetup` do upstream (`ef720c8e`) segue comentado aqui. Diagnóstico, evidência de cliente real e a
+ponte temporária (AkashicThePatcher `1.1.0-beta.42-MiraiShaderBridge`, sem tocar no JAR do Mirai): [SHADERS-ANGELICA-DH.md](SHADERS-ANGELICA-DH.md).
+Para a 0.1.20: portar os dois commits (identidade: `FMLCorePlugin`, `verify-mirai-jar.py`), confirmar que a ponte se desliga sozinha
+e repetir o A/B com/sem shader (contrato de fidelidade: sem shader nada muda).
+
