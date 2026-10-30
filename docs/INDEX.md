@@ -12,7 +12,7 @@ Quando um documento antigo contradisser `PROJECT-STATE.md`, vale o `PROJECT-STAT
 | [RUNTIME-EVIDENCE-2026-10-03.md](RUNTIME-EVIDENCE-2026-10-03.md) | O que os logs reais da 0.1.19 mostram (e o que não mostram) |
 | [TIMELINE.md](TIMELINE.md) | 0.1.0 → 0.1.19: versões, commits, hashes, testes, marcos de evidência |
 | [DECISIONS-AND-REJECTIONS.md](DECISIONS-AND-REJECTIONS.md) | Decisões de contrato, ideias rejeitadas (com evidência) e escopo candidato da 0.1.20 |
-| [ISSUES-BACKLOG.md](ISSUES-BACKLOG.md) | Fonte dos Issues do GitHub (AOTM-00 … AOTM-18) |
+| [ISSUES-BACKLOG.md](ISSUES-BACKLOG.md) | Fonte dos Issues do GitHub (AOTM-00 … AOTM-19) |
 | [BUILD-AND-RELEASE.md](BUILD-AND-RELEASE.md) | Compilar, gates offline, artefatos, instalar para teste, publicar |
 | [COMPATIBILITY-STACK.md](COMPATIBILITY-STACK.md) | Angelica/GTNHLib/EndlessIDs/CubicChunks… versões reais × auditadas |
 | [SHADERS-ANGELICA-DH.md](SHADERS-ANGELICA-DH.md) | Por que os shaders do Angelica não recebiam os LODs (2026-10-26), a ponte na AkashicThePatcher beta.42 e o que portar na 0.1.20 |

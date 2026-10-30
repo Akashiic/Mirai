@@ -37,6 +37,7 @@ risco estratégico). Parar de lançar versões de estabilização até fechar a 
 - [ ] AOTM-06 Folga de heap com renderer ativo
 - [ ] AOTM-17 Runtime Java do cliente: 8u51 → 8u recente (decisão do dono; muda o pack)
 - [ ] AOTM-13 (condicional) IBO/batching guiado por `gpu_terrain`
+- [ ] AOTM-19 Pré-geração de LODs no servidor (`/dh pregen`) — depende de AOTM-10
 
 **Infra / contínuo**
 - [ ] AOTM-18 Consolidar a documentação por versão em `docs/history/`
@@ -263,3 +264,42 @@ autorização do dono** (regra 10).
 - Mover para `docs/history/` tudo o que só descreve versões ≤ 0.1.18; `docs/` fica com os documentos vivos (`INDEX`, `PROJECT-STATE`,
   decisões, build, compatibilidade, backlog, homologação vigente).
 - Links internos e `INDEX.md` atualizados; nenhum conteúdo apagado.
+
+## ISSUE-19 — Pré-geração de LODs no servidor: `/dh pregen` inoperante no Mirai
+<!-- labels: server, bug, p1 | milestone: 0.1.20 — Candidato | pin: no -->
+
+**Sintoma (dono, 2026-10-30):** ao ativar o DH num servidor, o jogador precisa voar pelo mapa para os LODs aparecerem.
+
+**Causa (leitura de código, não reproduzido):** o servidor só envia LODs que já existem no banco dele
+(`FullDataSourceRequestHandler.readSync`), e esse banco só recebe o que algum jogador carregou. A geração por pedido do cliente
+é recusada (`queueWorldGenForRequestMessage`: "Operation is disabled in config"), porque o Mirai força
+`enableDistantGeneration=false` no dedicado sem `-Dakashic.mirai.experimentalServerGeneration=true` (`AbstractModInitializer`, D-07).
+
+A ferramenta certa já existe, herdada do upstream: `/dh pregen <status|start|stop>` (`PregenCommand`, `PregenManager`). Ela passa pelo
+mesmo gerador (`InternalServerGenerator`: chunk já salvo em disco é carregado; chunk ausente é **gerado**). `/dh prepare loaded`
+(0.1.5) não resolve: raio máximo de 64 e só considera chunks já carregados.
+
+Problemas encontrados:
+
+1. **Pregen trava em silêncio com a geração desligada (o padrão do Mirai).** Sem fila de geração,
+   `GeneratedFullDataSourceProvider.queuePositionForRetrieval` devolve `null`. O `.whenComplete` sobre `null` lança NPE dentro de um
+   `thenAccept` assíncrono, a exceção é engolida, a entrada fica em `pendingGenerations` e o `fullDataSource.close()` não roda (vazamento).
+   O cache do Guava só expira as entradas quando é acessado, e mais nada o acessa, então o pregen congela com o status parado
+   e nunca termina. O comando não avisa que a geração está desligada.
+2. **Bug do upstream no caminho de erro:** em `whenComplete`, quando `throwable != null`, o código lê `result.pos`, mas `result` é `null`.
+   Isso gera outra NPE, o `invalidate` nunca roda, e cada seção que falha ocupa um slot para sempre.
+3. **Ligar a geração é global:** a opção habilita também a geração pedida por qualquer cliente, e esse caminho (tickets, simulação com Hodgepodge,
+   `loadChunk` gerando terreno) é justamente o que **não passou** pelos gates do Crucible.
+4. Concorrência limitada a `numberOfThreads` e sem pausa por TPS/heap (o governor é só do cliente), num servidor com 200+ mods.
+
+### Critérios de aceite
+
+- Pregen funciona com a geração **por cliente** desligada: um modo "pregen-only" sobe a fila de geração só enquanto `/dh pregen` está rodando,
+  ou o comando recusa de forma explícita, com mensagem clara, quando não há fila. Nunca congela em silêncio.
+- Os dois NPEs corrigidos (null-check da fila; `result` nulo no erro). `fullDataSource` fechado em `finally`. Teste headless cobrindo
+  fila ausente, falha de seção e cancelamento.
+- Opção de **não gerar terreno novo**: converter só os chunks já salvos em disco (útil após pré-gerar o mundo com outro mod).
+  Exige `chunkExists`/leitura de região sem `loadChunk` que gere.
+- Pausa ou redução de ritmo por TPS do servidor. Progresso persistido para retomar após reinício.
+- Gate no Crucible (AOTM-10): pregen de raio ≥ 256 chunks sem queda de TPS relevante, sem chunks forçados sobrando, e cliente
+  recebendo os LODs ao ativar sem precisar se deslocar.
