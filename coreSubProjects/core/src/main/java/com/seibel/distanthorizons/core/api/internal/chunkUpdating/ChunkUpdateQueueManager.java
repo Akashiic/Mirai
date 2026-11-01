@@ -1,5 +1,6 @@
 package com.seibel.distanthorizons.core.api.internal.chunkUpdating;
 
+import java.util.concurrent.locks.LockSupport;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.seibel.distanthorizons.core.api.internal.ClientApi;
@@ -54,6 +55,13 @@ public class ChunkUpdateQueueManager implements AutoCloseable
 	
 	/** how long to wait between queue checks if the queue was empty */
 	private static final int PROCESS_QUEUE_DELAY_MS = 50;
+	/** longest park while waiting for a queued chunk's debounce, so a moving player's new closest chunk is seen quickly */
+	private static final long MAX_DEBOUNCE_PARK_NANOS = TimeUnit.MILLISECONDS.toNanos(5);
+	/** retry delay when a ready chunk couldn't be handed to the builder executor */
+	private static final long EXECUTOR_RETRY_NANOS = TimeUnit.MILLISECONDS.toNanos(5);
+	
+	/** the queueing thread, unparked when new pre-update work arrives */
+	private volatile Thread queueingThreadRef;
 	
 	
 	
@@ -135,7 +143,16 @@ public class ChunkUpdateQueueManager implements AutoCloseable
 	 * If there are no more slots, replaces the item furthest from the center in the update queue.
 	 */
 	public void addItemToPreUpdateQueue(DhChunkPos pos, ChunkUpdateData updateData)
-	{ this.addItemToQueue(pos, updateData, this.preUpdateQueue); }
+	{
+		this.addItemToQueue(pos, updateData, this.preUpdateQueue);
+		
+		// the queueing thread may be parked waiting for a debounce or an empty queue
+		Thread queueingThread = this.queueingThreadRef;
+		if (queueingThread != null)
+		{
+			LockSupport.unpark(queueingThread);
+		}
+	}
 	
 	public void addItemToUpdateQueue(DhChunkPos pos, ChunkUpdateData updateData)
 	{ this.addItemToQueue(pos, updateData, this.updateQueue); }
@@ -237,26 +254,31 @@ public class ChunkUpdateQueueManager implements AutoCloseable
 	
 	private void runQueueingLoop()
 	{
+		this.queueingThreadRef = Thread.currentThread();
 		while (!Thread.interrupted())
 		{
 			try
 			{
-				this.processQueue();
+				long waitNanos = this.processQueueAndGetWaitNanos();
 				
 				// if the queue is empty, 
 				// reduce the rate that we check the queue again
 				if (this.updateQueue.isEmpty() 
 					&& this.preUpdateQueue.isEmpty())
 				{
-					Thread.sleep(PROCESS_QUEUE_DELAY_MS);
+					// parked instead of sleeping so new pre-update work wakes it immediately
+					LockSupport.parkNanos(this, TimeUnit.MILLISECONDS.toNanos(PROCESS_QUEUE_DELAY_MS));
 					
 					// clean up to fix expired chunks not being cleaned up if the queue is empty
 					this.queuedChunkWrapperByChunkPos.cleanUp();
 				}
-			}
-			catch (InterruptedException ignored)
-			{
-				Thread.currentThread().interrupt();
+				else if (waitNanos > 0)
+				{
+					// The closest chunk is still inside its debounce window (or the builder refused it).
+					// This used to loop straight back, popping and re-adding the same chunk and burning a core
+					// for as long as any chunk was queued. The dispatch order is unchanged: only idle spins go.
+					LockSupport.parkNanos(this, Math.min(waitNanos, MAX_DEBOUNCE_PARK_NANOS));
+				}
 			}
 			catch (Exception e)
 			{
@@ -266,6 +288,13 @@ public class ChunkUpdateQueueManager implements AutoCloseable
 	}
 	
 	public void processQueue()
+	{
+		this.updateCenterAndMaxSize();
+		this.processQueuedChunkPreUpdate();
+		this.tryDispatchReadyChunkUpdate();
+	}
+	
+	private void updateCenterAndMaxSize()
 	{
 		// update the center & max size of the queue manager
 		int maxUpdateSizeMultiplier;
@@ -285,28 +314,29 @@ public class ChunkUpdateQueueManager implements AutoCloseable
 		this.maxSize = MAX_UPDATING_CHUNK_COUNT_PER_THREAD_AND_PLAYER
 			* Config.Common.MultiThreading.numberOfThreads.get()
 			* maxUpdateSizeMultiplier;
-		
-		
-		
-		//===============================//
-		// update the necessary chunk(s) //
-		//===============================//
-		
-		this.processQueuedChunkPreUpdate();
-		this.tryDispatchReadyChunkUpdate();
 	}
 	
-	private void processQueuedChunkPreUpdate()
+	/** @return 0 if work was done, the nanoseconds to wait before the next useful attempt otherwise (-1: nothing queued) */
+	private long processQueueAndGetWaitNanos()
+	{
+		this.updateCenterAndMaxSize();
+		boolean preUpdated = this.processQueuedChunkPreUpdate();
+		long dispatchWaitNanos = this.tryDispatchReadyChunkUpdate();
+		return preUpdated ? 0 : dispatchWaitNanos;
+	}
+	
+	/** @return true if a queued pre-update was taken (whatever its outcome) */
+	private boolean processQueuedChunkPreUpdate()
 	{
 		ChunkUpdateData preUpdateData = this.preUpdateQueue.popClosest();
 		if (preUpdateData == null)
 		{
-			return;
+			return false;
 		}
 		
 		IDhLevel dhLevel = preUpdateData.dhLevel;
 		IChunkWrapper chunkWrapper = preUpdateData.chunkWrapper;
-		if (isStaleClientLevel(dhLevel)) { return; }
+		if (isStaleClientLevel(dhLevel)) { return true; }
 		chunkWrapper.createDhHeightMaps();
 		
 		try
@@ -324,7 +354,7 @@ public class ChunkUpdateQueueManager implements AutoCloseable
 				{
 					// A matching index alone cannot prove that an older async write persisted.
 					// Keep the fast path only when the corresponding full-resolution data exists.
-					return;
+					return true;
 				}
 			}
 			
@@ -335,14 +365,16 @@ public class ChunkUpdateQueueManager implements AutoCloseable
 			if (!ExceptionUtil.isShutdownException(e))
 			{ LOGGER.error("Unexpected error when pre-updating chunk at pos: [" + chunkWrapper.getChunkPos() + "]", e); }
 		}
+		return true;
 	}
 	
-	private void tryDispatchReadyChunkUpdate()
+	/** @return 0 if a chunk was dispatched, -1 if nothing is queued, otherwise the nanoseconds until retrying is useful */
+	private long tryDispatchReadyChunkUpdate()
 	{
 		ChunkUpdateData updateData = this.updateQueue.popClosest();
 		if (updateData == null)
 		{
-			return;
+			return -1;
 		}
 		
 		// wait for UPDATE_DEBOUNCE_NANOS before updating
@@ -351,14 +383,14 @@ public class ChunkUpdateQueueManager implements AutoCloseable
 		if (updateWaitNanoTime < UPDATE_DEBOUNCE_NANOS)
 		{
 			this.updateQueue.addItem(updateData.chunkWrapper.getChunkPos(), updateData);
-			return;
+			return Math.max(1, UPDATE_DEBOUNCE_NANOS - updateWaitNanoTime);
 		}
 		
 		AbstractExecutorService executor = ThreadPoolUtil.getChunkToLodBuilderExecutor();
 		if (executor == null)
 		{
 			this.updateQueue.addItem(updateData.chunkWrapper.getChunkPos(), updateData);
-			return;
+			return EXECUTOR_RETRY_NANOS;
 		}
 		
 		try
@@ -368,7 +400,9 @@ public class ChunkUpdateQueueManager implements AutoCloseable
 		catch (RejectedExecutionException ignore)
 		{
 			this.updateQueue.addItem(updateData.chunkWrapper.getChunkPos(), updateData);
+			return EXECUTOR_RETRY_NANOS;
 		}
+		return 0;
 	}
 	
 	private void processChunkUpdate(ChunkUpdateData updateData)
