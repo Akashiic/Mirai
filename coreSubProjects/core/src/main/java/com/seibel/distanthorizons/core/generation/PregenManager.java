@@ -344,7 +344,7 @@ public class PregenManager
 			saved.setProperty("nextIndex", Integer.toString(index));
 			try (OutputStream out = new FileOutputStream(this.progressFile))
 			{
-				saved.store(out, "Akashic Mirai pregen progress; deleted when the run completes");
+				saved.store(out, "Mirai pregen progress; deleted when the run completes");
 				this.savedCheckpointIndex = index;
 			}
 			catch (IOException e)

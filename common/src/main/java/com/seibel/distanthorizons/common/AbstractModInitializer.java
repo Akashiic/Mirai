@@ -174,7 +174,7 @@ public abstract class AbstractModInitializer
 			if (!Boolean.getBoolean("akashic.mirai.experimentalServerGeneration"))
 			{
 				Config.Common.WorldGenerator.enableDistantGeneration.setMcVersionOverrideValue(false);
-				LOGGER.info("Akashic Mirai: dedicated distant generation is disabled in this development build. "
+				LOGGER.info("Mirai: dedicated distant generation is disabled by default. "
 					+ "Experimental test opt-in: -Dakashic.mirai.experimentalServerGeneration=true. "
 					+ "Admins can still prebuild LODs with /dh pregen (clients cannot request generation).");
 			}

@@ -42,12 +42,12 @@ public final class ModInfo
 	/** The internal mod name */
 	public static final String NAME = "DistantHorizons";
 	/** Human-readable version of NAME */
-	public static final String READABLE_NAME = "Akashic: Horizons of The Mirai";
-	public static final String VERSION = "0.1.19-dev";
+	public static final String READABLE_NAME = "Mirai";
+	public static final String VERSION = "1.0-BETA";
 	public static final String UPSTREAM_VERSION = "3.2.1-b-dev";
 	/** Fork artifacts must never be replaced by the upstream self-updater. */
 	public static final boolean ALLOW_UPSTREAM_SELF_UPDATE = false;
-	/** Returns true if the current build is an unstable developer build, false otherwise. */
+	/** Returns true if the current build is an unstable developer build, false otherwise. Beta releases are release builds. */
 	public static final boolean IS_DEV_BUILD = VERSION.toLowerCase().contains("dev");
 	
 	/** This version should only be updated when breaking changes are introduced to the DH API */

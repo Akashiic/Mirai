@@ -51,7 +51,9 @@ jobs:
       - name: Verify jar identity
         run: |
           version=$(sed -n 's/^mod_version=//p' gradle.properties)
-          jar="forge17/build/libs/Akashic-Horizons-of-The-Mirai-forge17-${version}-1.7.10.jar"
+          jar="forge17/build/libs/Mirai-forge17-${version}-1.7.10.jar"
+          # AOTM-11: archives are built without timestamps, so this hash must match a local build of the same commit
+          sha256sum "$jar" | tee jar.sha256
           python3 scripts/verify-mirai-jar.py "$jar" \
             --expected-version "$version" \
             --expected-commit "$(git rev-parse HEAD)" \
@@ -67,6 +69,7 @@ jobs:
             coreSubProjects/core/build/reports/tests/
             coreSubProjects/api/build/reports/tests/
             verify-report.json
+            jar.sha256
           if-no-files-found: ignore
 
       # CI builds are not releases: identical name to a tagged jar does not make them one (CLAUDE.md rule 6)
@@ -74,5 +77,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mirai-forge17-ci-${{ github.sha }}
-          path: forge17/build/libs/Akashic-Horizons-of-The-Mirai-forge17-*-1.7.10.jar
+          path: forge17/build/libs/Mirai-forge17-*-1.7.10.jar
           retention-days: 14

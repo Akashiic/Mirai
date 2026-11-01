@@ -975,7 +975,7 @@ public class Config
 				public static ConfigEntry<Boolean> enableAutoUpdater = new ConfigEntry.Builder<Boolean>()
 					.set(false)
 					.comment(""
-						+ "Akashic Mirai disables the upstream self-updater in this fork. Install audited builds manually. \n"
+						+ "Mirai disables the upstream self-updater in this fork. Install audited builds manually. \n"
 						+ "")
 					.build();
 				
@@ -1433,7 +1433,7 @@ public class Config
 				.setChatCommandName("generation.enable")
 				.set(false)
 				.comment(""
-					+ "Akashic Mirai development default: disabled. Enable only in a test world after baseline verification. \n"
+					+ "Mirai default: disabled. Enable only in a test world after baseline verification. \n"
 					+ " Should Distant Horizons slowly generate LODs \n"
 					+ " outside the vanilla render distance? \n"
 					+ "Depending on the generator mode, this will import existing chunks \n"
