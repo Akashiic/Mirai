@@ -283,8 +283,13 @@ public class PriorityTaskPicker
 		@Nullable
 		private final PriorityTaskPicker.IExecutorCanRunFunc canRunFunc;
 		
-		/** holds the threads this {@link Executor} can run */
-		private RateLimitedThreadPoolExecutor threadPoolExecutor;
+		/** holds the threads this {@link Executor} can run; replaced from the config thread */
+		private volatile RateLimitedThreadPoolExecutor threadPoolExecutor;
+		/** pool size {@link #threadPoolExecutor} was built with */
+		private int threadPoolSize;
+		/** guards pool replacement against a concurrent {@link #shutdown()} */
+		private final Object poolLifecycleLock = new Object();
+		private boolean shutDown = false;
 		
 		
 		
@@ -306,8 +311,9 @@ public class PriorityTaskPicker
 		
 		private RateLimitedThreadPoolExecutor createThreadPool()
 		{
+			this.threadPoolSize = Config.Common.MultiThreading.numberOfThreads.get();
 			return new RateLimitedThreadPoolExecutor(
-					Config.Common.MultiThreading.numberOfThreads.get(),
+					this.threadPoolSize,
 					new DhThreadFactory(this.name, Config.Common.MultiThreading.threadPriority.get(), false),
 					new ArrayBlockingQueue<>(Runtime.getRuntime().availableProcessors()),
 					this.parentTaskPicker::tryStartNextTask
@@ -323,11 +329,27 @@ public class PriorityTaskPicker
 		//=================//
 		///region
 		
+		/**
+		 * Listeners also fire when the value did not change (UI state changes, config reloads), and every
+		 * world session builds a new picker. Previously each call rebuilt every pool, and executors of pickers
+		 * that were already shut down stayed registered forever, so a later config change revived pools
+		 * for dead worlds (a leak of the whole old picker). Now: unchanged size -> no-op; shut down -> no-op.
+		 */
 		@Override
 		public void onConfigValueSet() 
 		{
-			RateLimitedThreadPoolExecutor oldExecutor = this.threadPoolExecutor;
-			this.threadPoolExecutor = this.createThreadPool();
+			RateLimitedThreadPoolExecutor oldExecutor;
+			synchronized (this.poolLifecycleLock)
+			{
+				if (this.shutDown
+					|| this.threadPoolSize == Config.Common.MultiThreading.numberOfThreads.get())
+				{
+					return;
+				}
+				
+				oldExecutor = this.threadPoolExecutor;
+				this.threadPoolExecutor = this.createThreadPool();
+			}
 			
 			// shut down the old executor after replacing it with the new one
 			// to make sure no tasks are lost in the transfer
@@ -422,10 +444,27 @@ public class PriorityTaskPicker
 		///region
 		
 		@Override
-		public void shutdown() { this.threadPoolExecutor.shutdown(); }
+		public void shutdown() 
+		{
+			synchronized (this.poolLifecycleLock)
+			{
+				this.shutDown = true;
+			}
+			// idempotent; never called from inside a listener callback, so the list isn't being iterated here
+			Config.Common.MultiThreading.numberOfThreads.removeListener(this);
+			this.threadPoolExecutor.shutdown(); 
+		}
 		
 		@Override
-		public @NotNull List<Runnable> shutdownNow() { return this.threadPoolExecutor.shutdownNow(); }
+		public @NotNull List<Runnable> shutdownNow() 
+		{
+			synchronized (this.poolLifecycleLock)
+			{
+				this.shutDown = true;
+			}
+			Config.Common.MultiThreading.numberOfThreads.removeListener(this);
+			return this.threadPoolExecutor.shutdownNow(); 
+		}
 		
 		@Override
 		public boolean isShutdown() { return this.threadPoolExecutor.isShutdown(); }
