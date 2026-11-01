@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicLongArray;
 final class MiraiLogSession implements AutoCloseable
 {
     static final int MAX_DETAIL = 2048;
+    static final int MAX_ARCHIVES = 32;
     final AtomicLongArray counters = new AtomicLongArray(MiraiDiagnostics.Counter.values().length);
     final MiraiTiming[] timings = new MiraiTiming[MiraiDiagnostics.Metric.values().length];
     final AtomicLong dropped = new AtomicLong();
@@ -53,7 +54,7 @@ final class MiraiLogSession implements AutoCloseable
 
     MiraiLogSession(Path directory, String side, int capacity, long maxBytes, int archiveCount)
     {
-        if (capacity < 1 || maxBytes < 4096 || archiveCount < 1 || archiveCount > 8) { throw new IllegalArgumentException(); }
+        if (capacity < 1 || maxBytes < 4096 || archiveCount < 1 || archiveCount > MAX_ARCHIVES) { throw new IllegalArgumentException(); }
         this.directory = directory.toAbsolutePath().normalize();
         this.side = bounded(side, 16); this.maxBytes = maxBytes; this.archiveCount = archiveCount;
         this.queue = new ArrayBlockingQueue<>(capacity);
@@ -183,7 +184,7 @@ final class MiraiLogSession implements AutoCloseable
         catch (Exception | LinkageError failure)
         {
             status = "failed:" + failure.getClass().getSimpleName();
-            System.err.println("[Akashic Mirai] Dedicated diagnostic log stopped: " + failure.getClass().getName());
+            System.err.println("[Mirai] Dedicated diagnostic log stopped: " + failure.getClass().getName());
         }
         finally
         {
