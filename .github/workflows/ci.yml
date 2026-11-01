@@ -1,0 +1,78 @@
+name: CI
+
+# Offline gates only: compiles the 1.7.10 target, runs core/API tests and checks the release jar's identity.
+# Nothing here starts Minecraft, Crucible or OpenGL (see docs/BUILD-AND-RELEASE.md).
+
+on:
+  push:
+    branches: [ main, 'akashic/**', 'claude/**' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and test (1.7.10)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # build_info.json records `git symbolic-ref --short HEAD`, which fails on a detached checkout
+      - name: Name the checked-out branch
+        run: git checkout -B "${{ github.head_ref || github.ref_name }}"
+
+      # Java 8 and 21 must be discoverable for the replay/identity gates; Gradle's daemon uses 25
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: |
+            8
+            21
+            25
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Core and API tests
+        run: ./gradlew "-PmcVer=1.7.10" --max-workers=4 --no-parallel :core:test :api:test
+
+      - name: Release jar
+        run: ./gradlew "-PmcVer=1.7.10" --max-workers=4 --no-parallel :forge17:shadeDowngradedApi
+
+      - name: Verify jar identity
+        run: |
+          version=$(sed -n 's/^mod_version=//p' gradle.properties)
+          jar="forge17/build/libs/Akashic-Horizons-of-The-Mirai-forge17-${version}-1.7.10.jar"
+          python3 scripts/verify-mirai-jar.py "$jar" \
+            --expected-version "$version" \
+            --expected-commit "$(git rev-parse HEAD)" \
+            --expected-branch "$(git symbolic-ref --short HEAD)" \
+            --report verify-report.json
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            coreSubProjects/core/build/reports/tests/
+            coreSubProjects/api/build/reports/tests/
+            verify-report.json
+          if-no-files-found: ignore
+
+      # CI builds are not releases: identical name to a tagged jar does not make them one (CLAUDE.md rule 6)
+      - name: Upload jar (CI build, not a release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: mirai-forge17-ci-${{ github.sha }}
+          path: forge17/build/libs/Akashic-Horizons-of-The-Mirai-forge17-*-1.7.10.jar
+          retention-days: 14
