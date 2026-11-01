@@ -42,7 +42,7 @@ Interagem com o AOTM no runtime do pack ou nas mesmas ferramentas de diagnóstic
 | Repositório | Visib. | Relação |
 |---|---|---|
 | **`Akashic-Horizons-of-The-Mirai`** | privado | **Este** repositório (criado em 2026-10-04) |
-| `CubicChunks1710` | público | Fork Akashic de compatibilidade Crucible — **dono do crash AOTM-14** |
+| `CubicChunks1710` | público | Fork Akashic de compatibilidade Crucible — **fora do pack desde 2026-11** (AOTM-14 encerrado) |
 | `Akashic-CubicChunks-CrucibleCompat` | público | Compat Crucible do CubicChunks |
 | `Technic-Forbidden` | público | Download do modpack (Technic) onde o JAR é instalado |
 | `Akashic-Player-Backport`, `Akashic-Voice`, `Forbidden-Mobile-Launcher` | privados | Projetos irmãos com o mesmo padrão de handoff (`README`, `CLAUDE.md`, `docs/`) |

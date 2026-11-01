@@ -43,7 +43,7 @@ risco estratégico). Parar de lançar versões de estabilização até fechar a 
 - [ ] AOTM-18 Consolidar a documentação por versão em `docs/history/`
 - [x] AOTM-11 Build reprodutível fora desta máquina (1.0-BETA; conferir o hash do CI)
 - [ ] AOTM-12 Licença e visibilidade do repositório/JAR
-- [ ] AOTM-14 Crash CoreTweaks × CubicChunks (terceiros)
+- [x] AOTM-14 Crash CoreTweaks × CubicChunks (terceiros) (não se aplica: CubicChunks saiu do pack)
 
 ### Regras do jogo
 
@@ -225,6 +225,8 @@ Qualquer proposta exige prova de equivalência e A/B no pack real. **Não inicia
 
 ## ISSUE-14 — Crash CoreTweaks `LightFixStare` × CubicChunks (terceiros)
 <!-- labels: compatibility, external, p2 | milestone: Infra e documentação | pin: no -->
+
+**Status (2026-11-01):** encerrado — o CubicChunks não faz mais parte do pack; nada no código do Mirai dependia dele.
 
 `ArrayIndexOutOfBoundsException: 16` em `Chunk.getEBS_CubicChunks` na pilha do tick do cliente (sem frame Akashic). A correção correta é no armazenamento do
 fork **CubicChunks** (`Akashiic/CubicChunks1710`, branch Crucible) ou na integração da API de altura — **não** capturando a exceção no render do Mirai (R-09).
