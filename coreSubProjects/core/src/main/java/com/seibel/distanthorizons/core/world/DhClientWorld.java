@@ -66,9 +66,8 @@ public class DhClientWorld extends AbstractDhWorld implements IDhClientWorld
 	private boolean deferredClose;
 	
 	public final ClientPluginChannelApi pluginChannelApi = new ClientPluginChannelApi();
-	private static final long FIRST_LEVEL_LOAD_DELAY_IN_MS = 1_000;
-	/** Delay loading the first level to give the server some time to respond with level to actually load */
-	private long allowLoadingLevelsAfter = 0;
+	/** Gives the server time to answer each world's level-key request before falling back to a temporary cache. */
+	private final LevelKeyWait levelKeyWait = new LevelKeyWait();
 	private final Set</* ClientLevel */ Object> levelInitRequestedClientLevels = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 	
 	
@@ -194,18 +193,13 @@ public class DhClientWorld extends AbstractDhWorld implements IDhClientWorld
 			this.sendLevelInitRequestIfNeed(clientLevelWrapper);
 		}
 		
-		// Make non-keyed levels wait some delay since first attempt to load anything,
-		// so the server can reply to the level key request
+		// Make each non-keyed world wait for the server's reply to its own level key request.
+		// The wait used to be once per connection, so behind a proxy every later world (backend switch,
+		// dimension change) loaded into a throw-away temporary cache before its key arrived.
 		if (!(clientLevelWrapper instanceof IServerKeyedClientLevel))
 		{
 			this.sendLevelInitRequestIfNeed(clientLevelWrapper);
-			
-			if (this.allowLoadingLevelsAfter == 0)
-			{
-				this.allowLoadingLevelsAfter = System.currentTimeMillis() + FIRST_LEVEL_LOAD_DELAY_IN_MS;
-			}
-			
-			return System.currentTimeMillis() >= this.allowLoadingLevelsAfter;
+			return this.levelKeyWait.mayLoadWithoutKey(clientLevelWrapper.getWrappedMcObject());
 		}
 		
 		return true;
