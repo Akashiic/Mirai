@@ -327,6 +327,11 @@ public class GLBuffer implements AutoCloseable
 		int vao = LWJGL.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING);
 		int vbo = LWJGL.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING);
 		int ebo = LWJGL.glGetInteger(GL15.GL_ELEMENT_ARRAY_BUFFER_BINDING);
+		// The only object this call can delete is this buffer's previous name (destroyOldAndCreate); names it
+		// creates were never bound by the caller. A bound name is always a live object and deleting a bound one
+		// resets the binding, so the glIs* checks this replaces could only ever fail for that one name.
+		// (Each glIs* is a driver round trip GLSM can't answer; ~73 uploads/s were logged.)
+		final int idBeforeUpload = this.id;
 		
 		try
 		{
@@ -352,9 +357,10 @@ public class GLBuffer implements AutoCloseable
 		}
 		finally
 		{
-			LWJGL.glBindVertexArray(GL30.glIsVertexArray(vao) ? vao : 0);
-			LWJGL.glBindBuffer(GL15.GL_ARRAY_BUFFER, GL15.glIsBuffer(vbo) ? vbo : 0);
-			LWJGL.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, GL15.glIsBuffer(ebo) ? ebo: 0);
+			boolean previousNameDeleted = idBeforeUpload != 0 && this.id != idBeforeUpload;
+			LWJGL.glBindVertexArray(vao);
+			LWJGL.glBindBuffer(GL15.GL_ARRAY_BUFFER, (previousNameDeleted && vbo == idBeforeUpload) ? 0 : vbo);
+			LWJGL.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, (previousNameDeleted && ebo == idBeforeUpload) ? 0 : ebo);
 		}
 	}
 	/** Requires the buffer to be bound */
