@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Create labels, milestones, issues and pins from docs/ISSUES-BACKLOG.md.
 
-Usage:  python scripts/seed-github-issues.py --repo Akashiic/Akashic-Horizons-of-The-Mirai [--dry-run]
+Usage:  python scripts/seed-github-issues.py --repo Akashiic/Mirai [--dry-run]
 
 Requires the GitHub CLI (`gh`) authenticated with `repo` scope. Idempotent: issues whose title
 already exists are skipped. Block format in the backlog:

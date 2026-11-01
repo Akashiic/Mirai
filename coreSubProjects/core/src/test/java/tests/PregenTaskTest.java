@@ -319,11 +319,44 @@ public class PregenTaskTest
 	}
 
 	@Test
-	public void sectionCountMatchesUpstreamFormula()
+	public void timedOutSectionIsCancelledInTheQueue()
 	{
-		Assert.assertEquals(256, PregenTask.sectionCountForChunkRadius(32));
-		Assert.assertEquals(4, PregenTask.sectionCountForChunkRadius(4));
-		Assert.assertEquals(1, PregenTask.sectionCountForChunkRadius(1));
+		AtomicLong clock = new AtomicLong();
+		List<Long> cancelled = new ArrayList<>();
+		FakeTarget target = new FakeTarget()
+		{
+			@Override public void cancelGeneration(long sectionPos) { cancelled.add(sectionPos); }
+		};
+		PregenTask task = new PregenTask(target, settings(clock, 1), ORIGIN, 1, 0);
+		
+		task.pump();
+		clock.addAndGet(1_000);
+		task.pump();
+		
+		Assert.assertEquals(1, cancelled.size());
+		Assert.assertEquals(Long.valueOf(ORIGIN), cancelled.get(0));
+	}
+	
+	@Test
+	public void spiralIndexArithmeticDoesNotOverflowAtTheRadiusLimit()
+	{
+		PregenTask task = new PregenTask(new FakeTarget(), settings(new AtomicLong(), 1), ORIGIN, 0, 0);
+		int count = PregenTask.sectionCountForChunkRadius(PregenTask.MAX_CHUNK_RADIUS);
+		long last = task.sectionPosOnSpiral(count - 1);
+		int ring = PregenTask.MAX_CHUNK_RADIUS / 4;
+		Assert.assertEquals(ring, Math.max(Math.abs(DhSectionPos.getX(last)), Math.abs(DhSectionPos.getZ(last))));
+	}
+	
+	@Test
+	public void sectionCountCoversFullRings()
+	{
+		// full rings: side = 2 * ceil(radius / 4) + 1
+		Assert.assertEquals(17 * 17, PregenTask.sectionCountForChunkRadius(32));
+		Assert.assertEquals(9, PregenTask.sectionCountForChunkRadius(4));
+		Assert.assertEquals(9, PregenTask.sectionCountForChunkRadius(1));
+		Assert.assertEquals(1, PregenTask.sectionCountForChunkRadius(0));
+		long maxSide = 2L * (PregenTask.MAX_CHUNK_RADIUS / 4) + 1;
+		Assert.assertEquals(maxSide * maxSide, PregenTask.sectionCountForChunkRadius(Integer.MAX_VALUE));
 	}
 
 }

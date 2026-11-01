@@ -19,6 +19,8 @@
 
 package com.seibel.distanthorizons.coreapi.DependencyInjection;
 
+import java.util.List;
+import java.util.Collections;
 import com.seibel.distanthorizons.api.interfaces.override.IDhApiOverrideable;
 import com.seibel.distanthorizons.coreapi.interfaces.dependencyInjection.IBindable;
 
@@ -32,54 +34,68 @@ import java.util.ArrayList;
  */
 public class OverridePriorityListContainer implements IBindable
 {
-	/** Sorted highest priority to lowest */
-	private final ArrayList<OverridePriorityPair> overridePairList = new ArrayList<>();
+	/**
+	 * Sorted highest priority to lowest. <br>
+	 * Immutable snapshot replaced on every write: overrides are read every frame by the render thread
+	 * while API users (e.g. Angelica) may bind from other threads (upstream 4539c2cae fixed the same race with a lock).
+	 */
+	private volatile List<OverridePriorityPair> overridePairList = Collections.emptyList();
 	
 	
-	/** Doesn't do any validation */
-	public void addOverride(IDhApiOverrideable override)
+	/** Doesn't do any validation. Writers are serialized by {@link OverrideInjector}. */
+	public synchronized void addOverride(IDhApiOverrideable override)
 	{
 		OverridePriorityPair priorityPair = new OverridePriorityPair(override, override.getPriority());
-		this.overridePairList.add(priorityPair);
+		ArrayList<OverridePriorityPair> newList = new ArrayList<>(this.overridePairList);
+		newList.add(priorityPair);
 		
-		this.sortList();
+		// same stable sort and comparator as before, so the order of the list is unchanged
+		newList.sort((x, y) -> Integer.compare(y.priority, x.priority));
+		this.overridePairList = Collections.unmodifiableList(newList);
 	}
 	
 	/** @return true if the override was removed from the list, false otherwise. */
-	public boolean removeOverride(IDhApiOverrideable override)
+	public synchronized boolean removeOverride(IDhApiOverrideable override)
 	{
-		boolean overrideRemoved = this.overridePairList.removeIf((pair) -> pair.override.equals(override));
+		ArrayList<OverridePriorityPair> newList = new ArrayList<>(this.overridePairList);
+		boolean overrideRemoved = newList.removeIf((pair) -> pair.override.equals(override));
+		if (overrideRemoved)
+		{
+			this.overridePairList = Collections.unmodifiableList(newList);
+		}
 		return overrideRemoved;
 	}
 	
-	public boolean clear()
+	public synchronized boolean clear()
 	{
 		boolean objectsRemoved = (this.overridePairList.size() > 0);
-		this.overridePairList.clear();
+		this.overridePairList = Collections.emptyList();
 		return objectsRemoved;
 	}
 	
 	
 	
-	// getters //
+	// getters (each reads one snapshot) //
 	
 	public IDhApiOverrideable getOverrideWithLowestPriority()
 	{
-		if (this.overridePairList.size() == 0)
+		List<OverridePriorityPair> list = this.overridePairList;
+		if (list.size() == 0)
 		{
 			return null;
 		}
 		else
 		{
-			// last item should have the highest priority
-			return this.overridePairList.get(this.overridePairList.size() - 1).override;
+			// last item should have the lowest priority
+			return list.get(list.size() - 1).override;
 		}
 	}
 	public IDhApiOverrideable getOverrideWithHighestPriority()
 	{
-		if (this.overridePairList.size() != 0)
+		List<OverridePriorityPair> list = this.overridePairList;
+		if (list.size() != 0)
 		{
-			return this.overridePairList.get(0).override;
+			return list.get(0).override;
 		}
 		else
 		{
@@ -88,10 +104,11 @@ public class OverridePriorityListContainer implements IBindable
 	}
 	public IDhApiOverrideable getCoreOverride()
 	{
-		int lastIndex = this.overridePairList.size() - 1;
-		if (this.overridePairList.get(lastIndex) != null && this.overridePairList.get(lastIndex).priority == OverrideInjector.CORE_PRIORITY)
+		List<OverridePriorityPair> list = this.overridePairList;
+		int lastIndex = list.size() - 1;
+		if (lastIndex >= 0 && list.get(lastIndex).priority == OverrideInjector.CORE_PRIORITY)
 		{
-			return this.overridePairList.get(lastIndex).override;
+			return list.get(lastIndex).override;
 		}
 		else
 		{
@@ -113,17 +130,11 @@ public class OverridePriorityListContainer implements IBindable
 	}
 	
 	
-	// utils //
-	
-	/** sort the list so the highest priority item is first in the list */
-	private void sortList() { this.overridePairList.sort((x, y) -> Integer.compare(y.priority, x.priority)); }
-	
-	
 	
 	private class OverridePriorityPair
 	{
 		public final IDhApiOverrideable override;
-		public int priority;
+		public final int priority;
 		
 		public OverridePriorityPair(IDhApiOverrideable newOverride, int newPriority)
 		{

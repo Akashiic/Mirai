@@ -157,7 +157,8 @@ public final class LegacyLoadedTerrainPreparation
             Chunk chunk = (Chunk) provider.id2ChunkMap.getValueByKey(ChunkCoordIntPair.chunkXZ2Int(x, z));
             if (chunk == null) job.unloaded++;
             else if (chunk instanceof EmptyChunk || chunk.worldObj != world || chunk.xPosition != x || chunk.zPosition != z
-                || !ChunkWrapper.canSaveChunk(chunk) || chunk.getBiomeArray() == null || chunk.getBiomeArray().length != 256)
+                // no Chunk.getBiomeArray() check: biomes come from World.getBiomeGenForCoords, and EndlessIDs makes that getter throw
+                || !ChunkWrapper.canSaveChunk(chunk))
                 job.incomplete++;
             else if (SharedApi.isChunkAtChunkPosAlreadyUpdating(job.wrapper, x, z)) job.busy++;
             else

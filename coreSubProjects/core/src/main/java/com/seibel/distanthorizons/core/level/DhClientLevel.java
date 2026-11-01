@@ -168,6 +168,8 @@ public class DhClientLevel extends AbstractDhLevel implements IDhClientLevel
 		{
 			if (MC_CLIENT.connectedToReplay())
 			{
+				// no level decodes partial updates during a replay, so the assembled transfer must not linger
+				this.networkState.fullDataPayloadReceiver.discardPayload(message.payload);
 				return;
 			}
 			
@@ -187,6 +189,9 @@ public class DhClientLevel extends AbstractDhLevel implements IDhClientLevel
 			{
 				com.seibel.distanthorizons.core.logging.mirai.MiraiDiagnostics.count(
 						com.seibel.distanthorizons.core.logging.mirai.MiraiDiagnostics.Counter.QUIESCENT_PARTIAL_UPDATE_SUPPRESSED);
+				// AOTM-03: the update was already reassembled; leaving it buffered filled the 128-transfer budget
+				// and the 129th transfer closed the whole DH network session
+				this.networkState.fullDataPayloadReceiver.discardPayload(message.payload);
 				return;
 			}
 			

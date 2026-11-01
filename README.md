@@ -1,31 +1,30 @@
-# Akashic: Horizons of The Mirai (AOTM)
+# Mirai
 
-> Stabilization fork of **Distant Horizons** for **Minecraft 1.7.10** (Forge 10.13.4.1614, **LWJGL 2**, Java 8 bytecode),
-> built for the *Forbidden Series* modpack and validated against a **Crucible / Java 21** backend.
-> A 1.7.10 backport of the *proposal* behind Distant Horizons and Voxy: render a simplified, far-reaching LOD terrain
-> without giving up the modpack's visual fidelity.
+> **Mirai** (formerly *Akashic: Horizons of The Mirai*, AOTM) is a stabilization fork of **Distant Horizons** for
+> **Minecraft 1.7.10** (Forge 10.13.4.1614, **LWJGL 2**, Java 8 bytecode), built for the *Forbidden Series* modpack and a
+> **Crucible / Java 21** backend, maintained by Rede Akashic. A 1.7.10 backport of the *proposal* behind Distant Horizons and
+> Voxy: render a simplified, far-reaching LOD terrain without giving up the modpack's visual fidelity.
 
-**Status: `development; runtime certification pending`.** The line is visibly working on the owner's client, offline gates
-are green, but sustained real-pack certification (renderer ACTIVE, GPU capture, Crucible dedicated) is **not yet recorded**.
-Read [docs/PROJECT-STATE.md](docs/PROJECT-STATE.md) and [docs/HOMOLOGATION-0.1.19.md](docs/HOMOLOGATION-0.1.19.md) before
-claiming anything beyond that. Portuguese (pt-BR) version: [LEIAME.md](LEIAME.md).
+**Status: `1.0-BETA` — offline gates green, runtime certification pending.** Nothing in 1.0-BETA has run in Minecraft, Crucible
+or on a real GPU yet; read [docs/PROJECT-STATE.md](docs/PROJECT-STATE.md) and [docs/CHANGELOG-1.0-BETA.md](docs/CHANGELOG-1.0-BETA.md)
+before claiming anything beyond that. Portuguese (pt-BR) version: [LEIAME.md](LEIAME.md).
 
-## The build in use
+## Current release line
 
 | Field | Value |
 |---|---|
-| Version | `0.1.19-dev` ("disabled-renderer quiescence") — git tag [`v0.1.19-dev`](../../releases/tag/v0.1.19-dev) |
-| Commit / branch | `afef9d7e4f085c0d1dccba66d763db22878714ca` / `akashic/mirai-0.1.19-disabled-quiescence` |
-| Artifact | `Akashic-Horizons-of-The-Mirai-forge17-0.1.19-dev-1.7.10.jar` — 45,408,316 bytes |
-| SHA-256 | `481d6f7b0f175465b00b278c37837cf65d7af90b3ba6d065c65819bf647986ea` |
-| Upstream base | Distant Horizons `3.2.1-b-dev` (`merge-1.7.10` @ `b4abe2f2…`, core @ `791070ae…`), API `7.1.0`, mod id `distanthorizons` preserved |
+| Version | `1.0-BETA` (release build: `ModInfo.IS_DEV_BUILD=false`) |
+| Artifact | `Mirai-forge17-1.0-BETA-1.7.10.jar` — reproducible: its SHA-256 is printed by CI (`jar.sha256`) for each commit |
+| Coremod | `com.seibel.distanthorizons.DistantHorizonsTweaker` (the class Angelica probes) |
+| Upstream base | Distant Horizons `3.2.1-b-dev` (`merge-1.7.10` @ `b4abe2f2…`, core @ `791070ae…`) **plus** hand-ported upstream fixes listed in `MIRAI-UPSTREAM.json` |
+| Preserved | mod id `distanthorizons`, `DistantHorizons.toml`, API `7.1.0`, network protocol `15` |
 | Target | MC 1.7.10 · Forge 10.13.4.1614 · LWJGL 2.9.1 · class major ≤ 52 (via JvmDowngrader 1.3.6) |
-| Tests (re-executed 2026-10-04) | `core` 335 tests / 0 failures / 0 errors / 1 skip · `api` 5 / 0 / 0 |
+| Gates | core + api 362 tests · jar contract · ABI vs real Angelica 2.2.20/2.2.43, GTNHLib, Hodgepodge · Angelica detection · GLSM call allowlist |
 
-> A *second* `0.1.19-dev` build exists (the **diagnostic** build, commit `69645ac`, SHA-256 `04b35d24…`). Both share the
-> same jar file name. Always compare the SHA-256 — see [docs/HOMOLOGATION-0.1.19.md](docs/HOMOLOGATION-0.1.19.md).
+The previous builds (`0.1.19-dev` quiescence `481d6f7b…`, diagnostic `04b35d24…`) are documented in
+[docs/HOMOLOGATION-0.1.19.md](docs/HOMOLOGATION-0.1.19.md) and `MIRAI-UPSTREAM.json`.
 
-## What AOTM changes relative to upstream
+## What Mirai changes relative to upstream
 
 * **Stability first**: resource ownership, bounded transport, session/world-correct tasks, side-safe lifecycle, recovery paths.
 * **Zero wasted work**: scheduler starvation/lost-wakeup fixes, runtime governor, staging reuse, a hard **DISABLED** renderer
@@ -61,8 +60,8 @@ history 0.1.7 → 0.1.19 (history before 0.1.7 was lost and flattened — see [d
 ```text
 JDK 25 for the Gradle daemon (toolchain), JDK 8 + 21 discoverable, Python 3.11+ for the verifier.
 gradlew.bat "-PmcVer=1.7.10" build        # PowerShell: QUOTE the -P argument (see docs/BUILD-AND-RELEASE.md)
-python scripts/verify-mirai-jar.py forge17/build/libs/Akashic-Horizons-of-The-Mirai-forge17-0.1.19-dev-1.7.10.jar \
-       --expected-version 0.1.19-dev --expected-commit <sha> --expected-branch <branch>
+python scripts/verify-mirai-jar.py forge17/build/libs/Mirai-forge17-1.0-BETA-1.7.10.jar \
+       --expected-version 1.0-BETA --expected-commit <sha> --expected-branch <branch>
 ```
 
 Ship **only** `:forge17:shadeDowngradedApi` output. Never install beside another Distant Horizons jar.

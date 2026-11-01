@@ -486,6 +486,8 @@ public class GlGenericObjectRenderer implements IDhGenericRenderer
 				// allow API users to cancel this object's rendering
 				EVENT_PARAM.update(renderEventParam, boxGroup);
 				boolean cancelRendering = ApiEventInjector.INSTANCE.fireAllEvents(DhApiBeforeGenericObjectRenderEvent.class, EVENT_PARAM);
+				// the static param must not keep the (possibly closed) client level alive (upstream 10f7655c)
+				EVENT_PARAM.clientLevelWrapper = null;
 				if (cancelRendering)
 				{
 					continue;

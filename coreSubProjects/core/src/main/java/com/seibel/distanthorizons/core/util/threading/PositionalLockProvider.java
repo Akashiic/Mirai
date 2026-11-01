@@ -60,7 +60,8 @@ public class PositionalLockProvider
 			}
 			
 			if (this.lockByPos.size() > MAX_NUMBER_OF_LOCKS
-				&& this.lockRemovalThreadRunning.getAndSet(true))
+				// upstream c45c13f67: the check was inverted, queueing a sleeping cleanup task on almost every call
+				&& !this.lockRemovalThreadRunning.getAndSet(true))
 			{
 				LOCK_CLEANUP_THREAD.execute(this::removeExpiredLocks);
 			}

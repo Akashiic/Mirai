@@ -85,12 +85,17 @@ public abstract class AbstractMinecraftSharedWrapper implements IMinecraftShared
 		
 		double avgMs = Arrays.stream(sortedNanoTicks).average().orElse(0) * 1e-6; // convert from Nano to Milli
 		
-		return avgMs < 10.0 // 20 ms is standard tick rate
-			&& p99Ms < 30.0;
+		// a tick at 20 TPS has a 50 ms budget: healthy = mean under half of it and p99 within it
+		// (upstream 1581a2e6; the old 10/30 ms thresholds were almost never met on a heavy pack)
+		return avgMs < 25.0
+			&& p99Ms < 50.0;
 	}
 	private long @Nullable [] getServerTickTimesNano()
 	{
-		// currently this logic is only implemented for singleplayer servers
+		// currently this logic is only implemented for singleplayer servers.
+		// Upstream 6758511e also gates dedicated servers; Mirai deliberately does not: with ~25 ms mean ticks
+		// being normal on a heavy pack, world-gen threads (ThreadPoolUtil) would pause indefinitely and stall
+		// /dh pregen, which throttles itself on the server tick instead (PregenManager, 45 ms).
 		if (this.isDedicatedServer())
 		{
 			return null;

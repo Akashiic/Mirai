@@ -1,3 +1,5 @@
+OBSOLETO a partir do Mirai 1.0-BETA: o logout de cliente rejeitado no handshake do FML ja tem guarda nativa (upstream 4e373c16). Pode ser removido do servidor.
+
 AKASHIC DH REJECTED LOGOUT GUARD 1.0.0 — SERVER ONLY
 =====================================================
 

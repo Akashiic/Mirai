@@ -1,26 +1,25 @@
-# Akashic: Horizons of The Mirai (AOTM) — LEIAME
+# Mirai — LEIAME
 
-Fork de estabilização do **Distant Horizons** para **Minecraft 1.7.10** (Forge 10.13.4.1614, **LWJGL2**, bytecode Java 8),
-feito para o modpack **Forbidden Series** e homologado contra um backend **Crucible / Java 21**. É o backport, para a 1.7.10,
-da *proposta* do Distant Horizons + Voxy: desenhar terreno distante simplificado (LODs) sem abrir mão da fidelidade visual do pack.
+**Mirai** (antes *Akashic: Horizons of The Mirai*, AOTM) é o fork de estabilização do **Distant Horizons** para **Minecraft
+1.7.10** (Forge 10.13.4.1614, **LWJGL2**, bytecode Java 8), feito pela Rede Akashic para o modpack **Forbidden Series** e para um
+backend **Crucible / Java 21**. É o backport, para a 1.7.10, da *proposta* do Distant Horizons + Voxy: desenhar terreno distante
+simplificado (LODs) sem abrir mão da fidelidade visual do pack.
 
-**Status: `development; runtime certification pending`.** A linha está visivelmente funcional no cliente do dono do projeto e os
-gates offline estão verdes, mas a certificação runtime sustentada (renderer ATIVO, captura GPU, dedicado Crucible) **ainda não
-está registrada**. Leia [docs/PROJECT-STATE.md](docs/PROJECT-STATE.md) e [docs/HOMOLOGATION-0.1.19.md](docs/HOMOLOGATION-0.1.19.md).
+**Status: `1.0-BETA` — gates offline verdes, certificação runtime pendente.** Nada da 1.0-BETA rodou ainda em Minecraft, Crucible
+ou GPU real. Leia [docs/PROJECT-STATE.md](docs/PROJECT-STATE.md) e [docs/CHANGELOG-1.0-BETA.md](docs/CHANGELOG-1.0-BETA.md).
 
-## Build em uso (verificada em 2026-10-04)
+## Linha de release atual
 
 | Campo | Valor |
 |---|---|
-| Versão | `0.1.19-dev` — "disabled-renderer quiescence" (tag `v0.1.19-dev`) |
-| Commit / branch | `afef9d7e4f085c0d1dccba66d763db22878714ca` / `akashic/mirai-0.1.19-disabled-quiescence` |
-| JAR | `Akashic-Horizons-of-The-Mirai-forge17-0.1.19-dev-1.7.10.jar` — 45.408.316 bytes |
-| SHA-256 | `481d6f7b0f175465b00b278c37837cf65d7af90b3ba6d065c65819bf647986ea` |
-| Instalado em | `…\.technic\modpacks\forbidden-series\mods\` (idêntico byte a byte ao da pasta de release e ao build do lab) |
-| Base upstream | DH `3.2.1-b-dev`, API `7.1.0`, modid `distanthorizons` preservado |
+| Versão | `1.0-BETA` (build de release: `ModInfo.IS_DEV_BUILD=false`) |
+| JAR | `Mirai-forge17-1.0-BETA-1.7.10.jar` — reprodutível: o SHA-256 de cada commit sai no CI (`jar.sha256`) |
+| Coremod | `com.seibel.distanthorizons.DistantHorizonsTweaker` (a classe que o Angelica procura) |
+| Base upstream | DH `3.2.1-b-dev` + correções do upstream portadas à mão (lista em `MIRAI-UPSTREAM.json`) |
+| Preservados | modid `distanthorizons`, `DistantHorizons.toml`, API `7.1.0`, protocolo `15` |
 
-> Existe **outra** build `0.1.19-dev` (a **diagnóstica**, commit `69645ac`, SHA-256 `04b35d24…`) com o **mesmo nome de arquivo**.
-> Sempre confira o SHA-256. O que está no seu Technic é a **quiescence** (`481d6f7b…`).
+> A build **instalada** no Technic continua sendo a `0.1.19-dev` quiescence (`481d6f7b…`) até você trocar. Ao trocar: backup do
+> jar atual fora de `mods` e **um único** jar DH/Mirai na pasta. Histórico das 0.1.19 em [docs/HOMOLOGATION-0.1.19.md](docs/HOMOLOGATION-0.1.19.md).
 
 ## O que ela faz de diferente
 

@@ -209,6 +209,8 @@ public interface ILWJGLService {
 	void glGetIntegerv(int pname, int[] params);
 	void glGetFloatv(int pname, float[] params);
 	boolean glGetBoolean(int pname);
+	/** fills params with up to 16 boolean results (e.g. the 4 components of GL_COLOR_WRITEMASK) */
+	void glGetBooleanv(int pname, boolean[] params);
 	String glGetString(int pname);
 	int glGetAttribLocation(int program, CharSequence name);
 	

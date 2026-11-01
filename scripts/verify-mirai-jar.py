@@ -65,7 +65,7 @@ def read_string_constants(data):
     return constants
 
 
-def verify(path, expected_commit=None, expected_version='0.1.7-dev', expected_branch=None):
+def verify(path, expected_commit=None, expected_version='1.0-BETA', expected_branch=None):
     failures = []
     versions = collections.Counter()
     versioned = collections.Counter()
@@ -80,7 +80,7 @@ def verify(path, expected_commit=None, expected_version='0.1.7-dev', expected_br
         required = [
             'META-INF/MANIFEST.MF', 'mcmod.info', 'build_info.json',
             'com/seibel/distanthorizons/forge17/ForgeMain.class',
-            'com/seibel/distanthorizons/forge17/DistantHorizonsLoadingPlugin.class',
+            'com/seibel/distanthorizons/DistantHorizonsTweaker.class',
             'com/seibel/distanthorizons/forge17/modAccessor/AngelicaAccessor.class',
             'com/seibel/distanthorizons/coreapi/ModInfo.class',
             'com/seibel/distanthorizons/lwjgl/lwjgl2/LWJGL2Service.class',
@@ -109,12 +109,12 @@ def verify(path, expected_commit=None, expected_version='0.1.7-dev', expected_br
                     failures.append('root class newer than Java 8: ' + name)
         if 'mcmod.info' in names:
             metadata = json.loads(jar.read('mcmod.info'))[0]
-            for key, expected in [('modid', 'distanthorizons'), ('name', 'Akashic: Horizons of The Mirai'), ('version', expected_version), ('mcversion', '1.7.10')]:
+            for key, expected in [('modid', 'distanthorizons'), ('name', 'Mirai'), ('version', expected_version), ('mcversion', '1.7.10')]:
                 if metadata.get(key) != expected:
                     failures.append('wrong mcmod.info ' + key)
         if 'META-INF/MANIFEST.MF' in names:
             manifest = jar.read('META-INF/MANIFEST.MF').decode('utf-8').replace('\r\n ', '').replace('\r\n', '\n')
-            for field in ['FMLCorePlugin: com.seibel.distanthorizons.forge17.DistantHorizonsLoadingPlugin', 'Implementation-Version: ' + expected_version]:
+            for field in ['FMLCorePlugin: com.seibel.distanthorizons.DistantHorizonsTweaker', 'Implementation-Version: ' + expected_version]:
                 if field not in manifest:
                     failures.append('missing manifest field: ' + field)
         mod_info = 'com/seibel/distanthorizons/coreapi/ModInfo.class'
@@ -159,7 +159,7 @@ if __name__ == '__main__':
     parser.add_argument('jar', type=Path)
     parser.add_argument('--report', type=Path)
     parser.add_argument('--expected-commit')
-    parser.add_argument('--expected-version', default='0.1.7-dev')
+    parser.add_argument('--expected-version', default='1.0-BETA')
     parser.add_argument('--expected-branch')
     args = parser.parse_args()
     report = verify(args.jar, args.expected_commit, args.expected_version, args.expected_branch)

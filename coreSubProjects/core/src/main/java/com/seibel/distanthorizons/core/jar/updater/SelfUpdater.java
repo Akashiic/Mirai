@@ -77,7 +77,7 @@ public class SelfUpdater
 	{
 		if (!ModInfo.ALLOW_UPSTREAM_SELF_UPDATE)
 		{
-			LOGGER.info("Akashic Mirai: upstream self-update is disabled for this fork.");
+			LOGGER.info("Mirai: upstream self-update is disabled for this fork.");
 			return false;
 		}
 		if (!Config.Client.Advanced.AutoUpdater.enableAutoUpdater.get())

@@ -200,6 +200,17 @@ public class DhClientServerWorld extends AbstractDhServerWorld<DhClientServerLev
 	@Override
 	public synchronized void close()
 	{
+		// singleplayer never closed its player-state manager, leaking its config listeners into the next
+		// session (upstream db7a34e4b). Idempotent; a failure here must not keep the levels open.
+		try
+		{
+			this.getServerPlayerStateManager().close();
+		}
+		catch (RuntimeException e)
+		{
+			LOGGER.error("Unable to close the singleplayer player state manager", e);
+		}
+		
 		ArrayList<CompletableFuture<Void>> closeFutures = new ArrayList<>();
 		
 		synchronized (this.clientLevelWrapperSetByDhLevel)

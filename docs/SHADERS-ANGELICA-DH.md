@@ -62,7 +62,10 @@ Com a beta.42 e shader, o log mostra `[AngelicaShaders]: DH Ready, binding Iris 
 
 Não coberto: GPU real/Windows, o pack completo de 212 mods, sombras do DH (`dh_shadow`), desempenho (llvmpipe não serve para FPS).
 
-## 5. Correção definitiva no Mirai (0.1.20, ISSUE-15)
+## 5. Correção definitiva no Mirai — **feita na 1.0-BETA** (ISSUE-15)
+
+Itens 1, 2 e 4 abaixo estão implementados (ver `CHANGELOG-1.0-BETA.md`); o item 3 continua sendo do Angelica (ainda presente no 2.2.43).
+
 
 1. Portar `dfca6541` (coremod `com.seibel.distanthorizons.DistantHorizonsTweaker`; atualizar `dh-loader.gradle`, `verify-mirai-jar.py`
    e a regra de identidade do manifesto) e `ef720c8e` (reativar `renderDeferredLodsDuringTranslucentSetup`).

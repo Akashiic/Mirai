@@ -15,7 +15,8 @@ public final class MiraiDiagnostics
         COLD_PRESERVED_LOCAL, DB_COMMITTED, DB_FAILED, DB_CANCELLED, CHUNK_NOT_READY, CHUNK_SUBMITTED, DH_ERROR_REPORTS, SYNC_DEFERRED_OVERFLOW,
         GL_STORAGE_UPLOAD_BYTES, GL_DATA_UPLOAD_BYTES, GL_SUB_DATA_UPLOAD_BYTES, GL_UPLOAD_JAVA_FAILURES,
         GPU_SAMPLES, GPU_SAMPLES_DROPPED, GPU_QUERY_FAILURES,
-        QUIESCENT_CHUNK_DEFERRED, QUIESCENT_REMOTE_SYNC_SUPPRESSED, QUIESCENT_PARTIAL_UPDATE_SUPPRESSED, QUIESCENT_CATCHUP_SUBMITTED
+        QUIESCENT_CHUNK_DEFERRED, QUIESCENT_REMOTE_SYNC_SUPPRESSED, QUIESCENT_PARTIAL_UPDATE_SUPPRESSED, QUIESCENT_CATCHUP_SUBMITTED,
+        NETWORK_TRANSFER_EVICTED, NETWORK_TRANSFER_REPLACED
     }
     public enum Metric { FRAME_INTERVAL, FRAME_EVENT_SPAN, SERVER_TICK_EVENT_SPAN, LOD_RENDER_WALL, LOD_UPDATE_WALL, NETWORK_REQUEST_WALL,
         CLIENT_RENDER_PASS_WALL, CLIENT_DEFERRED_PASS_WALL, RENDER_TASK_QUEUE_WALL, RENDER_TASK_WALL,
@@ -37,7 +38,8 @@ public final class MiraiDiagnostics
         {
             if ("false".equalsIgnoreCase(System.getProperty("akashic.mirai.diagnostics", "true"))) { return; }
             MiraiLogSession created = new MiraiLogSession(gameDirectory.resolve("logs").resolve("akashic-mirai"),
-                    physicalSide, 512, 4 * 1024 * 1024, 4);
+                    physicalSide, 512, boundedIntProperty("akashic.mirai.logSegmentMiB", 4, 1, 64) * 1024L * 1024L,
+                    boundedIntProperty("akashic.mirai.logArchives", 8, 1, MiraiLogSession.MAX_ARCHIVES));
             session = created;
             created.start();
             Runtime.getRuntime().addShutdownHook(new Thread(created::close, "Mirai-Diagnostics-Shutdown"));
@@ -45,8 +47,18 @@ public final class MiraiDiagnostics
         catch (RuntimeException failure)
         {
             if (session != null) { session.close(); }
-            System.err.println("[Akashic Mirai] Diagnostic startup unavailable: " + failure.getClass().getName());
+            System.err.println("[Mirai] Diagnostic startup unavailable: " + failure.getClass().getName());
         }
+    }
+    /** Disk budget knobs (AOTM-08); invalid or out-of-range values fall back to the default instead of failing startup. */
+    static int boundedIntProperty(String name, int defaultValue, int min, int max)
+    {
+        try
+        {
+            int value = Integer.parseInt(System.getProperty(name, Integer.toString(defaultValue)).trim());
+            return value < min || value > max ? defaultValue : value;
+        }
+        catch (NumberFormatException invalid) { return defaultValue; }
     }
     public static boolean enabled() { MiraiLogSession s = session; return s != null && s.accepting; }
     static long elapsedMillis(long nanos)

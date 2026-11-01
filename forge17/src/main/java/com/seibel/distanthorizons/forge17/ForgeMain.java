@@ -119,7 +119,7 @@ public class ForgeMain extends AbstractModInitializer implements IForgeMain
 
         ForgeChunkManager.setForcedChunkLoadingCallback(
             instance,
-            (List<ForgeChunkManager.Ticket> tickets, World world) -> chunkLoadedCallback());
+            (List<ForgeChunkManager.Ticket> tickets, World world) -> releaseStaleTickets(tickets));
     }
 	private boolean enableGregTechAccessor()
 	{
@@ -133,7 +133,19 @@ public class ForgeMain extends AbstractModInitializer implements IForgeMain
 			return false;
 		}
 	}
-	private void chunkLoadedCallback() { }
+	/**
+	 * Upstream 9004a6f8. Forge calls this only when a world loads, with the tickets restored from
+	 * forcedchunks.dat. DH (ChunkTicketPool) requests fresh tickets on demand and never re-forces chunks
+	 * from a previous session, so restored tickets are stale: release them, otherwise they accumulate
+	 * until the mod's ticket limit and DH can no longer get a ticket for generation or pregen.
+	 */
+	private static void releaseStaleTickets(List<ForgeChunkManager.Ticket> tickets)
+	{
+		for (ForgeChunkManager.Ticket ticket : tickets)
+		{
+			ForgeChunkManager.releaseTicket(ticket);
+		}
+	}
 	
 	//endregion
 	

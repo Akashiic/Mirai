@@ -1,8 +1,17 @@
 {
-  "project": "Akashic: Horizons of The Mirai",
-  "version": "0.1.19-dev",
-  "release_status": "development; runtime certification pending",
+  "project": "Mirai",
+  "version": "1.0-BETA",
+  "release_status": "beta; offline gates green, runtime certification pending",
   "current_release": {
+    "version": "1.0-BETA",
+    "branch": "main (from claude/inspiring-feynman-qbcf5m)",
+    "jar_name": "Mirai-forge17-1.0-BETA-1.7.10.jar",
+    "jar_sha256": "reproducible: equals the jar.sha256 of the CI run for the tagged commit (AOTM-11)",
+    "coremod": "com.seibel.distanthorizons.DistantHorizonsTweaker",
+    "tests": "core + api 362 (0 failures, 0 errors, 0 skipped) at the release-prep commit",
+    "note": "Public name changed to Mirai; modid distanthorizons, DistantHorizons.toml, API 7.1.0 and protocol 15 unchanged. ModInfo.IS_DEV_BUILD is false for this release line."
+  },
+  "historical_release_0_1_19": {
     "version": "0.1.19-dev (disabled-renderer quiescence)",
     "commit": "afef9d7e4f085c0d1dccba66d763db22878714ca",
     "branch": "akashic/mirai-0.1.19-disabled-quiescence",
@@ -111,5 +120,36 @@
     "commit": "1484fc07025140f5e5a109c26eb4ed58ebc062de",
     "jar_sha256": "473a4a669811b418e46039e9e9657b2636391da9b4d78243cfa0cdfd5c74b798",
     "note": "Checkpoint local limpo confirmado antes do desenvolvimento da 0.1.12; hash do JAR final presente no worktree original."
+  },
+  "upstream_cherry_picks": {
+    "note": "Ported by hand onto the b4abe2f/791070ae pin, adapted to Mirai and to protocol 15 / API 7.1.0. Wholesale rebase is not possible: upstream main is DH 3.3.5-dev (protocol 16, API 7.3.0, config v5).",
+    "root": [
+      "dfca6541",
+      "ef720c8e",
+      "b8aad6e5",
+      "6dbca398",
+      "67e242e4",
+      "9004a6f8",
+      "4e373c16",
+      "10f7655c",
+      "97cdbf87",
+      "6ab427c7",
+      "1581a2e6"
+    ],
+    "core": [
+      "c45c13f67",
+      "2c7c7864b",
+      "64a225320",
+      "8338222de",
+      "bb1f0eaf6",
+      "2a3ace636",
+      "d134ffeb5",
+      "db7a34e4b",
+      "dceafa453",
+      "4539c2cae",
+      "85c217699",
+      "a4a2dfe62"
+    ],
+    "deliberately_not_taken": "protocol/API/config-format changes (2ba50a21e, generatorPlan, API 7.2/7.3, config v5); visual changes (reverse-Z, AA/TAA, texture, LOD detail, glass/transparency/snow) pending an A/B; dedicated-server health gating (6758511e) because it would stall /dh pregen"
   }
 }

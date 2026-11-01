@@ -19,6 +19,7 @@
 
 package com.seibel.distanthorizons.coreapi.DependencyInjection;
 
+import java.util.concurrent.ConcurrentHashMap;
 import com.seibel.distanthorizons.api.interfaces.override.IDhApiOverrideable;
 import com.seibel.distanthorizons.coreapi.interfaces.dependencyInjection.IOverrideInjector;
 import com.seibel.distanthorizons.coreapi.util.StringUtil;
@@ -36,7 +37,8 @@ public class OverrideInjector implements IOverrideInjector<IDhApiOverrideable>
 {
 	public static final OverrideInjector INSTANCE = new OverrideInjector();
 	
-	private final HashMap<Class<? extends IDhApiOverrideable>, OverridePriorityListContainer> overrideContainerByInterface = new HashMap<>();
+	/** concurrent reads (render thread, every frame); writes are serialized by the synchronized mutators */
+	private final ConcurrentHashMap<Class<? extends IDhApiOverrideable>, OverridePriorityListContainer> overrideContainerByInterface = new ConcurrentHashMap<>();
 	
 	/**
 	 * This is used to determine if an override is part of Distant Horizons'
@@ -72,7 +74,7 @@ public class OverrideInjector implements IOverrideInjector<IDhApiOverrideable>
 	//region
 	
 	@Override
-	public void bind(Class<? extends IDhApiOverrideable> dependencyInterface, IDhApiOverrideable dependencyImplementation) throws IllegalStateException, IllegalArgumentException
+	public synchronized void bind(Class<? extends IDhApiOverrideable> dependencyInterface, IDhApiOverrideable dependencyImplementation) throws IllegalStateException, IllegalArgumentException
 	{
 		// make sure an override container exists
 		OverridePriorityListContainer overrideContainer = this.overrideContainerByInterface.get(dependencyInterface);
@@ -121,7 +123,7 @@ public class OverrideInjector implements IOverrideInjector<IDhApiOverrideable>
 	}
 	
 	@Override
-	public void unbind(Class<? extends IDhApiOverrideable> dependencyInterface, IDhApiOverrideable dependencyImplementation)
+	public synchronized void unbind(Class<? extends IDhApiOverrideable> dependencyInterface, IDhApiOverrideable dependencyImplementation)
 	{
 		OverridePriorityListContainer overrideContainer = this.overrideContainerByInterface.get(dependencyInterface);
 		if (overrideContainer != null)
@@ -131,7 +133,7 @@ public class OverrideInjector implements IOverrideInjector<IDhApiOverrideable>
 	}
 	
 	@Override
-	public void unbindAll(Class<? extends IDhApiOverrideable> dependencyInterface)
+	public synchronized void unbindAll(Class<? extends IDhApiOverrideable> dependencyInterface)
 	{
 		OverridePriorityListContainer overrideContainer = this.overrideContainerByInterface.get(dependencyInterface);
 		if (overrideContainer != null)
@@ -175,7 +177,7 @@ public class OverrideInjector implements IOverrideInjector<IDhApiOverrideable>
 	//region
 	
 	@Override
-	public void clear() { this.overrideContainerByInterface.clear(); }
+	public synchronized void clear() { this.overrideContainerByInterface.clear(); }
 	
 	//endregion
 	

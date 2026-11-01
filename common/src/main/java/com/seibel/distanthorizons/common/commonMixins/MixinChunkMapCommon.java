@@ -88,7 +88,11 @@ public class MixinChunkMapCommon
 		// biome validation //
 		
 		// some chunks may be missing their biomes, which cause issues when attempting to save them
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		// 1.7.10 chunks always allocate their biome array and ChunkWrapper reads biomes through
+		// World.getBiomeGenForCoords, so there is nothing to validate here. Chunk.getBiomeArray()
+		// also throws under EndlessIDs' extended biome storage (replaces the EndlessIDs-Compat companion).
+		#elif MC_VER <= MC_1_12_2
 		if (chunk.getBiomeArray() == null)
 		{
 			return;

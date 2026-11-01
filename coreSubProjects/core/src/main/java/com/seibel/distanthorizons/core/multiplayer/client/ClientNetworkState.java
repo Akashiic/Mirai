@@ -159,6 +159,14 @@ public class ClientNetworkState implements Closeable
                 com.seibel.distanthorizons.core.logging.mirai.MiraiDiagnostics.add(
                     com.seibel.distanthorizons.core.logging.mirai.MiraiDiagnostics.Counter.NETWORK_FRAGMENT_BYTES, message.getPayloadSize()));
 			this.networkSession.registerHandler(FullDataSplitMessage.class, this.fullDataPayloadReceiver::receiveChunk);
+			// responses to cancelled/expired requests still carry an assembled transfer that nobody will decode
+			this.networkSession.setUnclaimedResponseListener(message ->
+			{
+				if (message instanceof FullDataSourceResponseMessage && ((FullDataSourceResponseMessage) message).payload != null)
+				{
+					this.fullDataPayloadReceiver.discardPayload(((FullDataSourceResponseMessage) message).payload);
+				}
+			});
 			this.networkSession.registerHandler(FullDataSplitMessage.class, this.congestionControl::onPayloadReceived);
 		}
 	}

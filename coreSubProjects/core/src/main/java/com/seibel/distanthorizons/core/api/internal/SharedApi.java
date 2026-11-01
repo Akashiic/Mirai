@@ -19,6 +19,7 @@
 
 package com.seibel.distanthorizons.core.api.internal;
 
+import com.seibel.distanthorizons.coreapi.DependencyInjection.WorldGeneratorInjector;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiWorldLoadEvent;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiWorldUnloadEvent;
 import com.seibel.distanthorizons.core.Initializer;
@@ -173,6 +174,8 @@ public class SharedApi
 			failure = runWorldCleanup(failure, WORLD_CHUNK_UPDATE_MANAGER::clear);
 			failure = runWorldCleanup(failure, RenderThreadTaskHandler.INSTANCE::clearDebugStats);
 			failure = runWorldCleanup(failure, () -> MiraiWorldLifecycle.run(Phase.TEXTURES_CLEAR, BlockTextureRegistry.INSTANCE::clear));
+			// generators bound to the old world's levels must not keep them alive (upstream dceafa453)
+			failure = runWorldCleanup(failure, WorldGeneratorInjector.INSTANCE::clear);
 			failure = runWorldCleanup(failure, () -> MiraiWorldLifecycle.run(Phase.EXPLICIT_GC, System::gc));
 			failure = runWorldCleanup(failure, () -> MiraiWorldLifecycle.run(Phase.WORLD_UNLOAD_EVENT,
 					() -> ApiEventInjector.INSTANCE.fireAllEvents(DhApiWorldUnloadEvent.class, new DhApiWorldUnloadEvent.EventParam())));

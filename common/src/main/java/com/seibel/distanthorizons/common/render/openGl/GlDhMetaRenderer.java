@@ -193,8 +193,9 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		// don't change the viewport size when Iris is rendering the shadow pass
 		// Iris has a custom shadowmap size, and changing the viewport will cause shadows to render
 		// incorrectly.
-		if (IRIS_ACCESSOR != null 
-			&& !IRIS_ACCESSOR.isRenderingShadowPass())
+		// (upstream 6dbca398: the condition was inverted, so without Angelica the viewport was never set)
+		if (IRIS_ACCESSOR == null 
+			|| !IRIS_ACCESSOR.isRenderingShadowPass())
 		{
 			// This is required for MC versions 1.21.5+
 			// due to MC updating the lightmap by changing the viewport size
@@ -347,15 +348,25 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		IDhApiFramebuffer framebufferOverride = OverrideInjector.INSTANCE.get(IDhApiFramebuffer.class);
 		
 		
-		if (this.depthTexture != null)
+		// Upstream b8aad6e5: create the new depth texture before deleting the old one so GL hands out a new name.
+		// Iris (Angelica) re-attaches its DH framebuffers only when the texture id changes; a recycled id would
+		// leave them on the deleted texture (glDeleteTextures only detaches from the currently bound framebuffer).
+		GlDhDepthTexture oldDepthTexture = this.depthTexture;
+		try
 		{
-			this.depthTexture.destroy();
+			this.depthTexture = new GlDhDepthTexture(this.textureWidth, this.textureHeight, EGlDhDepthBufferFormat.DEPTH32F);
+			this.framebuffer.addDepthAttachment(this.depthTexture.getTextureId(), EGlDhDepthBufferFormat.DEPTH32F.isCombinedStencil());
+			if (framebufferOverride != null)
+			{
+				framebufferOverride.addDepthAttachment(this.depthTexture.getTextureId(), EGlDhDepthBufferFormat.DEPTH32F.isCombinedStencil());
+			}
 		}
-		this.depthTexture = new GlDhDepthTexture(this.textureWidth, this.textureHeight, EGlDhDepthBufferFormat.DEPTH32F);
-		this.framebuffer.addDepthAttachment(this.depthTexture.getTextureId(), EGlDhDepthBufferFormat.DEPTH32F.isCombinedStencil());
-		if (framebufferOverride != null)
+		finally
 		{
-			framebufferOverride.addDepthAttachment(this.depthTexture.getTextureId(), EGlDhDepthBufferFormat.DEPTH32F.isCombinedStencil());
+			if (oldDepthTexture != null && oldDepthTexture != this.depthTexture)
+			{
+				oldDepthTexture.destroy();
+			}
 		}
 		
 		

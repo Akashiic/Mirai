@@ -34,6 +34,24 @@ public class MiraiDiagnosticsTest
             { for (Path path : (Iterable<Path>) stream.sorted(Comparator.reverseOrder())::iterator) { Files.deleteIfExists(path); } }
         }
     }
+    @Test public void logBudgetPropertiesAreBoundedAndFallBack()
+    {
+        String name = "akashic.mirai.test.logBudget";
+        try
+        {
+            System.clearProperty(name);
+            assertEquals(8, MiraiDiagnostics.boundedIntProperty(name, 8, 1, 32));
+            System.setProperty(name, " 16 ");
+            assertEquals(16, MiraiDiagnostics.boundedIntProperty(name, 8, 1, 32));
+            System.setProperty(name, "33");
+            assertEquals(8, MiraiDiagnostics.boundedIntProperty(name, 8, 1, 32));
+            System.setProperty(name, "0");
+            assertEquals(8, MiraiDiagnostics.boundedIntProperty(name, 8, 1, 32));
+            System.setProperty(name, "lots");
+            assertEquals(8, MiraiDiagnostics.boundedIntProperty(name, 8, 1, 32));
+        }
+        finally { System.clearProperty(name); }
+    }
     @Test public void fullQueueDropsWithoutStartingAnyDiskWork() throws Exception
     {
         Path root = directory(); Path path = root.resolve("not_created");
