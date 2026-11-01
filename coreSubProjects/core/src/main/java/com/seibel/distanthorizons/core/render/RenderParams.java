@@ -153,14 +153,14 @@ public class RenderParams extends DhApiRenderParam
 			return "No Generic Renderer Present";
 		}
 		
-		if (this.dhModelViewMatrix.equals(DhMat4f.IDENTITY) 
-			|| this.dhModelViewMatrix.equals(DhMat4f.EMPTY))
+		// The identity is a valid view (camera aligned with the axes, e.g. yaw 180 / pitch 0); only the all-zero
+		// matrix means "not given". Rejecting the identity skipped those frames (upstream 85c217699).
+		if (this.dhModelViewMatrix.equals(DhMat4f.EMPTY))
 		{
 			return "No DH MVM Matrix Given";
 		}
 		
-		if (this.mcModelViewMatrix.equals(DhMat4f.IDENTITY) 
-			|| this.mcModelViewMatrix.equals(DhMat4f.EMPTY))
+		if (this.mcModelViewMatrix.equals(DhMat4f.EMPTY))
 		{
 			return "No MC MVM Matrix Given";
 		}

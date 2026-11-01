@@ -264,6 +264,24 @@ public class DependencyInjectorTest
 		
 	}
 	
+	/** A closed level's generators must be dropped, or the injector keeps the level (and its world) alive (upstream dceafa453). */
+	@Test
+	public void testWorldGeneratorUnbindReleasesTheLevel()
+	{
+		WorldGeneratorInjector TEST_INJECTOR = new WorldGeneratorInjector(WorldGeneratorTestAssembly.getPackagePath(2));
+		
+		IDhApiLevelWrapper closedLevel = new LevelWrapperTest();
+		IDhApiLevelWrapper openLevel = new LevelWrapperTest();
+		TEST_INJECTOR.bind(closedLevel, new WorldGeneratorTestCore());
+		TEST_INJECTOR.bind(openLevel, new WorldGeneratorTestPrimary());
+		Assert.assertEquals(2, TEST_INJECTOR.boundLevelCount());
+		
+		TEST_INJECTOR.unbind(closedLevel);
+		Assert.assertNull("The closed level's generator should be gone.", TEST_INJECTOR.get(closedLevel));
+		Assert.assertNotNull("Other levels keep their generators.", TEST_INJECTOR.get(openLevel));
+		Assert.assertEquals(1, TEST_INJECTOR.boundLevelCount());
+	}
+	
 }
 
 
