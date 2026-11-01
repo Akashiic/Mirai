@@ -101,8 +101,16 @@ public class PriorityTaskPicker
 			// task since that means someone else is already working on it
 			if (!this.taskPickerLock.tryLock())
 			{
+				// Publish the retry request, then try once more: if the holder already unlocked and
+				// consumed the flag before we set it, the second tryLock succeeds and we pick the task;
+				// otherwise the holder reads the flag after its unlock. (A single tryLock-then-set could
+				// lose the wakeup; setting the flag before the first tryLock would make a winner
+				// consume its own flag and loop forever.)
 				this.retryRequestedRef.set(true);
-				return;
+				if (!this.taskPickerLock.tryLock())
+				{
+					return;
+				}
 			}
 		}
 		

@@ -17,8 +17,9 @@ public final class MiraiRuntimeGovernor
 {
     static final long SAMPLE_NANOS = TimeUnit.SECONDS.toNanos(1);
     static final int RECOVERY_SAMPLES = 8;
-    private static final boolean ENABLED = Boolean.parseBoolean(
-            System.getProperty("akashic.mirai.runtimeGovernor", "true"));
+    // like every akashic.mirai.* rollback switch, only an explicit "false" turns it off
+    private static final boolean ENABLED = !"false".equalsIgnoreCase(
+            System.getProperty("akashic.mirai.runtimeGovernor", "true").trim());
     private static final Runtime RUNTIME = Runtime.getRuntime();
     private static final List<GarbageCollectorMXBean> GC_BEANS = ManagementFactory.getGarbageCollectorMXBeans();
 
