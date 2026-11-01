@@ -154,13 +154,22 @@ public class WrapperFactory implements IWrapperFactory
 	@Override
 	public IBiomeWrapper getPlainsBiomeWrapper(ILevelWrapper levelWrapper)
 	{
+		#if MC_VER <= MC_1_7_10
+		// the fallback must not depend on the name index that just failed (AOTM-02)
+		if (BiomeGenBase.plains != null)
+		{
+			return BiomeWrapper.getBiomeWrapper(BiomeGenBase.plains, levelWrapper);
+		}
+		#endif
 		try
 		{
 			return BiomeWrapper.deserialize(BiomeWrapper.PLAINS_RESOURCE_LOCATION_STRING, levelWrapper);
 		}
 		catch (IOException e)
 		{
-			throw new LodUtil.AssertFailureException("Unable to parse plains resource string ["+BiomeWrapper.PLAINS_RESOURCE_LOCATION_STRING+"], error:\n " + e.getMessage());
+			LodUtil.AssertFailureException failure = new LodUtil.AssertFailureException("Unable to parse plains resource string ["+BiomeWrapper.PLAINS_RESOURCE_LOCATION_STRING+"], error:\n " + e.getMessage());
+			failure.initCause(e);
+			throw failure;
 		}
 	}
 	

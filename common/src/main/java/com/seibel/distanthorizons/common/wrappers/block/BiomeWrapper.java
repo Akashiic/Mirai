@@ -19,6 +19,7 @@
 
 package com.seibel.distanthorizons.common.wrappers.block;
 
+import java.util.Set;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Objects;
@@ -102,7 +103,7 @@ public class BiomeWrapper implements IBiomeWrapper
 	
 	
 	/** keep track of broken biomes so we don't log every time */
-	private static final HashSet<String> brokenResourceLocationStrings = new HashSet<>();
+	private static final Set<String> brokenResourceLocationStrings = ConcurrentHashMap.newKeySet();
 	
 	/** 
 	 * Only display this warning once, otherwise the log may be spammed <br> 
@@ -194,7 +195,7 @@ public class BiomeWrapper implements IBiomeWrapper
 		}
 		
         #if MC_VER <= MC_1_7_10
-		return this.biome.biomeName;
+		return getSerialName(this.biome);
         #elif MC_VER < MC_1_18_2
 		return this.biome.toString();
         #else
@@ -271,7 +272,7 @@ public class BiomeWrapper implements IBiomeWrapper
 		#endif
 		
 		#if MC_VER <= MC_1_7_10
-		this.serialString = "biome:" + this.biome.biomeName;
+		this.serialString = "biome:" + getSerialName(this.biome);
 		#else
 		#if MC_VER <= MC_1_21_10
 		ResourceLocation resourceLocation;
@@ -314,6 +315,15 @@ public class BiomeWrapper implements IBiomeWrapper
 		return this.serialString;
 	}
 	
+	#if MC_VER <= MC_1_7_10
+	/**
+	 * Some mods never call setBiomeName (e.g. Arcana RPG's BiomeSunset),
+	 * so nameless biomes are keyed by their ID instead (upstream 67e242e4).
+	 */
+	public static String getSerialName(BiomeGenBase biome)
+	{ return (biome.biomeName != null) ? biome.biomeName : ("#" + biome.biomeID); }
+	
+	#endif
 	public static IBiomeWrapper deserialize(String resourceLocationString, ILevelWrapper levelWrapper) throws IOException
 	{
 		// we need the final string for the concurrent hash map later
@@ -341,8 +351,10 @@ public class BiomeWrapper implements IBiomeWrapper
 		
 		
 		
-		// if no wrapper is found, default to the empty wrapper
+		// if no wrapper is found, default to the empty wrapper;
+		// a lookup that threw is not cached, so a transient failure can't turn the biome EMPTY for the rest of the JVM
 		BiomeWrapper foundWrapper = EMPTY_WRAPPER;
+		boolean definiteResult = false;
 		try
 		{
 			try
@@ -361,16 +373,17 @@ public class BiomeWrapper implements IBiomeWrapper
 				
 				if (!deserializeResult.success)
 				{
-					if (!brokenResourceLocationStrings.contains(resourceLocationString))
+					if (brokenResourceLocationStrings.add(resourceLocationString))
 					{
-						brokenResourceLocationStrings.add(resourceLocationString);
 						LOGGER.warn("Unable to deserialize biome from string: [" + resourceLocationString + "]");
 					}
+					definiteResult = true;
 					return EMPTY_WRAPPER;
 				}
 				
 				
 				foundWrapper = getBiomeWrapper(deserializeResult.biome, levelWrapper);
+				definiteResult = true;
 				return foundWrapper;
 			}
 			catch (Exception e)
@@ -380,7 +393,10 @@ public class BiomeWrapper implements IBiomeWrapper
 		}
 		finally
 		{
-			WRAPPER_BY_RESOURCE_LOCATION.putIfAbsent(finalResourceStateString, foundWrapper);
+			if (definiteResult)
+			{
+				WRAPPER_BY_RESOURCE_LOCATION.putIfAbsent(finalResourceStateString, foundWrapper);
+			}
 		}
 	}
 	
