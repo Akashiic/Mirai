@@ -15,21 +15,35 @@ Status: `development; runtime certification pending`.
 
 ### Ordem de trabalho
 
+Revisada em 2026-10-30 (parecer: o caso principal — renderer ATIVO — é o menos provado, e a distância do upstream é o maior
+risco estratégico). Parar de lançar versões de estabilização até fechar a fase 1.
+
+**Fase 1 — Provar o produto (0.1.19)**
 - [ ] AOTM-01 Fechar a homologação runtime da 0.1.19 (Gates A/B/C + A/B visual)
-- [ ] AOTM-02 Defeito de bioma ao reativar o renderer
+- [ ] AOTM-08 Retenção/arquivamento de logs por rodada (pré-requisito: nenhuma rodada da fase 1 pode se perder)
+- [ ] AOTM-10 Teste dedicado Crucible/Java 21
+
+**Fase 2 — Cortar a deriva (0.1.20)**
+- [ ] AOTM-16 Rebasear o Mirai no `merge-1.7.10` atual como série mínima de patches
+- [ ] AOTM-15 Shaders do Angelica (resolvido pelo rebase; confirmar que a ponte da ThePatcher se desliga)
+- [ ] AOTM-09 Desambiguar a identidade das builds (a build rebaseada sai como `0.1.20-dev`)
+- [ ] AOTM-05 Re-auditar ABI contra as versões reais do pack (na build rebaseada)
+- [ ] AOTM-07 Revalidar companions de servidor (na build rebaseada)
+
+**Fase 3 — Defeitos e desempenho, com dados da fase 1**
+- [ ] AOTM-02 Defeito de bioma ao reativar o renderer (re-checar se o rebase já resolve)
 - [ ] AOTM-03 "Duplicate or excessive LOD transfer"
 - [ ] AOTM-04 Atribuir os hitches longos
-- [ ] AOTM-05 Re-auditar ABI contra as versões reais do pack
 - [ ] AOTM-06 Folga de heap com renderer ativo
-- [ ] AOTM-07 Revalidar companions de servidor
-- [ ] AOTM-08 Retenção/arquivamento de logs por rodada
-- [ ] AOTM-09 Desambiguar a identidade das builds 0.1.19
-- [ ] AOTM-10 Teste dedicado Crucible/Java 21
+- [ ] AOTM-17 Runtime Java do cliente: 8u51 → 8u recente (decisão do dono; muda o pack)
+- [ ] AOTM-13 (condicional) IBO/batching guiado por `gpu_terrain`
+- [ ] AOTM-19 Pré-geração de LODs no servidor (`/dh pregen`) — depende de AOTM-10
+
+**Infra / contínuo**
+- [ ] AOTM-18 Consolidar a documentação por versão em `docs/history/`
 - [ ] AOTM-11 Build reprodutível fora desta máquina
 - [ ] AOTM-12 Licença e visibilidade do repositório/JAR
-- [ ] AOTM-13 (condicional) IBO/batching guiado por `gpu_terrain`
 - [ ] AOTM-14 Crash CoreTweaks × CubicChunks (terceiros)
-- [ ] AOTM-15 Shaders do Angelica: portar `DistantHorizonsTweaker` + passe translúcido adiado do upstream
 
 ### Regras do jogo
 
@@ -212,3 +226,83 @@ ponte temporária (AkashicThePatcher `1.1.0-beta.42-MiraiShaderBridge`, sem toca
 Para a 0.1.20: portar os dois commits (identidade: `FMLCorePlugin`, `verify-mirai-jar.py`), confirmar que a ponte se desliga sozinha
 e repetir o A/B com/sem shader (contrato de fidelidade: sem shader nada muda).
 
+## ISSUE-16 — Rebasear o Mirai no `merge-1.7.10` atual (série mínima de patches)
+<!-- labels: upstream, release, p1 | milestone: 0.1.20 — Candidato | pin: no -->
+
+O pin `b4abe2f` é anterior a correções do upstream que o Mirai precisou contornar (`dfca6541` tweaker para o Angelica, `ef720c8e` passe
+translúcido adiado, recriação da textura de profundidade em `315a4ba3`). Cada versão do Mirai mexe mais fundo em `LodQuadTree`,
+`LodBufferContainer` e `LodRenderSection` com o core achatado, o que encarece o rebase a cada release. Depende de AOTM-01 (base certificada
+para comparar).
+
+### Critérios de aceite
+
+- Inventário dos patches Mirai sobre `b4abe2f` (core, common, forge17) agrupados por tema, cada um com motivo e teste que o cobre.
+- Branch nova a partir do `merge-1.7.10` atual com os patches reaplicados como commits pequenos e nomeados; patches que o upstream já
+  resolve são descartados e anotados.
+- `MIRAI-UPSTREAM.json` atualizado; core/API tests, ABI Angelica, identidade e byte-identidade dos shaders verdes; A/B visual e Gate C
+  repetidos contra a 0.1.19 certificada. Contratos D-01/D-04 preservados.
+
+## ISSUE-17 — Runtime Java do cliente: 8u51 → 8u recente
+<!-- labels: compatibility, external, p2 | milestone: Infra e documentação | pin: no -->
+
+O cliente roda Oracle 8u**51** (2015). O crash do C2 em `forestry.core.genetics.Genome.getChromosomes` (contornado com `-XX:CompileCommand`)
+é sintoma desse runtime antigo. Uma JRE 8 atual (Temurin/Zulu 8u4xx) tende a melhorar JIT/GC sem tocar no Mirai. **Muda o pack: só com
+autorização do dono** (regra 10).
+
+### Critérios de aceite
+
+- A/B no mesmo mundo/câmera/config (8u51 × 8u recente) com `/miraidiag`; verificar se o `CompileCommand` ainda é necessário.
+- Nenhuma alegação de FPS sem esse A/B.
+
+## ISSUE-18 — Consolidar a documentação por versão
+<!-- labels: docs, p2 | milestone: Infra e documentação | pin: no -->
+
+`docs/` tem 80+ arquivos (plano/changelog/instalação por versão) e o `PROJECT-STATE` precisa avisar que prevalece sobre os antigos.
+
+### Critérios de aceite
+
+- Mover para `docs/history/` tudo o que só descreve versões ≤ 0.1.18; `docs/` fica com os documentos vivos (`INDEX`, `PROJECT-STATE`,
+  decisões, build, compatibilidade, backlog, homologação vigente).
+- Links internos e `INDEX.md` atualizados; nenhum conteúdo apagado.
+
+## ISSUE-19 — Pré-geração de LODs no servidor: `/dh pregen` inoperante no Mirai
+<!-- labels: server, bug, p1 | milestone: 0.1.20 — Candidato | pin: no -->
+
+**Status (2026-11-01):** implementado em código e testado headless; guia em [PREGEN-SERVIDOR.md](PREGEN-SERVIDOR.md). **Falta o gate no
+Crucible** (último critério abaixo).
+
+**Sintoma (dono, 2026-10-30):** ao ativar o DH num servidor, o jogador precisa voar pelo mapa para os LODs aparecerem.
+
+**Causa (leitura de código, não reproduzido):** o servidor só envia LODs que já existem no banco dele
+(`FullDataSourceRequestHandler.readSync`), e esse banco só recebe o que algum jogador carregou. A geração por pedido do cliente
+é recusada (`queueWorldGenForRequestMessage`: "Operation is disabled in config"), porque o Mirai força
+`enableDistantGeneration=false` no dedicado sem `-Dakashic.mirai.experimentalServerGeneration=true` (`AbstractModInitializer`, D-07).
+
+A ferramenta certa já existe, herdada do upstream: `/dh pregen <status|start|stop>` (`PregenCommand`, `PregenManager`). Ela passa pelo
+mesmo gerador (`InternalServerGenerator`: chunk já salvo em disco é carregado; chunk ausente é **gerado**). `/dh prepare loaded`
+(0.1.5) não resolve: raio máximo de 64 e só considera chunks já carregados.
+
+Problemas encontrados:
+
+1. **Pregen trava em silêncio com a geração desligada (o padrão do Mirai).** Sem fila de geração,
+   `GeneratedFullDataSourceProvider.queuePositionForRetrieval` devolve `null`. O `.whenComplete` sobre `null` lança NPE dentro de um
+   `thenAccept` assíncrono, a exceção é engolida, a entrada fica em `pendingGenerations` e o `fullDataSource.close()` não roda (vazamento).
+   O cache do Guava só expira as entradas quando é acessado, e mais nada o acessa, então o pregen congela com o status parado
+   e nunca termina. O comando não avisa que a geração está desligada.
+2. **Bug do upstream no caminho de erro:** em `whenComplete`, quando `throwable != null`, o código lê `result.pos`, mas `result` é `null`.
+   Isso gera outra NPE, o `invalidate` nunca roda, e cada seção que falha ocupa um slot para sempre.
+3. **Ligar a geração é global:** a opção habilita também a geração pedida por qualquer cliente, e esse caminho (tickets, simulação com Hodgepodge,
+   `loadChunk` gerando terreno) é justamente o que **não passou** pelos gates do Crucible.
+4. Concorrência limitada a `numberOfThreads` e sem pausa por TPS/heap (o governor é só do cliente), num servidor com 200+ mods.
+
+### Critérios de aceite
+
+- Pregen funciona com a geração **por cliente** desligada: um modo "pregen-only" sobe a fila de geração só enquanto `/dh pregen` está rodando,
+  ou o comando recusa de forma explícita, com mensagem clara, quando não há fila. Nunca congela em silêncio.
+- Os dois NPEs corrigidos (null-check da fila; `result` nulo no erro). `fullDataSource` fechado em `finally`. Teste headless cobrindo
+  fila ausente, falha de seção e cancelamento.
+- Opção de **não gerar terreno novo**: converter só os chunks já salvos em disco (útil após pré-gerar o mundo com outro mod).
+  Exige `chunkExists`/leitura de região sem `loadChunk` que gere.
+- Pausa ou redução de ritmo por TPS do servidor. Progresso persistido para retomar após reinício.
+- Gate no Crucible (AOTM-10): pregen de raio ≥ 256 chunks sem queda de TPS relevante, sem chunks forçados sobrando, e cliente
+  recebendo os LODs ao ativar sem precisar se deslocar.

@@ -83,7 +83,8 @@ python scripts/verify-mirai-jar.py <jar> --expected-version V --expected-commit 
 11. **Privacy.** Mirai logs never contain chat/credentials/JVM args/address/player/world name, but they list installed mods and
     may contain encoded section positions. Commit only sanitised summaries (`scripts/summarize-mirai-sessions.py`).
 12. **Rollback switches** (JVM props): `-Dakashic.mirai.disabledRendererQuiescence=false`, `-Dakashic.mirai.runtimeGovernor=false`,
-    `-Dakashic.mirai.diagnostics=false`; opt-ins: `-Dakashic.mirai.renderTaskStacks=true`, `-Dakashic.mirai.experimentalServerGeneration=true`
+    `-Dakashic.mirai.diagnostics=false`,
+    `-Dakashic.mirai.serverPregen=false` (tuning: `-Dakashic.mirai.pregenMaxTickMs=45`); opt-ins: `-Dakashic.mirai.renderTaskStacks=true`, `-Dakashic.mirai.experimentalServerGeneration=true`
     (dedicated server; distant generation is OFF by default).
 
 ## Do NOT resume from

@@ -1,5 +1,8 @@
 package com.seibel.distanthorizons.core.level;
 
+import com.seibel.distanthorizons.core.api.internal.SharedApi;
+import com.seibel.distanthorizons.core.world.DhServerWorld;
+import com.seibel.distanthorizons.core.world.IDhServerWorld;
 import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dataObjects.fullData.sources.FullDataSourceV2;
 import com.seibel.distanthorizons.core.file.fullDatafile.V2.FullDataSourceProviderV2;
@@ -101,7 +104,14 @@ public abstract class AbstractDhServerLevel extends AbstractDhLevel implements I
 	
 	@Override
 	public boolean shouldDoWorldGen()
-	{ return Config.Common.WorldGenerator.enableDistantGeneration.get(); }
+	{ return Config.Common.WorldGenerator.enableDistantGeneration.get() || this.isPregenRunning(); }
+	
+	/** An admin pregen run needs this level's generation queue even when distant generation is disabled for clients. */
+	private boolean isPregenRunning()
+	{
+		IDhServerWorld world = SharedApi.tryGetDhServerWorld();
+		return world instanceof DhServerWorld && ((DhServerWorld) world).getPregenManager().isRunningFor(this.serverLevelWrapper);
+	}
 	
 	@Override
 	public DhBlockPos2D getTargetPosForGeneration()

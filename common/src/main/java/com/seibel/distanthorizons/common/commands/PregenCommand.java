@@ -40,11 +40,13 @@ public class PregenCommand extends AbstractDhCommand
 	}
 	
 	#if MC_VER <= MC_1_12_2
+	private static final String USAGE = "Usage: /dh pregen start <dimension> <blockX> <blockZ> [chunkRadius=32] [existing|generate] | /dh pregen <status|stop>";
+	
 	public void execute(MinecraftServer server, ICommandSender sender, String[] args)
 	{
 		if (args.length < 2)
 		{
-			sendMessage(sender, "Usage: /dh pregen <status|start|stop>");
+			sendMessage(sender, USAGE);
 			return;
 		}
 		
@@ -58,9 +60,9 @@ public class PregenCommand extends AbstractDhCommand
 			}
 			case "start":
 			{
-				if (args.length < 5)
+				if (args.length < 5 || args.length > 7)
 				{
-					sendMessage(sender, "Usage: /dh pregen start <dimension> <x> <z> <chunkRadius>");
+					sendMessage(sender, USAGE);
 					return;
 				}
 				
@@ -70,6 +72,13 @@ public class PregenCommand extends AbstractDhCommand
 					int x = Integer.parseInt(args[3]);
 					int z = Integer.parseInt(args[4]);
 					int chunkRadius = args.length >= 6 ? Integer.parseInt(args[5]) : 32;
+					// 1.7.10 defaults to converting saved chunks only: the generator path has not passed the Crucible gates
+					PregenManager.EPregenMode mode = args.length >= 7 ? PregenManager.EPregenMode.parse(args[6]) : PregenManager.EPregenMode.EXISTING;
+					if (mode == null)
+					{
+						sendMessage(sender, "Unknown mode: " + args[6] + " (use 'existing' or 'generate')");
+						return;
+					}
 					
 					// find the world by dimension name
 					WorldServer world = null;
@@ -97,19 +106,26 @@ public class PregenCommand extends AbstractDhCommand
 						return;
 					}
 					
-					sendMessage(sender, "Starting pregen. Progress will be in the server console.");
-					
-					final ICommandSender finalSender = sender;
-					CompletableFuture<Void> future = this.getPregenManager().startPregen(
+					PregenManager.RunningPregen run = this.getPregenManager().start(
 						ServerLevelWrapper.getWrapper(world),
 						new DhBlockPos2D(x, z),
-						chunkRadius
+						chunkRadius,
+						mode
 					);
 					
-					future.whenComplete((result, throwable) -> {
+					sendMessage(sender, "Starting pregen (" + mode.name().toLowerCase() + ", " + run.task.getSectionCount() + " sections"
+						+ (run.resumedFromIndex > 0 ? ", resuming at section " + run.resumedFromIndex : "")
+						+ "). Progress: /dh pregen status and the server console.");
+					if (mode == PregenManager.EPregenMode.GENERATE)
+					{
+						sendMessage(sender, "Mode 'generate' creates missing terrain with the world generator.");
+					}
+					
+					final ICommandSender finalSender = sender;
+					run.task.whenComplete((result, throwable) -> {
 						if (throwable instanceof CancellationException)
 						{
-							sendMessage(finalSender, "Pregen is cancelled");
+							sendMessage(finalSender, "Pregen is cancelled; start it again with the same arguments to resume.");
 							return;
 						}
 						else if (throwable != null)
@@ -117,12 +133,16 @@ public class PregenCommand extends AbstractDhCommand
 							sendMessage(finalSender, "Pregen failed: " + throwable.getMessage());
 							return;
 						}
-						sendMessage(finalSender, "Pregen is complete");
+						sendMessage(finalSender, "Pregen is complete: " + run.task.getCountersString());
 					});
 				}
 				catch (NumberFormatException e)
 				{
 					sendMessage(sender, "Invalid number format");
+				}
+				catch (IllegalArgumentException | IllegalStateException e)
+				{
+					sendMessage(sender, "Pregen not started: " + e.getMessage());
 				}
 				break;
 			}
