@@ -19,6 +19,7 @@
 
 package com.seibel.distanthorizons.core.render.QuadTree;
 
+import com.seibel.distanthorizons.core.logging.mirai.MiraiDiagnostics;
 import com.seibel.distanthorizons.api.enums.config.EDhApiMaxHorizontalResolution;
 import com.seibel.distanthorizons.core.api.internal.ClientApi;
 import com.seibel.distanthorizons.core.config.Config;
@@ -90,6 +91,10 @@ public class LodQuadTree extends QuadTree<LodRenderSection> implements IDebugRen
 	 * This is a {@link ConcurrentLinkedQueue} because new sections can be added to this list via the world generator threads.
 	 */
 	private final ConcurrentLinkedQueue<Long> sectionsToReload = new ConcurrentLinkedQueue<>();
+	/** Minimum time between two re-builds of the same section; bursts collapse into one re-build with current data. */
+	public static final long SECTION_RELOAD_MIN_INTERVAL_MS = 250;
+	/** tick-thread only */
+	private final SectionReloadScheduler reloadScheduler = new SectionReloadScheduler(SECTION_RELOAD_MIN_INTERVAL_MS);
 	private final IDhClientLevel level;
 	/** 
 	 * Note: this doesn't lock all operations as some other threads/operations
@@ -749,35 +754,36 @@ public class LodQuadTree extends QuadTree<LodRenderSection> implements IDebugRen
 	
 	private void reloadQueuedSections()
 	{
-		Long pos;
-		HashSet<Long> positionsToRequeue = new HashSet<>();
-		while ((pos = this.sectionsToReload.poll()) != null)
+		MiraiDiagnostics.add(MiraiDiagnostics.Counter.SECTION_RELOAD_REQUESTED, this.reloadScheduler.offerAll(this.sectionsToReload));
+		int started = this.reloadScheduler.process(System.currentTimeMillis(), (long pos) ->
 		{
-			if (positionsToRequeue.contains(pos))
+			LodRenderSection renderSection = this.tryGetValue(pos);
+			if (renderSection == null)
 			{
-				// don't attempt to re-load positions that are already in the process of reloading
-				continue;
+				return SectionReloadScheduler.EResult.DROP;
 			}
 			
-			LodRenderSection renderSection = this.tryGetValue(pos);
-			if (renderSection != null)
+			if (renderSection.gpuUploadInProgress())
 			{
-				// the section only needs to be updated if a buffer is currently present 
-				if (renderSection.gpuUploadComplete())
-				{
-					if (renderSection.gpuUploadInProgress()
-						|| !renderSection.uploadRenderDataToGpuAsync())
-					{
-						// if a section is already loading or failed to start upload
-						// we need to wait to trigger it again
-						// if we don't trigger it again the LOD will be out of date
-						// and may be invisible/missing
-						positionsToRequeue.add(pos);
-					}
-				}
+				// the running build may have read the data before this change: re-build once it finishes.
+				// (A request during a section's first build used to be dropped, leaving it out of date.)
+				return SectionReloadScheduler.EResult.RETRY;
 			}
-		}
-		this.sectionsToReload.addAll(positionsToRequeue);
+			
+			// the section only needs to be updated if a buffer is currently present,
+			// otherwise the normal load path builds it from the current data
+			if (!renderSection.gpuUploadComplete())
+			{
+				return SectionReloadScheduler.EResult.DROP;
+			}
+			
+			// if the upload failed to start we need to try again,
+			// otherwise the LOD will be out of date and may be invisible/missing
+			return renderSection.uploadRenderDataToGpuAsync()
+				? SectionReloadScheduler.EResult.STARTED
+				: SectionReloadScheduler.EResult.RETRY;
+		});
+		MiraiDiagnostics.add(MiraiDiagnostics.Counter.SECTION_RELOAD_STARTED, started);
 	}
 	private void loadQueuedSections(DhBlockPos2D playerPos, HashSet<LodRenderSection> nodesNeedingLoading)
 	{

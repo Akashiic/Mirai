@@ -57,6 +57,10 @@ import java.util.concurrent.*;
 /** Contains code and variables used by both {@link ClientApi} and {@link ServerApi} */
 public class SharedApi
 {
+	/** Opt-in: {@code -Dakashic.mirai.explicitGcOnWorldClose=true} restores the upstream System.gc() after a world closes. */
+	private static final boolean EXPLICIT_GC_ON_WORLD_CLOSE = "true".equalsIgnoreCase(
+			System.getProperty("akashic.mirai.explicitGcOnWorldClose", "false").trim());
+
 	public static final SharedApi INSTANCE = new SharedApi();
 	
 	private static final DhLogger LOGGER = new DhLoggerBuilder().build();
@@ -176,7 +180,12 @@ public class SharedApi
 			failure = runWorldCleanup(failure, () -> MiraiWorldLifecycle.run(Phase.TEXTURES_CLEAR, BlockTextureRegistry.INSTANCE::clear));
 			// generators bound to the old world's levels must not keep them alive (upstream dceafa453)
 			failure = runWorldCleanup(failure, WorldGeneratorInjector.INSTANCE::clear);
-			failure = runWorldCleanup(failure, () -> MiraiWorldLifecycle.run(Phase.EXPLICIT_GC, System::gc));
+			// A forced full GC here froze the client thread for 3.7 s and 5.3 s on a 6 GiB heap in real logs
+			// (world switch / quit). The JVM reclaims the old world on its own; opt-in for memory diagnostics only.
+			if (EXPLICIT_GC_ON_WORLD_CLOSE)
+			{
+				failure = runWorldCleanup(failure, () -> MiraiWorldLifecycle.run(Phase.EXPLICIT_GC, System::gc));
+			}
 			failure = runWorldCleanup(failure, () -> MiraiWorldLifecycle.run(Phase.WORLD_UNLOAD_EVENT,
 					() -> ApiEventInjector.INSTANCE.fireAllEvents(DhApiWorldUnloadEvent.class, new DhApiWorldUnloadEvent.EventParam())));
 			failure = runWorldCleanup(failure, () -> DhApiWorldProxy.INSTANCE.setReadOnly(false, false));

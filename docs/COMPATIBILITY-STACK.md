@@ -15,7 +15,7 @@ Regra de leitura: **presença simultânea de mods, aviso genérico de Forge ou r
 | EntityCulling | backport 1.6.4-1.7.10 (`@VER@`) | tag `1.6.4-1.7.10` (fonte lida) | OK (leitura estática) |
 | ParallelMipMap | 1.0 (coremod) | bytecode lido, sem fonte pública | Colisão potencial com Angelica no `TextureMap`; sem efeito provado |
 | EndlessIDs | 1.7.4 | companion 1.0.1 vs. Mirai 0.1.16/0.1.17 | Revalidar contra 0.1.19 |
-| CubicChunks | fork `v0.1.21-akashic-crucible-0.1.0-dev.N` (dev.4 na auditoria 0.1.7; dev.6 na rodada 0.1.9; dev.7 na 0.1.10; **versão atual não verificada**) | — | Crash CoreTweaks×CubicChunks conhecido (§3) |
+| ~~CubicChunks~~ | **Removido do pack** (informado pelo dono em 2026-11-01). Histórico: fork `v0.1.21-akashic-crucible-0.1.0-dev.N` | — | O crash CoreTweaks×CubicChunks (§3) deixou de se aplicar |
 | UniMixins / ArchaicFix / PlayerAPI / Backhand / ThePatcher | 0.3.1 / 0.8.0 / 1.5.0 / 1.8.13 / 1.1.0-beta.34 | — | Sem interação observada |
 | Java cliente | 1.8.0_51 | 8u362 e 21.0.11 (testes/replay) | Quirk do C2 (§3) |
 | Servidor | Crucible, Java 21 | companions offline | Sem teste dedicado da 0.1.19 |
@@ -36,7 +36,7 @@ Regra de leitura: **presença simultânea de mods, aviso genérico de Forge ou r
 
 ## 3. Defeitos de terceiros já identificados (não são do Mirai)
 
-* **CoreTweaks `LightFixStare` × CubicChunks**: `ArrayIndexOutOfBoundsException: 16` em `Chunk.getEBS_CubicChunks` na pilha do tick do cliente,
+* **(Histórico — CubicChunks saiu do pack) CoreTweaks `LightFixStare` × CubicChunks**: `ArrayIndexOutOfBoundsException: 16` em `Chunk.getEBS_CubicChunks` na pilha do tick do cliente,
   sem frame Akashic. Corrigir no armazenamento do fork CubicChunks; **não** mascarar no render do Mirai (R-09).
 * **Shaders (Angelica ≥ 2.2.18, Iris DH support):** o Angelica só reconhece o DH pelo nome `DistantHorizonsTweaker` (upstream ≥ 2026-09-10);
   a 0.1.19 precisa da ponte da AkashicThePatcher ≥ `1.1.0-beta.42` para os LODs passarem pelo shaderpack. No Java 8 o Angelica ainda

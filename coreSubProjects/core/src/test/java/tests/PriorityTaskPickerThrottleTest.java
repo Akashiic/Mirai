@@ -215,4 +215,38 @@ public class PriorityTaskPickerThrottleTest
         }
     }
 
+    @Test
+    public void configEventsNeitherRebuildLivePoolsNorReviveShutDownOnes() throws Exception
+    {
+        Config.Client.threadPresetSetting.get();
+        int oldThreads = Config.Common.MultiThreading.numberOfThreads.get();
+        PriorityTaskPicker picker = null;
+        try
+        {
+            Config.Common.MultiThreading.numberOfThreads.setWithoutFiringEvents(2);
+            picker = new PriorityTaskPicker();
+            PriorityTaskPicker.Executor executor = picker.createExecutor("lifecycle");
+
+            // an unchanged value (UI refresh/config reload) keeps the pool working
+            // (the listener callback is invoked directly: firing the real event also runs the preset handlers,
+            // which need Minecraft wrappers that don't exist in this JVM)
+            executor.onConfigValueSet();
+            CountDownLatch ran = new CountDownLatch(1);
+            executor.execute(ran::countDown);
+            assertTrue(ran.await(2, TimeUnit.SECONDS));
+
+            picker.shutdownNow();
+            assertTrue(executor.isShutdown());
+            // before: the still-registered listener built a fresh, live pool for the dead picker
+            Config.Common.MultiThreading.numberOfThreads.setWithoutFiringEvents(3);
+            executor.onConfigValueSet();
+            assertTrue("a config change revived a shut-down executor", executor.isShutdown());
+        }
+        finally
+        {
+            if (picker != null) { picker.shutdownNow(); }
+            Config.Common.MultiThreading.numberOfThreads.setWithoutFiringEvents(oldThreads);
+        }
+    }
+
 }

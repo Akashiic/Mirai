@@ -92,7 +92,7 @@ python scripts/verify-mirai-jar.py <jar> --expected-version V --expected-commit 
     may contain encoded section positions. Commit only sanitised summaries (`scripts/summarize-mirai-sessions.py`).
 12. **Rollback switches** (JVM props): `-Dakashic.mirai.disabledRendererQuiescence=false`, `-Dakashic.mirai.runtimeGovernor=false`,
     `-Dakashic.mirai.diagnostics=false`,
-    `-Dakashic.mirai.serverPregen=false` (tuning: `-Dakashic.mirai.pregenMaxTickMs=45`); opt-ins: `-Dakashic.mirai.renderTaskStacks=true`, `-Dakashic.mirai.experimentalServerGeneration=true`
+    `-Dakashic.mirai.serverPregen=false` (tuning: `-Dakashic.mirai.pregenMaxTickMs=45`); opt-ins: `-Dakashic.mirai.renderTaskStacks=true`, `-Dakashic.mirai.explicitGcOnWorldClose=true`, `-Dakashic.mirai.experimentalServerGeneration=true`
     (dedicated server; distant generation is OFF by default).
 
 ## Do NOT resume from

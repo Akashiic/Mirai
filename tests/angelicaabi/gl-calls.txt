@@ -6,8 +6,6 @@ com/seibel/distanthorizons/common/render/openGl/glObject/GLState -> org/lwjgl/op
 com/seibel/distanthorizons/common/render/openGl/glObject/GLState -> org/lwjgl/opengl/GL30.glIsFramebuffer(I)Z
 com/seibel/distanthorizons/common/render/openGl/glObject/GLState -> org/lwjgl/opengl/GL30.glIsVertexArray(I)Z
 com/seibel/distanthorizons/common/render/openGl/glObject/GLState$Attachment -> org/lwjgl/opengl/GL30.glFramebufferRenderbuffer(IIII)V
-com/seibel/distanthorizons/common/render/openGl/glObject/buffer/GLBuffer -> org/lwjgl/opengl/GL15.glIsBuffer(I)Z
-com/seibel/distanthorizons/common/render/openGl/glObject/buffer/GLBuffer -> org/lwjgl/opengl/GL30.glIsVertexArray(I)Z
 com/seibel/distanthorizons/common/wrappers/gui/MinecraftScreen$ConfigScreenRenderer -> org/lwjgl/opengl/Display.getHeight()I
 com/seibel/distanthorizons/common/wrappers/gui/MinecraftScreen$ConfigScreenRenderer -> org/lwjgl/opengl/Display.getWidth()I
 com/seibel/distanthorizons/forge17/ForgeMiraiClientDiagnostics -> org/lwjgl/opengl/Display.isActive()Z

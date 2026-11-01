@@ -160,7 +160,8 @@ public class ThreadPoolUtil
 	/** Called from the physical client render owner; dedicated servers never invoke this path. */
 	public static void onClientRenderFrame(boolean gameplayFocused)
 	{
-		if (MiraiRuntimeGovernor.onClientFrame(gameplayFocused) && taskPicker != null)
+		PriorityTaskPicker picker = taskPicker;
+		if (MiraiRuntimeGovernor.onClientFrame(gameplayFocused, picker == null ? -1 : picker.getOccupiedThreadCount()) && taskPicker != null)
 		{
 			taskPicker.requestWork();
 		}

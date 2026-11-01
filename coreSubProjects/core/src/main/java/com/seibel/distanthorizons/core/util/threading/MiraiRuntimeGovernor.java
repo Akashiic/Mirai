@@ -36,11 +36,17 @@ public final class MiraiRuntimeGovernor
     private static int severeFrames;
     private static int healthySamples;
     private static int lastConfigured = -1;
+    /** focused frame time accumulated over the current sample window */
+    private static long focusedFrameNanos;
+    private static int focusedFrames;
+    private static final FrameRegressionDetector FRAME_REGRESSION = new FrameRegressionDetector();
 
     private MiraiRuntimeGovernor() { }
 
     /** Called from the physical 1.7.10 client render owner. Returns true when the effective limit changes. */
-    public static boolean onClientFrame(boolean gameplayFocused)
+    public static boolean onClientFrame(boolean gameplayFocused) { return onClientFrame(gameplayFocused, -1); }
+    /** @param occupiedWorkers DH workers busy right now, or -1 if unknown (then saturation is never assumed) */
+    public static boolean onClientFrame(boolean gameplayFocused, int occupiedWorkers)
     {
         long now = System.nanoTime();
         synchronized (MiraiRuntimeGovernor.class)
@@ -50,15 +56,17 @@ public final class MiraiRuntimeGovernor
                 long frameNanos = now - previousFrameNanos;
                 if (frameNanos >= TimeUnit.MILLISECONDS.toNanos(100)) { slowFrames++; }
                 if (frameNanos >= TimeUnit.MILLISECONDS.toNanos(250)) { severeFrames++; }
+                focusedFrameNanos += frameNanos;
+                focusedFrames++;
             }
             previousFrameNanos = now;
             previousGameplayFocused = gameplayFocused;
             if (lastSampleNanos != 0L && now - lastSampleNanos < SAMPLE_NANOS) { return false; }
-            return sample(now, gameplayFocused);
+            return sample(now, gameplayFocused, occupiedWorkers);
         }
     }
 
-    private static boolean sample(long now, boolean gameplayFocused)
+    private static boolean sample(long now, boolean gameplayFocused, int occupiedWorkers)
     {
         int configured = Math.max(1, Config.Common.MultiThreading.numberOfThreads.get());
         if (effectiveLimit < 1 || configured != lastConfigured)
@@ -88,6 +96,9 @@ public final class MiraiRuntimeGovernor
         Pressure pressure = classifyPressure(configured, heapRatio, gcDutyRatio,
                 gameplayFocused ? slowFrames : 0, gameplayFocused ? severeFrames : 0);
         int before = effectiveLimit;
+        double meanFrameMs = focusedFrames == 0 ? 0.0 : focusedFrameNanos / (double) focusedFrames / 1_000_000.0;
+        boolean saturated = occupiedWorkers > 0 && occupiedWorkers >= effectiveLimit;
+        boolean frameRegression = FRAME_REGRESSION.sample(meanFrameMs, saturated, gameplayFocused);
         if (pressure.limit < effectiveLimit)
         {
             effectiveLimit = pressure.limit;
@@ -96,7 +107,8 @@ public final class MiraiRuntimeGovernor
         else if (pressure.limit > effectiveLimit)
         {
             boolean healthy = heapRatio < 0.75 && gcDutyRatio < 0.05
-                    && (!gameplayFocused || (slowFrames == 0 && severeFrames == 0));
+                    && (!gameplayFocused || (slowFrames == 0 && severeFrames == 0))
+                    && FRAME_REGRESSION.withinRecoveryBand();
             if (healthy && ++healthySamples >= RECOVERY_SAMPLES)
             {
                 effectiveLimit = Math.min(pressure.limit, effectiveLimit + 1);
@@ -106,6 +118,18 @@ public final class MiraiRuntimeGovernor
         }
         else { healthySamples = 0; }
         reason = pressure.reason;
+        if (frameRegression && effectiveLimit == before)
+        {
+            // saturated workers are doubling the frame time: give the client thread one core back, but never
+            // below half of the configured workers, so LOD loading slows down instead of stopping
+            int floor = Math.max(1, (configured + 1) / 2);
+            if (effectiveLimit > floor)
+            {
+                effectiveLimit--;
+                healthySamples = 0;
+                reason = "frame_regression";
+            }
+        }
         resetWindow(now);
         return before != effectiveLimit;
     }
@@ -132,9 +156,10 @@ public final class MiraiRuntimeGovernor
     {
         int configured = Math.max(1, Config.Common.MultiThreading.numberOfThreads.get());
         return String.format(Locale.ROOT,
-                "enabled=%s configured=%d effective=%d heap_pct=%.1f gc_duty_pct=%.1f reason=%s recovery=%d/%d",
+                "enabled=%s configured=%d effective=%d heap_pct=%.1f gc_duty_pct=%.1f reason=%s recovery=%d/%d frame_ms=%.1f frame_baseline_ms=%.1f",
                 ENABLED, configured, getEffectiveThreadLimit(configured), heapRatio * 100.0,
-                gcDutyRatio * 100.0, reason, healthySamples, RECOVERY_SAMPLES);
+                gcDutyRatio * 100.0, reason, healthySamples, RECOVERY_SAMPLES,
+                FRAME_REGRESSION.getLastMeanMs(), FRAME_REGRESSION.getBaselineMs());
     }
 
     private static void resetWindow(long now)
@@ -142,6 +167,8 @@ public final class MiraiRuntimeGovernor
         lastSampleNanos = now;
         slowFrames = 0;
         severeFrames = 0;
+        focusedFrameNanos = 0L;
+        focusedFrames = 0;
     }
 
     private static long readGcMillis()
