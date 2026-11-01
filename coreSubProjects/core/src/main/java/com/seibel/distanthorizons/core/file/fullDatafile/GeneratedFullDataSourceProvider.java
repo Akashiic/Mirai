@@ -297,14 +297,23 @@ public class GeneratedFullDataSourceProvider extends FullDataSourceProviderV2 im
 			return null;
 		}
 		
-		CompletableFuture<DataSourceRetrievalResult> worldGenFuture = worldGenQueue.submitRetrievalTask(genPos, (byte) (DhSectionPos.getDetailLevel(genPos) - DhSectionPos.SECTION_MINIMUM_DETAIL_LEVEL));
+		// Submit at most once per position (upstream 8338222de): submit-then-putIfAbsent let a second caller submit
+		// a task whose future was never tracked. The completion listener is attached outside computeIfAbsent:
+		// a future that is already complete (e.g. a closing queue) runs it immediately, and it removes this key,
+		// which inside the mapping function would be a recursive ConcurrentHashMap update.
+		@SuppressWarnings("unchecked")
+		CompletableFuture<DataSourceRetrievalResult>[] createdFuture = new CompletableFuture[1];
+		CompletableFuture<DataSourceRetrievalResult> worldGenFuture = this.queuedRetrievalFutureByPos.computeIfAbsent(genPos, (Long newGenPos) ->
+		{
+			createdFuture[0] = worldGenQueue.submitRetrievalTask(newGenPos, (byte) (DhSectionPos.getDetailLevel(newGenPos) - DhSectionPos.SECTION_MINIMUM_DETAIL_LEVEL));
+			return createdFuture[0];
+		});
 		
 		// only queue the when-complete once for each world gen task,
 		// otherwise we can end up trying to close the same datasource multiple times 
-		CompletableFuture<DataSourceRetrievalResult> oldWorldGenFuture = this.queuedRetrievalFutureByPos.putIfAbsent(genPos, worldGenFuture);
-		if (oldWorldGenFuture == null)
+		if (createdFuture[0] != null)
 		{
-			worldGenFuture.whenComplete((r, e) -> this.onWorldGenTaskComplete(genPos, r, e));
+			createdFuture[0].whenComplete((r, e) -> this.onWorldGenTaskComplete(genPos, r, e));
 		}
 		
 		return worldGenFuture;

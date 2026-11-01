@@ -1121,7 +1121,17 @@ public class FullDataSourceV2
 				if (downSampleColumn)
 				{
 					LongArrayList inputDataArray = inputDataSource.dataPoints[inputIndex];
-					this.dataPoints[recipientIndex] = inputDataArray;
+					// copy, never alias (upstream 2c7c7864b): remapDataColumn rewrites the column in place,
+					// which corrupted the input data source's IDs
+					if (this.dataPoints[recipientIndex] == null)
+					{
+						this.dataPoints[recipientIndex] = new LongArrayList(inputDataArray);
+					}
+					else
+					{
+						this.dataPoints[recipientIndex].clear();
+						this.dataPoints[recipientIndex].addAll(inputDataArray);
+					}
 					this.remapDataColumn(recipientIndex, remappedIds);
 					
 					if (RUN_DATA_ORDER_VALIDATION)

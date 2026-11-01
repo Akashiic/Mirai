@@ -160,8 +160,10 @@ public class WorldGenerationQueue implements IFullDataSourceRetrievalQueue, IDeb
 		// the request should be at least chunk-sized
 		LodUtil.assertTrue(DhSectionPos.getDetailLevel(pos) > requiredDataDetail + LodUtil.CHUNK_DETAIL_LEVEL);
 		
-		DataSourceRetrievalTask genTask = new DataSourceRetrievalTask(pos, requiredDataDetail);
-		this.waitingTasks.put(pos, genTask);
+		// atomic (upstream bb1f0eaf6): two submitters that both saw no task must not overwrite each other,
+		// which orphaned the first task's future (never completed, its waiter and data source leaked)
+		final byte finalRequiredDataDetail = requiredDataDetail;
+		DataSourceRetrievalTask genTask = this.waitingTasks.computeIfAbsent(pos, (Long newPos) -> new DataSourceRetrievalTask(newPos, finalRequiredDataDetail));
 		return genTask.future;
 	}
 	
@@ -361,6 +363,10 @@ public class WorldGenerationQueue implements IFullDataSourceRetrievalQueue, IDeb
 		{
 			try
 			{
+				// failed tasks also need to free their slot (upstream 64a225320),
+				// otherwise isGeneratorBusy() eventually always returns true and this level stops generating
+				boolean taskRemoved = this.inProgressGenTasksByLodPos.remove(taskPos, worldGenTask);
+				
 				if (exception != null)
 				{
 					// don't log the shutdown exceptions
@@ -374,7 +380,6 @@ public class WorldGenerationQueue implements IFullDataSourceRetrievalQueue, IDeb
 				}
 				else
 				{
-					boolean taskRemoved = this.inProgressGenTasksByLodPos.remove(taskPos, worldGenTask);
 					LodUtil.assertTrue(taskRemoved, "Unable to find in progress generator task with position ["+DhSectionPos.toString(taskPos)+"]");
 					
 					worldGenTask.future.complete(DataSourceRetrievalResult.CreateSuccess(taskPos, fullDataSource));
@@ -464,27 +469,37 @@ public class WorldGenerationQueue implements IFullDataSourceRetrievalQueue, IDeb
 		{
 			FullDataSourceV2 requestedDataSource = FullDataSourceV2.createEmpty(task.pos);
 			
-			// process chunks //
-			for (int i = 0; i < generatedChunks.size(); i++)
+			// a throw here must still complete the task (upstream 64a225320), or its slot and data source leak
+			try
 			{
-				IChunkWrapper chunkWrapper = generatedChunks.get(i);
-				
-				// only light the chunk here if necessary,
-				// lighting before this point is preferred but for legacy API use this
-				// check should be done
-				if (!chunkWrapper.isDhBlockLightingCorrect())
+				// process chunks //
+				for (int i = 0; i < generatedChunks.size(); i++)
 				{
-					ArrayList<IChunkWrapper> nearbyChunkList = new ArrayList<>();
-					nearbyChunkList.add(chunkWrapper);
-					byte maxSkyLight = this.level.getLevelWrapper().hasSkyLight() ? LodUtil.MAX_MC_LIGHT : LodUtil.MIN_MC_LIGHT;
-					DhLightingEngine.INSTANCE.bakeChunkBlockLighting(chunkWrapper, nearbyChunkList, maxSkyLight);
+					IChunkWrapper chunkWrapper = generatedChunks.get(i);
+					
+					// only light the chunk here if necessary,
+					// lighting before this point is preferred but for legacy API use this
+					// check should be done
+					if (!chunkWrapper.isDhBlockLightingCorrect())
+					{
+						ArrayList<IChunkWrapper> nearbyChunkList = new ArrayList<>();
+						nearbyChunkList.add(chunkWrapper);
+						byte maxSkyLight = this.level.getLevelWrapper().hasSkyLight() ? LodUtil.MAX_MC_LIGHT : LodUtil.MIN_MC_LIGHT;
+						DhLightingEngine.INSTANCE.bakeChunkBlockLighting(chunkWrapper, nearbyChunkList, maxSkyLight);
+					}
+					
+					try (FullDataSourceV2 generatedDataSource = LodDataBuilder.createFromChunk(this.level.getLevelWrapper(), chunkWrapper))
+					{
+						LodUtil.assertTrue(generatedDataSource != null);
+						requestedDataSource.updateFromDataSource(generatedDataSource);
+					}
 				}
-				
-				try (FullDataSourceV2 generatedDataSource = LodDataBuilder.createFromChunk(this.level.getLevelWrapper(), chunkWrapper))
-				{
-					LodUtil.assertTrue(generatedDataSource != null);
-					requestedDataSource.updateFromDataSource(generatedDataSource);
-				}
+			}
+			catch (Throwable e)
+			{
+				requestedDataSource.close();
+				returnFuture.completeExceptionally(e);
+				return;
 			}
 			
 			returnFuture.complete(requestedDataSource);
@@ -518,19 +533,29 @@ public class WorldGenerationQueue implements IFullDataSourceRetrievalQueue, IDeb
 		{
 			FullDataSourceV2 requestedDataSource = FullDataSourceV2.createEmpty(task.pos);
 			
-			for (int i = 0; i < generatedChunks.size(); i++)
+			// a throw here must still complete the task (upstream 64a225320), or its slot and data source leak
+			try
 			{
-				DhApiChunk apiChunk = generatedChunks.get(i);
-				
-				try(FullDataSourceV2 generatedDataSource = LodDataBuilder.createFromApiChunkData(apiChunk, this.generator.runApiValidation()))
+				for (int i = 0; i < generatedChunks.size(); i++)
 				{
-					requestedDataSource.updateFromDataSource(generatedDataSource);
+					DhApiChunk apiChunk = generatedChunks.get(i);
+					
+					try(FullDataSourceV2 generatedDataSource = LodDataBuilder.createFromApiChunkData(apiChunk, this.generator.runApiValidation()))
+					{
+						requestedDataSource.updateFromDataSource(generatedDataSource);
+					}
+					catch (DataCorruptedException | IllegalArgumentException e)
+					{
+						LOGGER.error("World generator returned a corrupt API chunk. Error: [" + e.getMessage() + "]. World generator disabled.", e);
+						Config.Common.WorldGenerator.enableDistantGeneration.set(false);
+					}
 				}
-				catch (DataCorruptedException | IllegalArgumentException e)
-				{
-					LOGGER.error("World generator returned a corrupt API chunk. Error: [" + e.getMessage() + "]. World generator disabled.", e);
-					Config.Common.WorldGenerator.enableDistantGeneration.set(false);
-				}
+			}
+			catch (Throwable e)
+			{
+				requestedDataSource.close();
+				returnFuture.completeExceptionally(e);
+				return;
 			}
 			
 			returnFuture.complete(requestedDataSource);

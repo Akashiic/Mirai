@@ -38,7 +38,9 @@ public abstract class AbstractLodRequestState
 	public final IFullDataSourceRetrievalQueue retrievalQueue;
 	
 	private final ThreadPoolExecutor progressUpdaterThread = ThreadUtil.makeSingleDaemonThreadPool("World Gen Progress Updater");
-	private boolean progressUpdateThreadRunning = false;
+	private volatile boolean progressUpdateThreadRunning = false;
+	/** upstream 2a3ace636: a closed state must not re-create the updater thread, and its executor must be shut down */
+	private volatile boolean closed = false;
 	
 	
 	
@@ -71,7 +73,7 @@ public abstract class AbstractLodRequestState
 	private void startProgressUpdateThread()
 	{
 		// only start the thread once
-		if (!this.progressUpdateThreadRunning)
+		if (!this.progressUpdateThreadRunning && !this.closed)
 		{
 			this.progressUpdateThreadRunning = true;
 			
@@ -86,6 +88,11 @@ public abstract class AbstractLodRequestState
 						// sleep so we only see an update once in a while
 						int sleepTimeInSec = Config.Common.WorldGenerator.generationProgressDisplayIntervalInSeconds.get();
 						Thread.sleep(sleepTimeInSec * 1_000L);
+					}
+					catch (InterruptedException e)
+					{
+						// the executor was shut down
+						return;
 					}
 					catch (Exception e)
 					{
@@ -204,8 +211,10 @@ public abstract class AbstractLodRequestState
 	
 	public CompletableFuture<Void> closeAsync(boolean doInterrupt)
 	{
-		// this should stop the updater thread
+		// stop the updater thread; every pregen/world-gen stop creates a new state, so the executor must not leak
+		this.closed = true;
 		this.progressUpdateThreadRunning = false;
+		this.progressUpdaterThread.shutdownNow();
 		
 		return this.retrievalQueue.startClosingAsync(true, doInterrupt)
 			.exceptionally(e ->
