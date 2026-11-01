@@ -16,6 +16,7 @@ import org.joml.Matrix4f;
 import com.seibel.distanthorizons.common.wrappers.McObjectConverter;
 import com.seibel.distanthorizons.common.wrappers.world.ClientLevelWrapper;
 import com.seibel.distanthorizons.core.api.internal.ClientApi;
+import com.seibel.distanthorizons.core.render.DhApiRenderProxy;
 import com.seibel.distanthorizons.core.util.math.DhMat4f;
 
 import static com.seibel.distanthorizons.lwjgl.LWJGLServiceProvider.LWJGL;
@@ -137,7 +138,9 @@ public class RenderHelper
 	
     public static void renderDeferredLods() 
     {
-        if (ANGELICA_ACCESSOR == null) 
+        // Only a shaderpack that took over translucents needs this pass; without the gate every frame would
+        // open a deferred pass (timing, GPU profiler, BeforeDeferredRender event) for nothing.
+        if (ANGELICA_ACCESSOR == null || !DhApiRenderProxy.INSTANCE.getDeferTransparentRendering()) 
 		{
             return;
         }

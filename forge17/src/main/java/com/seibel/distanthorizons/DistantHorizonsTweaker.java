@@ -1,4 +1,4 @@
-package com.seibel.distanthorizons.forge17;
+package com.seibel.distanthorizons;
 
 import java.util.List;
 import java.util.Map;
@@ -6,13 +6,16 @@ import java.util.Set;
 
 import com.gtnewhorizon.gtnhmixins.IEarlyMixinLoader;
 import com.gtnewhorizon.gtnhmixins.builders.IMixins;
+import com.seibel.distanthorizons.forge17.Mixins;
 
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 
 /**
- * Defines our mixins
+ * Defines our mixins. <br>
+ * The class name is a contract: Angelica (Iris) enables its Distant Horizons integration only when
+ * <code>com.seibel.distanthorizons.DistantHorizonsTweaker</code> exists (upstream dfca6541).
  */
-public class DistantHorizonsLoadingPlugin implements IEarlyMixinLoader, IFMLLoadingPlugin 
+public class DistantHorizonsTweaker implements IEarlyMixinLoader, IFMLLoadingPlugin 
 {
     @Override
     public String getMixinConfig() { return "DistantHorizons.forge.mixins.json"; }

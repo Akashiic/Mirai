@@ -65,6 +65,8 @@ public class GLState implements IDhMetaRenderer.RenderPassState
 	public int blendDstAlpha;
 	public boolean depth;
 	public boolean writeToDepthBuffer;
+	/** RGBA write mask; DH's terrain program forces it to all-true, so the caller's mask must come back */
+	public final boolean[] colorMask = new boolean[4];
 	public int depthFunc;
 	public boolean stencil;
 	public int stencilFunc;
@@ -151,6 +153,7 @@ public class GLState implements IDhMetaRenderer.RenderPassState
 		this.blendDstAlpha = LWJGL.glGetInteger(GL14.GL_BLEND_DST_ALPHA);
 		this.depth = LWJGL.glIsEnabled(GL11.GL_DEPTH_TEST);
 		this.writeToDepthBuffer = LWJGL.glGetInteger(GL11.GL_DEPTH_WRITEMASK) == GL11.GL_TRUE;
+		LWJGL.glGetBooleanv(GL11.GL_COLOR_WRITEMASK, this.colorMask);
 		this.depthFunc = LWJGL.glGetInteger(GL11.GL_DEPTH_FUNC);
 		this.stencil = LWJGL.glIsEnabled(GL11.GL_STENCIL_TEST);
 		this.stencilFunc = LWJGL.glGetInteger(GL11.GL_STENCIL_FUNC);
@@ -257,6 +260,8 @@ public class GLState implements IDhMetaRenderer.RenderPassState
 
 	private void restoreDepthAndBlendFunctions()
 	{
+		LWJGL.glColorMask(this.colorMask[0], this.colorMask[1], this.colorMask[2], this.colorMask[3]);
+		
 		if (this.writeToDepthBuffer)
 		{
 			GLMC.enableDepthMask();

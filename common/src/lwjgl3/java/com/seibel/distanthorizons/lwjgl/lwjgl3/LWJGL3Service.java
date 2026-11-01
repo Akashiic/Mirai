@@ -938,6 +938,17 @@ public record LWJGL3Service(
     public boolean glGetBoolean(int pname) {
         return GL11C.glGetBoolean(pname);
     }
+	
+	@Override
+	public void glGetBooleanv(int pname, boolean[] params)
+	{
+		java.nio.ByteBuffer buf = org.lwjgl.BufferUtils.createByteBuffer(16);
+		GL11C.glGetBooleanv(pname, buf);
+		for (int i = 0; i < params.length; i++)
+		{
+			params[i] = buf.get(i) != 0;
+		}
+	}
 
     @Override
     public String glGetString(int pname) {

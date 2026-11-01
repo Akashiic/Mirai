@@ -80,7 +80,7 @@ def verify(path, expected_commit=None, expected_version='1.0-BETA', expected_bra
         required = [
             'META-INF/MANIFEST.MF', 'mcmod.info', 'build_info.json',
             'com/seibel/distanthorizons/forge17/ForgeMain.class',
-            'com/seibel/distanthorizons/forge17/DistantHorizonsLoadingPlugin.class',
+            'com/seibel/distanthorizons/DistantHorizonsTweaker.class',
             'com/seibel/distanthorizons/forge17/modAccessor/AngelicaAccessor.class',
             'com/seibel/distanthorizons/coreapi/ModInfo.class',
             'com/seibel/distanthorizons/lwjgl/lwjgl2/LWJGL2Service.class',
@@ -114,7 +114,7 @@ def verify(path, expected_commit=None, expected_version='1.0-BETA', expected_bra
                     failures.append('wrong mcmod.info ' + key)
         if 'META-INF/MANIFEST.MF' in names:
             manifest = jar.read('META-INF/MANIFEST.MF').decode('utf-8').replace('\r\n ', '').replace('\r\n', '\n')
-            for field in ['FMLCorePlugin: com.seibel.distanthorizons.forge17.DistantHorizonsLoadingPlugin', 'Implementation-Version: ' + expected_version]:
+            for field in ['FMLCorePlugin: com.seibel.distanthorizons.DistantHorizonsTweaker', 'Implementation-Version: ' + expected_version]:
                 if field not in manifest:
                     failures.append('missing manifest field: ' + field)
         mod_info = 'com/seibel/distanthorizons/coreapi/ModInfo.class'

@@ -836,7 +836,15 @@ public class ClientApi
 			return false;
 		}
 		
-		// Don't render fade through immersive portals, this causes the fade to apply incorrectly
+		// Iris (Angelica) re-runs sortAndRender for its shadow map; a fade there would composite colour into the
+		// shadow framebuffer of packs without DH programs (that pass is not cancelled for them)
+		if (DelayedAccessors.IRIS != null
+			&& DelayedAccessors.IRIS.isRenderingShadowPass())
+		{
+			return false;
+		}
+		
+				// Don't render fade through immersive portals, this causes the fade to apply incorrectly
 		IImmersivePortalsAccessor immersivePortals = ModAccessorInjector.INSTANCE.get(IImmersivePortalsAccessor.class);
 		if (immersivePortals != null 
 			&& immersivePortals.isRenderingPortal())

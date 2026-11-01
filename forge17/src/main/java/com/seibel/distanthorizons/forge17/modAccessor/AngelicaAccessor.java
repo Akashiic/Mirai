@@ -1,7 +1,6 @@
 package com.seibel.distanthorizons.forge17.modAccessor;
 
 import java.awt.Color;
-import java.nio.FloatBuffer;
 
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IAngelicaAccessor;
 import com.seibel.distanthorizons.forge17.modAccessor.exceptions.AngelicaVersionGuiException;
@@ -12,12 +11,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.shader.Framebuffer;
 
 import com.gtnewhorizons.angelica.config.AngelicaConfig;
-import com.gtnewhorizons.angelica.glsm.GLStateManager;
+import org.lwjgl.opengl.GL11;
 
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.versioning.ArtifactVersion;
 import cpw.mods.fml.common.versioning.DefaultArtifactVersion;
+
+import static com.seibel.distanthorizons.lwjgl.LWJGLServiceProvider.LWJGL;
 
 public class AngelicaAccessor implements IAngelicaAccessor 
 {
@@ -72,6 +73,11 @@ public class AngelicaAccessor implements IAngelicaAccessor
 	public int getDepthTextureId() 
     {
 	    final Framebuffer framebuffer = Minecraft.getMinecraft().getFramebuffer();
+		// IRenderTargetExt is only mixed in when AngelicaConfig.enableIris is on (the same gate as canDoFadeShader)
+		if (!(framebuffer instanceof IRenderTargetExt))
+		{
+			return -1;
+		}
 		return ((IRenderTargetExt) framebuffer).iris$getDepthTextureId(); 
 	}
 
@@ -81,14 +87,16 @@ public class AngelicaAccessor implements IAngelicaAccessor
 	@Override
     public Color getFogColor() 
     {
-        // JOML belongs to separate namespaces in Angelica and our shaded jar.
-        // Read the current Angelica context through its JDK buffer contract;
-        // absolute reads preserve the state owner's buffer position and limit.
-        final FloatBuffer color = GLStateManager.getFogState().getFogColorBuffer();
+        // A plain GL query: Angelica redirects it to GLSM, which answers GL_FOG_COLOR from the tracked
+        // fogState.getFogColorBuffer() on the render thread (2.2.20 and 2.2.40+ alike), i.e. the same floats the
+        // old GLStateManager.getFogState() read returned. That method was removed in 2.2.40 and only worked through
+        // Angelica's legacy bytecode rewriter. Alpha stays implicit (1.0), as before.
+        final float[] color = new float[4];
+        LWJGL.glGetFloatv(GL11.GL_FOG_COLOR, color);
         return new Color(
-            Math.max(0.0f, Math.min(1.0f, color.get(0))),
-            Math.max(0.0f, Math.min(1.0f, color.get(1))),
-            Math.max(0.0f, Math.min(1.0f, color.get(2))));
+            Math.max(0.0f, Math.min(1.0f, color[0])),
+            Math.max(0.0f, Math.min(1.0f, color[1])),
+            Math.max(0.0f, Math.min(1.0f, color[2])));
     }
 	
 	//endregion

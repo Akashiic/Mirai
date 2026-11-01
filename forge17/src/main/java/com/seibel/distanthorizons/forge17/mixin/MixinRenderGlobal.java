@@ -49,23 +49,31 @@ public class MixinRenderGlobal
 		}
 	}
 
-	//TODO Fix
-/*    @Inject(
-        method = "sortAndRender",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/client/renderer/EntityRenderer;enableLightmap(D)V",
-	        shift = At.Shift.AFTER))
-    void renderDeferredLodsDuringTranslucentSetup(
-	    EntityLivingBase p_72719_1_, int renderPass, double p_72719_3_,
-	    CallbackInfoReturnable<Integer> cir)
-    {
-	    // Translucent render pass
-	    if (renderPass == 1)
-	    {
-		    RenderHelper.renderDeferredLods();
-	    }
-    }*/
+	/**
+	 * Upstream ef720c8e. When a shaderpack (Angelica/Iris) asks DH to defer translucent rendering,
+	 * the TRANSPARENT LOD pass must run here, inside MC's translucent pass and after the lightmap is bound;
+	 * otherwise distant water is never drawn. {@link RenderHelper#renderDeferredLods()} returns immediately
+	 * when nothing is deferred, so the shader-less path is unchanged.
+	 * The target still exists inside Angelica's sortAndRender overwrite (2.2.20 and 2.2.43).
+	 */
+	@Inject(
+		method = "sortAndRender",
+		at = @At(
+			value = "INVOKE",
+			target = "Lnet/minecraft/client/renderer/EntityRenderer;enableLightmap(D)V",
+			shift = At.Shift.AFTER),
+		// a renderer that rewrites sortAndRender without this call must cost distant water under shaders, never startup
+		require = 0)
+	void renderDeferredLodsDuringTranslucentSetup(
+		EntityLivingBase p_72719_1_, int renderPass, double p_72719_3_,
+		CallbackInfoReturnable<Integer> cir)
+	{
+		// Translucent render pass
+		if (renderPass == 1)
+		{
+			RenderHelper.renderDeferredLods();
+		}
+	}
 	
 	
 	

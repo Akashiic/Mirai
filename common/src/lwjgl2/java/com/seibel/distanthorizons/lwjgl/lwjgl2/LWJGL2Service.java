@@ -1252,6 +1252,25 @@ public record LWJGL2Service(
 	}
 	
 	@Override
+	public void glGetBooleanv(int pname, boolean[] params)
+	{
+		// LWJGL2 requires 16 bytes remaining; Angelica's GLSM answers this query from its state cache
+		ByteBuffer buf = MemoryUtilities.memAlloc(16);
+		try
+		{
+			GL11.glGetBoolean(pname, buf);
+			for (int i = 0; i < params.length; i++)
+			{
+				params[i] = buf.get(i) != 0;
+			}
+		}
+		finally
+		{
+			MemoryUtilities.memFree(buf);
+		}
+	}
+	
+	@Override
 	public String glGetString(int pname)
 	{
 		return GL11.glGetString(pname);
