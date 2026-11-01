@@ -64,6 +64,13 @@ public abstract class AbstractNetworkEventSource
 			.expireAfterWrite(10, TimeUnit.SECONDS)
 			.<Long, Boolean>build()
 			.asMap());
+	/**
+	 * Receives trackable responses that no pending request claims (cancelled, expired or unknown id),
+	 * so whoever owns resources referenced by the message (e.g. a reassembled LOD payload) can release them.
+	 */
+	private volatile Consumer<AbstractTrackableMessage> unclaimedResponseListener = null;
+	
+	public void setUnclaimedResponseListener(Consumer<AbstractTrackableMessage> listener) { this.unclaimedResponseListener = listener; }
 	
 	
 	
@@ -105,20 +112,49 @@ public abstract class AbstractNetworkEventSource
 				{
 					responseData.future.completeExceptionally(new InvalidClassException("Response with invalid type: expected " + responseData.responseClass.getSimpleName() + ", got:" + message));
 				}
-				else
+				else if (!responseData.future.complete(trackableMessage))
 				{
-					responseData.future.complete(trackableMessage);
+					// the request was cancelled between the lookup and completion
+					this.notifyUnclaimed(trackableMessage);
 				}
 			}
-			else if (this.cancelledFutureIdSet.remove(trackableMessage.futureId))
+			else
 			{
-				handled = true;
+				if (this.cancelledFutureIdSet.remove(trackableMessage.futureId))
+				{
+					handled = true;
+				}
+				// handlers own messages they accepted; only orphaned responses are released here
+				if (handlersByEventSource == null)
+				{
+					this.notifyUnclaimed(trackableMessage);
+				}
 			}
 		}
 		
 		if (!handled && ModInfo.IS_DEV_BUILD)
 		{
 			LOGGER.warn("Unhandled message: [{}].", message);
+		}
+	}
+	
+	
+	
+	private void notifyUnclaimed(AbstractTrackableMessage message)
+	{
+		Consumer<AbstractTrackableMessage> listener = this.unclaimedResponseListener;
+		if (listener == null)
+		{
+			return;
+		}
+		
+		try
+		{
+			listener.accept(message);
+		}
+		catch (RuntimeException e)
+		{
+			LOGGER.warn("Unable to release unclaimed response [" + message + "]: " + e.getMessage());
 		}
 	}
 	
