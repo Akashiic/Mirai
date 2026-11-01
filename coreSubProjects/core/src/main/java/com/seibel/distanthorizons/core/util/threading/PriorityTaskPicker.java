@@ -270,7 +270,8 @@ public class PriorityTaskPicker
 		private final PriorityTaskPicker parentTaskPicker;
 		private final String name;
 		
-		private final Deque<TrackedRunnable> taskQueue = new ConcurrentLinkedDeque<>();
+		/** O(1) size: the overload checks ask for it on every pick, under the picker lock */
+		private final CountedTaskDeque<TrackedRunnable> taskQueue = new CountedTaskDeque<>();
 		
 		private final AtomicInteger runningTasksRef = new AtomicInteger(0);
 		private final AtomicInteger completedTasksRef = new AtomicInteger(0);
