@@ -268,6 +268,9 @@ autorização do dono** (regra 10).
 ## ISSUE-19 — Pré-geração de LODs no servidor: `/dh pregen` inoperante no Mirai
 <!-- labels: server, bug, p1 | milestone: 0.1.20 — Candidato | pin: no -->
 
+**Status (2026-11-01):** implementado em código e testado headless; guia em [PREGEN-SERVIDOR.md](PREGEN-SERVIDOR.md). **Falta o gate no
+Crucible** (último critério abaixo).
+
 **Sintoma (dono, 2026-10-30):** ao ativar o DH num servidor, o jogador precisa voar pelo mapa para os LODs aparecerem.
 
 **Causa (leitura de código, não reproduzido):** o servidor só envia LODs que já existem no banco dele

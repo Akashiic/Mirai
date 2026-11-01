@@ -21,6 +21,7 @@ desfaça uma decisão de contrato. Cada item aponta a fonte original em `docs/`.
 | D-12 | Toda otimização exige **prova de equivalência** (bit a bit/ordem/FIFO) e A/B; microbenchmark não vira alegação de FPS | Várias hipóteses "óbvias" falharam (ver §2) | `PESQUISA-GPU-0.1.10.md`, `PLANO-E-DIAGNOSTICO-0.1.18.md` |
 | D-13 | Chaves de rollback por JVM prop (`disabledRendererQuiescence`, `runtimeGovernor`, `diagnostics`) | Reverter comportamento sem trocar o JAR | `CLAUDE.md` regra 12 |
 | D-14 | Código de laboratório (probes, auto-connect, telemetria de gate) vive em worktrees/branches de lab; o release fica limpo | Evitar vazamento de instrumentação experimental para produção | `PLANO-E-DIAGNOSTICO-0.1.18.md` |
+| D-15 | Exceção a D-07: `/dh pregen` (admin) sobe a fila de geração **só da dimensão e só durante o pregen**; modo padrão `existing` (só chunks já salvos); clientes continuam sem gerar. Rollback `-Dakashic.mirai.serverPregen=false` | Jogador precisava voar para ter LODs (AOTM-19) | `PREGEN-SERVIDOR.md` |
 
 ## 2. Ideias avaliadas e **rejeitadas** (não retomar sem novo desenho + A/B)
 
