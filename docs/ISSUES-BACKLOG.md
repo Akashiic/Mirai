@@ -20,19 +20,19 @@ risco estratégico). Parar de lançar versões de estabilização até fechar a 
 
 **Fase 1 — Provar o produto (0.1.19)**
 - [ ] AOTM-01 Fechar a homologação runtime da 0.1.19 (Gates A/B/C + A/B visual)
-- [ ] AOTM-08 Retenção/arquivamento de logs por rodada (pré-requisito: nenhuma rodada da fase 1 pode se perder)
+- [x] AOTM-08 Retenção/arquivamento de logs por rodada (pré-requisito: nenhuma rodada da fase 1 pode se perder) (1.0-BETA)
 - [ ] AOTM-10 Teste dedicado Crucible/Java 21
 
 **Fase 2 — Cortar a deriva (0.1.20)**
-- [ ] AOTM-16 Rebasear o Mirai no `merge-1.7.10` atual como série mínima de patches
-- [ ] AOTM-15 Shaders do Angelica (resolvido pelo rebase; confirmar que a ponte da ThePatcher se desliga)
-- [ ] AOTM-09 Desambiguar a identidade das builds (a build rebaseada sai como `0.1.20-dev`)
-- [ ] AOTM-05 Re-auditar ABI contra as versões reais do pack (na build rebaseada)
+- [x] AOTM-16 Rebasear o Mirai no `merge-1.7.10` atual como série mínima de patches (substituído por cherry-pick, D-17)
+- [x] AOTM-15 Shaders do Angelica (resolvido pelo rebase; confirmar que a ponte da ThePatcher se desliga) (1.0-BETA; falta A/B em GPU)
+- [x] AOTM-09 Desambiguar a identidade das builds (a build rebaseada sai como `0.1.20-dev`) (1.0-BETA)
+- [x] AOTM-05 Re-auditar ABI contra as versões reais do pack (na build rebaseada) (1.0-BETA, no CI)
 - [ ] AOTM-07 Revalidar companions de servidor (na build rebaseada)
 
 **Fase 3 — Defeitos e desempenho, com dados da fase 1**
-- [ ] AOTM-02 Defeito de bioma ao reativar o renderer (re-checar se o rebase já resolve)
-- [ ] AOTM-03 "Duplicate or excessive LOD transfer"
+- [x] AOTM-02 Defeito de bioma ao reativar o renderer (re-checar se o rebase já resolve) (código 1.0-BETA; confirmar em runtime)
+- [x] AOTM-03 "Duplicate or excessive LOD transfer" (código 1.0-BETA; confirmar em runtime)
 - [ ] AOTM-04 Atribuir os hitches longos
 - [ ] AOTM-06 Folga de heap com renderer ativo
 - [ ] AOTM-17 Runtime Java do cliente: 8u51 → 8u recente (decisão do dono; muda o pack)
@@ -41,7 +41,7 @@ risco estratégico). Parar de lançar versões de estabilização até fechar a 
 
 **Infra / contínuo**
 - [ ] AOTM-18 Consolidar a documentação por versão em `docs/history/`
-- [ ] AOTM-11 Build reprodutível fora desta máquina
+- [x] AOTM-11 Build reprodutível fora desta máquina (1.0-BETA; conferir o hash do CI)
 - [ ] AOTM-12 Licença e visibilidade do repositório/JAR
 - [ ] AOTM-14 Crash CoreTweaks × CubicChunks (terceiros)
 
@@ -75,6 +75,8 @@ renderer ATIVO sustentado**, GPU capture, comparação visual e servidor dedicad
 ## ISSUE-02 — AssertFailureException de bioma em `getPlainsBiomeWrapper` ao reativar o renderer
 <!-- labels: bug, needs-evidence, p0 | milestone: 0.1.20 — Candidato | pin: yes -->
 
+**Status (1.0-BETA):** causa raiz corrigida — biomas sem nome geravam NPE no índice (upstream `67e242e4`, portado) e o fallback usava o mesmo índice. Confirmar em runtime que o assert não reaparece ao reativar.
+
 ### Sintoma (log real 2026-10-03)
 
 `AssertFailureException` em `WrapperFactory.getPlainsBiomeWrapper:163`, ≈ 1 s depois de o renderer voltar de DISABLED para DEFAULT, ao
@@ -94,6 +96,8 @@ receber dados de rede (`FullDataPointIdMap.deserialize` → `deserializeBiomeWra
 
 ## ISSUE-03 — `IllegalArgumentException: Duplicate or excessive LOD transfer`
 <!-- labels: bug, needs-evidence, p1 | milestone: 0.1.20 — Candidato | pin: no -->
+
+**Status (1.0-BETA):** causa raiz corrigida — atualizações parciais suprimidas na quiescência deixavam a transferência no receptor; a 129ª fechava a sessão (sessão 2: exatamente 128 suprimidas). Receptor agora despeja a mais antiga.
 
 `FullDataPayloadReceiver.receiveChunk:93` — 2 ocorrências (1 por sessão), ambas com o renderer em DISABLED. A exceção é o *guard* do receiver
 (o estado não é corrompido), mas indica retransmissão/duplicata do servidor ou do sync diferido.
@@ -118,6 +122,8 @@ o log vanilla já registrou `Clientside chunk ticking` > 100 ms (até 467 ms). O
 ## ISSUE-05 — ABI não auditada contra as versões reais do pack (Angelica 2.2.20, GTNHLib 0.11.51, Hodgepodge 2.7.189)
 <!-- labels: compatibility, p1 | milestone: 0.1.20 — Candidato | pin: no -->
 
+**Status (1.0-BETA):** auditado e no CI — PASS contra Angelica 2.2.20 + GTNHLib 0.11.51 + Hodgepodge 2.7.189 e contra Angelica 2.2.43 + GTNHLib 0.11.54 (a referência a `GLStateManager.getFogState()`, removida no 2.2.40, foi eliminada).
+
 As auditorias `tests/angelicaabi` cobrem Angelica 2.1.5/2.2.8 e GTNHLib 0.11.41; o pack roda **Angelica 2.2.20, GTNHLib 0.11.51, Hodgepodge 2.7.189**.
 Já houve `NoSuchMethodError` por ABI (JOML, 0.1.2) e por fastutil (0.1.1).
 
@@ -141,6 +147,8 @@ Na sessão longa (≈ 2 h, renderer DISABLED na maior parte): pico 4,71 GiB / 6 
 ## ISSUE-07 — Revalidar companions de servidor e localizar o Logout-Lifecycle-Fix
 <!-- labels: compatibility, server, p1 | milestone: 0.1.20 — Candidato | pin: no -->
 
+**Status (1.0-BETA):** as duas funções dos companions agora são nativas (sem `Chunk.getBiomeArray()`; logout de cliente rejeitado com guarda, upstream `4e373c16`). Ambos são fail-closed e inofensivos se ficarem. Falta só localizar o `Logout-Lifecycle-Fix` no PC do dono para decidir se ainda tem função.
+
 - `Akashic-DH-EndlessIDs-Compat 1.0.1` foi validado contra Mirai 0.1.16/0.1.17; confirmar se a 0.1.19 ainda precisa dele.
 - `Akashic-DH-Rejected-Logout-Guard 1.0.0` foi validado contra a build **diagnóstica** (`04b35d24…`); revalidar contra `481d6f7b…`.
 - O `INSTALL.txt` do Logout-Guard exige manter `Akashic-DH-Logout-Lifecycle-Fix-1.0.1-serveronly.jar`, que **não foi encontrado** neste PC.
@@ -154,6 +162,8 @@ Na sessão longa (≈ 2 h, renderer DISABLED na maior parte): pico 4,71 GiB / 6 
 ## ISSUE-08 — Retenção de logs (~20 MiB) e arquivamento por rodada
 <!-- labels: infra, p1 | milestone: Infra e documentação | pin: no -->
 
+**Status (1.0-BETA):** teto configurável (`-Dakashic.mirai.logSegmentMiB`, `-Dakashic.mirai.logArchives`, padrão 8 ≈ 36 MiB). A rotina de arquivamento por rodada continua sendo `collect-mirai-logs.ps1` + `summarize-mirai-sessions.py`.
+
 O logger mantém 5 segmentos (~20 MiB); as rodadas 0.1.16–0.1.18 já foram sobrescritas (por isso não há evidência ATIVA para elas).
 
 ### Critérios de aceite
@@ -163,6 +173,8 @@ O logger mantém 5 segmentos (~20 MiB); as rodadas 0.1.16–0.1.18 já foram sob
 
 ## ISSUE-09 — Identidade ambígua: duas builds 0.1.19-dev com o mesmo nome de JAR
 <!-- labels: release, p1 | milestone: 0.1.20 — Candidato | pin: no -->
+
+**Status (1.0-BETA):** resolvido — nova identidade `1.0-BETA` / `Mirai-forge17-1.0-BETA-1.7.10.jar`; `verify-mirai-jar.py` exige a versão.
 
 Diagnóstica (`04b35d24…`, commit `69645ac`) e *quiescence* (`481d6f7b…`, `afef9d7`) compartilham
 `Akashic-Horizons-of-The-Mirai-forge17-0.1.19-dev-1.7.10.jar`. O Logout-Guard foi validado contra o primeiro; o pack roda o segundo.
@@ -184,6 +196,8 @@ Nenhum teste registrado do **servidor dedicado** com a 0.1.19 (as classes major 
 
 ## ISSUE-11 — Build reprodutível fora desta máquina
 <!-- labels: infra, release, p2 | milestone: Infra e documentação | pin: no -->
+
+**Status (1.0-BETA):** arquivos sem timestamp e em ordem estável; dois builds limpos deram o mesmo SHA-256; o CI publica `jar.sha256` para comparar com um build local do mesmo commit.
 
 A equivalência fonte ≡ binário foi comprovada por arquivo (1.423/1.423) e metadados, mas a build **não foi reproduzida byte a byte** em outra máquina
 (`COMPILACAO.md`: "equivalência byte a byte … ainda não foi certificada").
@@ -219,6 +233,8 @@ Item de rastreio: reproduzir com o fork instalado e registrar a coordenada exata
 ## ISSUE-15 — Shaders do Angelica: portar `DistantHorizonsTweaker` + passe translúcido adiado do upstream
 <!-- labels: compatibility, p1 | milestone: 0.1.20 — Candidato | pin: no -->
 
+**Status (1.0-BETA):** implementado (`DistantHorizonsTweaker`, passe adiado condicionado, textura de profundidade, máscara de cor, fade fora do passe de sombra) e com gate de detecção no CI. Falta o A/B com shaderpack em GPU real.
+
 Com shaders do Angelica o terreno distante não passava pelo shaderpack: o Angelica (≥ 2.2.18) só liga o suporte a DH se achar
 `com.seibel.distanthorizons.DistantHorizonsTweaker` (nome adotado pelo upstream em `dfca6541`, depois do nosso pin `b4abe2f`), e o
 `renderDeferredLodsDuringTranslucentSetup` do upstream (`ef720c8e`) segue comentado aqui. Diagnóstico, evidência de cliente real e a
@@ -228,6 +244,8 @@ e repetir o A/B com/sem shader (contrato de fidelidade: sem shader nada muda).
 
 ## ISSUE-16 — Rebasear o Mirai no `merge-1.7.10` atual (série mínima de patches)
 <!-- labels: upstream, release, p1 | milestone: 0.1.20 — Candidato | pin: no -->
+
+**Status (1.0-BETA):** substituído por cherry-pick adaptado (D-17) — 23 commits do upstream portados; rebase integral inviável (protocolo 16 / API 7.3 no `main`).
 
 O pin `b4abe2f` é anterior a correções do upstream que o Mirai precisou contornar (`dfca6541` tweaker para o Angelica, `ef720c8e` passe
 translúcido adiado, recriação da textura de profundidade em `315a4ba3`). Cada versão do Mirai mexe mais fundo em `LodQuadTree`,
@@ -267,6 +285,8 @@ autorização do dono** (regra 10).
 
 ## ISSUE-19 — Pré-geração de LODs no servidor: `/dh pregen` inoperante no Mirai
 <!-- labels: server, bug, p1 | milestone: 0.1.20 — Candidato | pin: no -->
+
+**Status (1.0-BETA):** além do pregen, o arquivo de progresso, a cobertura em anéis completos, o timeout na fila, os tickets Forge antigos e a thread de progresso vazada foram corrigidos. Falta o gate no Crucible.
 
 **Status (2026-11-01):** implementado em código e testado headless; guia em [PREGEN-SERVIDOR.md](PREGEN-SERVIDOR.md). **Falta o gate no
 Crucible** (último critério abaixo).

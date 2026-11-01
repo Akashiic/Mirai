@@ -1,3 +1,5 @@
+> **Obsoleto a partir do Mirai 1.0-BETA**: o Mirai não chama mais `Chunk.getBiomeArray()`. O transformer é fail-closed (não encontra os call-sites e não altera nada); pode ser removido do servidor.
+
 # Akashic DH EndlessIDs Compat 1.0.1
 
 Patch server-side para Minecraft 1.7.10 que corrige a incompatibilidade entre Akashic: Horizons of The Mirai / Distant Horizons e a extensão de biomas do EndlessIDs.

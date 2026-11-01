@@ -28,7 +28,7 @@ cd C:\Temp\aotm\verify
 ```
 
 Pipeline (tarefa `:forge17:shadeDowngradedApi`): `shadowJar → remapJar → downgradeJar → shadeDowngradedApi`.
-**Só o resultado de `shadeDowngradedApi` é release**: `forge17/build/libs/Akashic-Horizons-of-The-Mirai-forge17-<ver>-1.7.10.jar`.
+**Só o resultado de `shadeDowngradedApi` é release**: `forge17/build/libs/Mirai-forge17-<ver>-1.7.10.jar`.
 Os JARs `-all`, `-dev` e `-sources` são intermediários.
 
 Ao final: `git worktree remove --force C:\Temp\aotm\verify`.
@@ -37,7 +37,7 @@ Ao final: `git worktree remove --force C:\Temp\aotm\verify`.
 
 | # | Gate | Como | Critério |
 |---|---|---|---|
-| 1 | Testes core + API | `gradlew.bat "-PmcVer=1.7.10" --max-workers=4 --no-parallel :core:test :api:test` (~1 min 16 s a quente) | 335 + 5 na 0.1.19, 0 falhas/erros, 1 skip |
+| 1 | Testes core + API | `gradlew.bat "-PmcVer=1.7.10" --max-workers=4 --no-parallel :core:test :api:test` (~1 min 16 s a quente) | 362 na 1.0-BETA (core + api), 0 falhas/erros |
 | 2 | Compilação dos módulos | `common:compileJava`, `forge17:compileJava` | PASS |
 | 3 | Integridade do JAR | `zipfile.testzip`; majors das classes | Somente 46, 51 e 52 (Java 8) |
 | 4 | Verificador | `python scripts/verify-mirai-jar.py <jar> --expected-version V --expected-commit SHA --expected-branch BR` | PASS (versão, `Git_Commit`, `Git_Branch`, `Build_Source` empacotados) |
@@ -48,6 +48,12 @@ Ao final: `git worktree remove --force C:\Temp\aotm\verify`.
 | 9 | Regressões auxiliares | `tests/fogcolor`, `tests/fastutilcollision`, `tests/storage`, `tests/transport`… (cada um com README) | PASS |
 | 10 | Fonte ≡ binário | `git archive <commit>` vs ZIP de fontes entregue; `build_info.json` | 0 diferenças |
 | 11 | Contrato de beacons (se tocado) | `scripts/verify-beacon-refresh-contract.py` | PASS |
+| 12 | Detecção pelo Angelica | `python tests/angelicaabi/detection.py <jar> --angelica angelica-X.jar` | Toda classe `com.seibel.distanthorizons.*` que o Angelica procura existe no jar |
+| 13 | Coerência com o GLSM | `python tests/angelicaabi/gl_calls.py <jar>` | 0 referências GL não revisadas (`gl-calls.txt`); `--update` só após revisar contra o redirect map do Angelica |
+| 14 | Reprodutibilidade | SHA-256 do jar local × `jar.sha256` do CI no mesmo commit | Iguais (arquivos sem timestamp, ordem estável) |
+
+Os gates 1, 4, 7 (pack e Angelica atual), 12, 13 e o SHA-256 rodam no CI (`.github/workflows/ci.yml`) a cada push e PR, com os
+JARs reais baixados do Maven da GTNH.
 
 `:api:verifyReleaseVersion` compara `ModInfo.VERSION` com `mod_version` antes de compilar. Mantenha **todas** as superfícies de identidade
 sincronizadas: `gradle.properties mod_version`, `ModInfo.VERSION`, nome do JAR, `build_info.json`, `mcmod.info`, changelog,
@@ -57,7 +63,7 @@ sincronizadas: `gradle.properties mod_version`, `ModInfo.VERSION`, nome do JAR, 
 
 Por versão (`docs/history/releases/<ver>/` guarda a parte textual; os binários vão nas *GitHub Releases*):
 
-* `Akashic-Horizons-of-The-Mirai-forge17-<ver>-1.7.10.jar` (≈ 45 MB);
+* `Mirai-forge17-<ver>-1.7.10.jar` (≈ 45 MB);
 * `Akashic-Mirai-<ver>-sources.zip` (core modificado incluso, **sem** jogo/caches/JARs privados);
 * `SHA256SUMS.txt`, `RELEASE-MANIFEST.json`, `jar-contract-*.json`, `release-identity-*.json`, `verify-*.json`, `TEST-SUMMARY-*.json`,
   `RELATORIO-ENTREGA-*.md` / `PATCH-REPORT.md`, `RUNTIME-TEST.md` (roteiro de teste), relatórios ABI.

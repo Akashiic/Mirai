@@ -1,4 +1,4 @@
-# CLAUDE.md — Akashic: Horizons of The Mirai (AOTM)
+# CLAUDE.md — Mirai (formerly Akashic: Horizons of The Mirai, AOTM)
 
 Guidance for Claude Code (and any other agent) continuing this project. Read this file first, then
 `docs/PROJECT-STATE.md`, then the pinned GitHub Issues.
@@ -13,7 +13,11 @@ proposal of Distant Horizons + Voxy: render far LOD terrain cheaply with LWJGL2 
 * Mod id `distanthorizons`, config `DistantHorizons.toml`, API `7.1.0`, protocol 15 — **all preserved on purpose**.
 * Upstream pin: `merge-1.7.10` @ `b4abe2f26bd1da4ce86ba5323711b2b50de84930`, core @ `791070ae3647c1791b057f6269431434369da128`
   (`MIRAI-UPSTREAM.json`).
-* **Build in use** (owner's client): `0.1.19-dev` "disabled-renderer quiescence", commit
+* **Public name `Mirai`, release line `1.0-BETA`** (jar `Mirai-forge17-1.0-BETA-1.7.10.jar`, coremod
+  `com.seibel.distanthorizons.DistantHorizonsTweaker`, `IS_DEV_BUILD=false`). Upstream fixes hand-ported onto the pin are listed in
+  `MIRAI-UPSTREAM.json` (`upstream_cherry_picks`); upstream main is protocol 16 / API 7.3 / config v5 — never rebase wholesale.
+  Changelog: `docs/CHANGELOG-1.0-BETA.md`. Runtime certification of 1.0-BETA is pending.
+* **Build installed on the owner's client** (until they switch): `0.1.19-dev` "disabled-renderer quiescence", commit
   `afef9d7e4f085c0d1dccba66d763db22878714ca`, jar SHA-256 `481d6f7b…986ea` (tag `v0.1.19-dev`). Status: *development; runtime
   certification pending*. Owner: Gabriel (GitHub `Akashiic`, "Rede Akashic"). **Talk to the owner in Portuguese (pt-BR)**;
   code, identifiers and commit messages are English; the original docs under `docs/` are Portuguese.
@@ -56,6 +60,10 @@ python scripts/verify-mirai-jar.py <jar> --expected-version V --expected-commit 
 * **PowerShell gotcha**: unquoted `-PmcVer=1.7.10` is split at the dot and Gradle silently builds the default **1.20.1** target.
   Quote it: `"-PmcVer=1.7.10"`. Prefer a clean `git worktree` at the commit so `build/` and `build.properties` do not leak.
 * Ship **only** `:forge17:shadeDowngradedApi`. Intermediate `-all`, `-dev`, `-sources` jars are not releases.
+* CI (`.github/workflows/ci.yml`) runs tests, the jar contract, ABI against **real** Angelica 2.2.20/2.2.43 + GTNHLib + Hodgepodge,
+  `tests/angelicaabi/detection.py` and `gl_calls.py` (every raw GL call must be GLSM-reviewed). The jar is reproducible.
+* Angelica harmony rule: never call Angelica/GLSM classes directly for GL state — use plain LWJGL GL calls (Angelica redirects them);
+  a new GL entry point needs a check against Angelica's redirect map and a `gl_calls.py --update`.
 * Offline gates are *necessary, not sufficient*: they never start Minecraft, Crucible or OpenGL.
   See `docs/BUILD-AND-RELEASE.md` for the full gate list (ABI audit vs real Angelica/GTNHLib jars, Java 8/21 replay, shader
   byte-identity, identity test, jar contract).

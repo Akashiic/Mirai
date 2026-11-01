@@ -30,7 +30,9 @@ Com a geração distante desligada (padrão do Mirai, D-07), quem ativa o DH pre
 | Fila de geração só durante o pregen | `AbstractDhServerLevel.shouldDoWorldGen()` = config **ou** pregen ativo naquela dimensão. A config e a `SessionConfig` dos clientes não mudam |
 | Pausa por TPS | Não submete seções novas enquanto o tick médio (100 ticks) do servidor passar de 45 ms; retoma sozinho |
 | Concorrência | No máximo `numberOfThreads` seções em voo |
-| Seção travada | Timeout de 2 min por seção, contada como falha, e o pregen segue (não depende de cache ser tocado) |
+| Cobertura | Anéis completos da espiral: lado = 2·⌈raio/4⌉+1 seções; raio máximo 16384 chunks |
+| Tickets | Tickets do Forge restaurados do `forcedchunks.dat` são liberados ao carregar o mundo (não esgotam o limite do mod) |
+| Seção travada | Timeout de 2 min por seção, contada como falha e retirada da fila de geração; o pregen segue |
 | Fila ausente | Espera até 30 s; depois falha com mensagem clara (antes travava em silêncio) |
 | Conclusão | Só depois de não haver nada em voo (antes encerrava com tarefas rodando, e a fila era desligada embaixo delas) |
 | Descarregar dimensão / parar servidor | Cancela o pregen da dimensão; o progresso fica salvo |

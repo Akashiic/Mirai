@@ -5,6 +5,13 @@ em seguida. Quando algo aqui contradisser um documento antigo de `docs/`, **este
 em que foram escritos). Evidência detalhada: [HOMOLOGATION-0.1.19.md](HOMOLOGATION-0.1.19.md) e
 [RUNTIME-EVIDENCE-2026-10-03.md](RUNTIME-EVIDENCE-2026-10-03.md).
 
+## 0. Atualização 2026-11-01 — Mirai 1.0-BETA
+
+* Nome público **Mirai**, versão **1.0-BETA** (ver [CHANGELOG-1.0-BETA.md](CHANGELOG-1.0-BETA.md)). Gates offline verdes,
+  incluindo ABI/detecção contra os JARs reais do Angelica (2.2.20 e 2.2.43) e jar reprodutível; **runtime não executado**.
+* Defeitos de log AOTM-02 e AOTM-03 com causa raiz corrigida; 23 correções do upstream portadas; companions de servidor
+  substituídos por código nativo. A matriz abaixo (G5–G10) continua valendo para a 0.1.19 e **precisa ser refeita** com a 1.0-BETA.
+
 ## 1. Resumo executivo
 
 * O AOTM é um fork de estabilização do Distant Horizons 3.2.1-b-dev para **Minecraft 1.7.10 / Forge 10.13.4.1614 / LWJGL2 /

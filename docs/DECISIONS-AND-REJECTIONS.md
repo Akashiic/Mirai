@@ -22,6 +22,9 @@ desfaça uma decisão de contrato. Cada item aponta a fonte original em `docs/`.
 | D-13 | Chaves de rollback por JVM prop (`disabledRendererQuiescence`, `runtimeGovernor`, `diagnostics`) | Reverter comportamento sem trocar o JAR | `CLAUDE.md` regra 12 |
 | D-14 | Código de laboratório (probes, auto-connect, telemetria de gate) vive em worktrees/branches de lab; o release fica limpo | Evitar vazamento de instrumentação experimental para produção | `PLANO-E-DIAGNOSTICO-0.1.18.md` |
 | D-15 | Exceção a D-07: `/dh pregen` (admin) sobe a fila de geração **só da dimensão e só durante o pregen**; modo padrão `existing` (só chunks já salvos); clientes continuam sem gerar. Rollback `-Dakashic.mirai.serverPregen=false` | Jogador precisava voar para ter LODs (AOTM-19) | `PREGEN-SERVIDOR.md` |
+| D-16 | Nome público **Mirai**, versão **1.0-BETA** (build de release, `IS_DEV_BUILD=false`), coremod `com.seibel.distanthorizons.DistantHorizonsTweaker`; modid/config/API 7.1.0/protocolo 15 intactos | Pedido do dono; o nome do coremod é o contrato de detecção do Angelica | `CHANGELOG-1.0-BETA.md` |
+| D-17 | Absorver o upstream por **cherry-pick adaptado**, listado em `MIRAI-UPSTREAM.json`; nada que mude protocolo, API, formato de config ou visual sem A/B | O `main` do upstream é DH 3.3.5-dev (protocolo 16, API 7.3, config v5): rebase integral quebraria clientes/servidores e o contrato D-04 | `MIRAI-UPSTREAM.json` |
+| D-18 | Estado GL só por chamadas LWJGL comuns (o Angelica redireciona ao GLSM); nunca chamar classes do Angelica/GLSM para estado; toda referência GL nova passa pelo gate `gl_calls.py` | A auditoria 2026-11 mostrou 0 bypass do GLSM; chamada direta acoplaria a versões do Angelica (ex.: `getFogState()` removido no 2.2.40) | `tests/angelicaabi/` |
 
 ## 2. Ideias avaliadas e **rejeitadas** (não retomar sem novo desenho + A/B)
 
@@ -42,6 +45,8 @@ desfaça uma decisão de contrato. Cada item aponta a fonte original em `docs/`.
 | R-13 | GPU culling / arenas persistentes ao estilo Voxy | **Não iniciar** sem novo desenho, prova de equivalência e A/B no pack real (e sem copiar código Voxy — D-03) | `VOXY-DH-0.1.8.md` |
 | R-14 | Saída antecipada do TAA | **Adiada**: exige teste temporal completo, comparação pós-CAS/RGBA8 e cenas reproduzíveis; não resolve o SSAO predominante | `PESQUISA-GPU-0.1.10.md` |
 | R-15 | Declarar "stutter eliminado" pela 0.1.19 | **Não afirmar**: o aviso `Clientside chunk ticking` pertence ao ciclo de chunks do cliente (outros mods participam) | `PATCH-REPORT.md` 0.1.19 |
+| R-16 | Gate de saúde do servidor também no dedicado (upstream `6758511e`) | **Rejeitada**: com tick médio ≥ 25 ms normal num pack pesado, as threads de geração pausariam indefinidamente e o `/dh pregen` travaria; o pregen já se limita pelo tick (45 ms) | `CHANGELOG-1.0-BETA.md` |
+| R-17 | Lançar exceção (e fechar a sessão) quando o receptor de LODs esgota o orçamento de transferências | **Substituída**: transferência órfã é custo local; despejar a mais antiga e contar. Só abuso por transferência (tamanho/fragmentos) fecha a sessão | AOTM-03 |
 
 ## 3. Escopo candidato da 0.1.20 (decidir **com dados**, não por gosto)
 
