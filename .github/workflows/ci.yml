@@ -60,6 +60,24 @@ jobs:
             --expected-branch "$(git symbolic-ref --short HEAD)" \
             --report verify-report.json
 
+      # AOTM-05 / Angelica harmony: real dependency jars, not doubles (pack versions and the latest Angelica)
+      - name: Angelica compatibility gates
+        run: |
+          version=$(sed -n 's/^mod_version=//p' gradle.properties)
+          jar="forge17/build/libs/Mirai-forge17-${version}-1.7.10.jar"
+          base=https://nexus.gtnewhorizons.com/repository/public/com/github/GTNewHorizons
+          mkdir -p deps
+          for spec in Angelica:2.2.20 Angelica:2.2.43 GTNHLib:0.11.51 GTNHLib:0.11.54 Hodgepodge:2.7.189; do
+            name=${spec%%:*}; ver=${spec##*:}
+            curl -sSfL --retry 4 -o "deps/$name-$ver.jar" "$base/$name/$ver/$name-$ver.jar"
+          done
+          python3 tests/angelicaabi/audit.py "$jar" --dependency deps/Angelica-2.2.20.jar --dependency deps/GTNHLib-0.11.51.jar \
+            --dependency deps/Hodgepodge-2.7.189.jar --report abi-pack.json
+          python3 tests/angelicaabi/audit.py "$jar" --dependency deps/Angelica-2.2.43.jar --dependency deps/GTNHLib-0.11.54.jar \
+            --dependency deps/Hodgepodge-2.7.189.jar --report abi-latest.json
+          python3 tests/angelicaabi/detection.py "$jar" --angelica deps/Angelica-2.2.20.jar --angelica deps/Angelica-2.2.43.jar
+          python3 tests/angelicaabi/gl_calls.py "$jar"
+
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -70,6 +88,8 @@ jobs:
             coreSubProjects/api/build/reports/tests/
             verify-report.json
             jar.sha256
+            abi-pack.json
+            abi-latest.json
           if-no-files-found: ignore
 
       # CI builds are not releases: identical name to a tagged jar does not make them one (CLAUDE.md rule 6)
