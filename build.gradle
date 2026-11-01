@@ -31,3 +31,12 @@ forgix {
     // "DistantHorizons-3.0.1-b-dev-26.1-fabric-neoforge.jar"
     archiveClassifier = modLoaders
 }
+
+// AOTM-11: archive entries must not depend on build time or filesystem order, so the same commit
+// yields the same jar on any machine (custom transformers that write their own entries are checked separately).
+allprojects {
+    tasks.withType(AbstractArchiveTask).configureEach {
+        preserveFileTimestamps = false
+        reproducibleFileOrder = true
+    }
+}
