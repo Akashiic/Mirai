@@ -175,6 +175,8 @@ public class ClientApi
 	 * when shaders are disabled.
 	 */
 	private boolean irisShadersEnabledLastFrame = false;
+	/** null until the first frame, so the initial state never produces a notice */
+	private Boolean dhRenderingEnabledLastFrame = null;
 	
 	
 	
@@ -556,6 +558,20 @@ public class ClientApi
 					if (DelayedAccessors.IRIS != null)
 					{
 						boolean shadersActive = DelayedAccessors.IRIS.isShaderPackInUse();
+						// Angelica recompiles the whole shader pack whenever DH's renderingEnabled flips while a pack is in
+						// use (DHCompatInternal.checkFrame -> Iris.reload); real logs: ~20 s frozen on a DISABLED<->DEFAULT
+						// toggle with Complementary. Say so, so the freeze isn't mistaken for a DH hang.
+						boolean dhRenderingEnabled = Config.Client.Advanced.Debugging.rendererMode.get() != EDhApiRendererMode.DISABLED;
+						if (this.dhRenderingEnabledLastFrame != null
+							&& this.dhRenderingEnabledLastFrame != dhRenderingEnabled
+							&& shadersActive)
+						{
+							this.queueSlowChatMessage(MinecraftTextFormat.ORANGE + "Distant Horizons: LOD rendering was turned "
+								+ (dhRenderingEnabled ? "on" : "off") + " while a shader pack is active. Angelica reloads the shader pack for this,"
+								+ " which can freeze the game for several seconds." + MinecraftTextFormat.CLEAR_FORMATTING);
+						}
+						this.dhRenderingEnabledLastFrame = dhRenderingEnabled;
+						
 						if (this.irisShadersEnabledLastFrame != shadersActive)
 						{
 							this.irisShadersEnabledLastFrame = shadersActive;
