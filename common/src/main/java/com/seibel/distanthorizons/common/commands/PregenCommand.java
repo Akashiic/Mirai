@@ -1,6 +1,9 @@
 package com.seibel.distanthorizons.common.commands;
 
 import com.seibel.distanthorizons.common.wrappers.world.ServerLevelWrapper;
+#if MC_VER <= MC_1_7_10
+import com.seibel.distanthorizons.common.util.threading.ServerThreadTaskHandler;
+#endif
 import com.seibel.distanthorizons.core.api.internal.SharedApi;
 import com.seibel.distanthorizons.core.generation.PregenManager;
 import com.seibel.distanthorizons.core.pos.blockPos.DhBlockPos2D;
@@ -123,17 +126,25 @@ public class PregenCommand extends AbstractDhCommand
 					
 					final ICommandSender finalSender = sender;
 					run.task.whenComplete((result, throwable) -> {
+						String message;
 						if (throwable instanceof CancellationException)
 						{
-							sendMessage(finalSender, "Pregen is cancelled; start it again with the same arguments to resume.");
-							return;
+							message = "Pregen is cancelled; start it again with the same arguments to resume.";
 						}
 						else if (throwable != null)
 						{
-							sendMessage(finalSender, "Pregen failed: " + throwable.getMessage());
-							return;
+							message = "Pregen failed: " + throwable.getMessage();
 						}
-						sendMessage(finalSender, "Pregen is complete: " + run.task.getCountersString());
+						else
+						{
+							message = "Pregen is complete: " + run.task.getCountersString();
+						}
+						// completion happens on the pregen thread; chat must be sent from the server thread
+						#if MC_VER <= MC_1_7_10
+						ServerThreadTaskHandler.INSTANCE.queueTask(() -> { sendMessage(finalSender, message); return null; });
+						#else
+						sendMessage(finalSender, message);
+						#endif
 					});
 				}
 				catch (NumberFormatException e)

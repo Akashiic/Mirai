@@ -113,13 +113,13 @@ public class PregenManager
 	 */
 	public RunningPregen start(IServerLevelWrapper levelWrapper, DhBlockPos2D origin, int chunkRadius, EPregenMode mode)
 	{
-		if (!Boolean.parseBoolean(System.getProperty(ENABLED_PROPERTY, "true")))
+		if ("false".equalsIgnoreCase(System.getProperty(ENABLED_PROPERTY, "true").trim()))
 		{
 			throw new IllegalStateException("Pregen is disabled on this server (-D" + ENABLED_PROPERTY + "=false).");
 		}
-		if (chunkRadius < 1)
+		if (chunkRadius < 1 || chunkRadius > PregenTask.MAX_CHUNK_RADIUS)
 		{
-			throw new IllegalArgumentException("chunkRadius must be at least 1.");
+			throw new IllegalArgumentException("chunkRadius must be between 1 and " + PregenTask.MAX_CHUNK_RADIUS + ".");
 		}
 		if (mode == EPregenMode.EXISTING && savedChunkIndex == null)
 		{
@@ -142,6 +142,11 @@ public class PregenManager
 		File progressFile = new File(level.getSaveStructure().getSaveFolder(levelWrapper), PROGRESS_FILE_NAME);
 		Properties runKey = progressKey(originSectionPos, chunkRadius, mode);
 		int startIndex = readResumeIndex(progressFile, runKey);
+		if (startIndex >= sectionCount)
+		{
+			// a finished run's file: start over (e.g. "existing" again after more chunks were saved)
+			startIndex = 0;
+		}
 
 		RunningPregen run = new RunningPregen(levelWrapper, mode, progressFile, runKey, startIndex);
 		if (!this.running.compareAndSet(null, run))
@@ -252,6 +257,8 @@ public class PregenManager
 		private final Properties runKey;
 		private final AtomicInteger checkpointIndex = new AtomicInteger();
 		private volatile int savedCheckpointIndex = -1;
+		/** set once the run ends; no checkpoint may be written after the completed run deleted its file */
+		private volatile boolean finished = false;
 		private final ScheduledExecutorService scheduler;
 
 		public PregenTask task;
@@ -298,6 +305,10 @@ public class PregenManager
 			try
 			{
 				this.task.pump();
+				if (this.task.isDone())
+				{
+					return;
+				}
 				this.saveCheckpoint(false);
 				long now = System.currentTimeMillis();
 				if (now - this.lastLogMs >= LOG_INTERVAL_MS && !this.task.isDone())
@@ -318,6 +329,7 @@ public class PregenManager
 			this.scheduler.shutdownNow();
 			if (throwable == null)
 			{
+				this.finished = true;
 				if (this.progressFile.exists() && !this.progressFile.delete())
 				{
 					LOGGER.warn("Unable to delete finished pregen progress file [" + this.progressFile + "].");
@@ -327,6 +339,7 @@ public class PregenManager
 			else
 			{
 				this.saveCheckpoint(true);
+				this.finished = true;
 				LOGGER.info("Pregen stopped (" + throwable.getClass().getSimpleName() + "); restart it with the same arguments to resume. " + this.task.getCountersString());
 			}
 		}
@@ -334,7 +347,7 @@ public class PregenManager
 		private synchronized void saveCheckpoint(boolean force)
 		{
 			int index = this.checkpointIndex.get();
-			if (!force && index == this.savedCheckpointIndex)
+			if (this.finished || (!force && index == this.savedCheckpointIndex))
 			{
 				return;
 			}
@@ -427,6 +440,10 @@ public class PregenManager
 		@Override
 		public CompletableFuture<?> queueGeneration(long sectionPos)
 		{ return this.provider.queuePositionForRetrieval(sectionPos); }
+		
+		@Override
+		public void cancelGeneration(long sectionPos)
+		{ this.provider.removeRetrievalRequestIf(pos -> pos == sectionPos); }
 	}
 
 }

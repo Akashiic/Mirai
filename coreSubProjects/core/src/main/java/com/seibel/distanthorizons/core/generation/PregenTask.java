@@ -54,6 +54,8 @@ public class PregenTask extends CompletableFuture<Void>
 		/** @return null when the world-generation queue is not available (yet) */
 		@Nullable
 		CompletableFuture<?> queueGeneration(long sectionPos);
+		/** drops a queued generation of a section that timed out, so the queue depth stays bounded by the in-flight limit */
+		default void cancelGeneration(long sectionPos) { }
 	}
 
 	public static final class Settings
@@ -106,11 +108,20 @@ public class PregenTask extends CompletableFuture<Void>
 		this.nextIndex = Math.max(0, Math.min(startIndex, sectionCount));
 	}
 
-	/** Number of minimum-detail sections needed to cover a square of the given chunk radius. */
+	/** Largest accepted radius; keeps the spiral's ring arithmetic and the section count far from int overflow. */
+	public static final int MAX_CHUNK_RADIUS = 16_384;
+	
+	/**
+	 * Number of minimum-detail sections in the full spiral rings that cover the given chunk radius
+	 * around the origin section: side = 2 * ceil(radius / sectionWidth) + 1. <br>
+	 * (The upstream formula used an even side, which left the outermost ring partly unvisited.)
+	 */
 	public static int sectionCountForChunkRadius(int chunkRadius)
 	{
 		int sectionChunkWidth = 1 << (DhSectionPos.SECTION_MINIMUM_DETAIL_LEVEL - 4);
-		return (int) Math.pow(Math.ceil((double) chunkRadius / sectionChunkWidth * 2), 2);
+		long rings = (Math.max(0, Math.min(chunkRadius, MAX_CHUNK_RADIUS)) + sectionChunkWidth - 1) / sectionChunkWidth;
+		long side = 2 * rings + 1;
+		return (int) (side * side);
 	}
 
 
@@ -291,6 +302,8 @@ public class PregenTask extends CompletableFuture<Void>
 				PregenManager.LOGGER.warn("Pregen of section " + DhSectionPos.toString(entry.getKey()) + " timed out; skipping it.");
 				iterator.remove();
 				this.record(EOutcome.TIMED_OUT);
+				try { this.target.cancelGeneration(entry.getKey()); }
+				catch (RuntimeException e) { PregenManager.LOGGER.warn("Unable to cancel the timed-out section: " + e.getMessage()); }
 			}
 		}
 	}
@@ -361,7 +374,7 @@ public class PregenTask extends CompletableFuture<Void>
 		index--;
 
 		int ringNumber = (int) Math.round(Math.sqrt(Math.floor((double) index / 4) + 1));
-		index -= ringNumber * 8 * (ringNumber - 1) / 2;
+		index -= (int) ((long) ringNumber * 8 * (ringNumber - 1) / 2);
 
 		// 0 <= pos <= (ringNumber * 8) - 1
 		// ringNumber * 8 - full ring
