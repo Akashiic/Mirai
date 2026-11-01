@@ -25,6 +25,7 @@ desfaça uma decisão de contrato. Cada item aponta a fonte original em `docs/`.
 | D-16 | Nome público **Mirai**, versão **1.0-BETA** (build de release, `IS_DEV_BUILD=false`), coremod `com.seibel.distanthorizons.DistantHorizonsTweaker`; modid/config/API 7.1.0/protocolo 15 intactos | Pedido do dono; o nome do coremod é o contrato de detecção do Angelica | `CHANGELOG-1.0-BETA.md` |
 | D-17 | Absorver o upstream por **cherry-pick adaptado**, listado em `MIRAI-UPSTREAM.json`; nada que mude protocolo, API, formato de config ou visual sem A/B | O `main` do upstream é DH 3.3.5-dev (protocolo 16, API 7.3, config v5): rebase integral quebraria clientes/servidores e o contrato D-04 | `MIRAI-UPSTREAM.json` |
 | D-18 | Estado GL só por chamadas LWJGL comuns (o Angelica redireciona ao GLSM); nunca chamar classes do Angelica/GLSM para estado; toda referência GL nova passa pelo gate `gl_calls.py` | A auditoria 2026-11 mostrou 0 bypass do GLSM; chamada direta acoplaria a versões do Angelica (ex.: `getFogState()` removido no 2.2.40) | `tests/angelicaabi/` |
+| D-19 | Espera pela chave de nível **por mundo** (5 s) e reloads de seção agrupados (≤ 1 re-build/seção/250 ms, FIFO, dado atual) | Logs de 2026-10-30: 6 caches temporários numa sessão e ≈5 uploads por atualização de LOD (80 GB); resultado final idêntico, atraso limitado | `CHANGELOG-1.0-BETA.md` |
 
 ## 2. Ideias avaliadas e **rejeitadas** (não retomar sem novo desenho + A/B)
 
@@ -47,6 +48,7 @@ desfaça uma decisão de contrato. Cada item aponta a fonte original em `docs/`.
 | R-15 | Declarar "stutter eliminado" pela 0.1.19 | **Não afirmar**: o aviso `Clientside chunk ticking` pertence ao ciclo de chunks do cliente (outros mods participam) | `PATCH-REPORT.md` 0.1.19 |
 | R-16 | Gate de saúde do servidor também no dedicado (upstream `6758511e`) | **Rejeitada**: com tick médio ≥ 25 ms normal num pack pesado, as threads de geração pausariam indefinidamente e o `/dh pregen` travaria; o pregen já se limita pelo tick (45 ms) | `CHANGELOG-1.0-BETA.md` |
 | R-17 | Lançar exceção (e fechar a sessão) quando o receptor de LODs esgota o orçamento de transferências | **Substituída**: transferência órfã é custo local; despejar a mais antiga e contar. Só abuso por transferência (tamanho/fragmentos) fecha a sessão | AOTM-03 |
+| R-18 | Reaproveitar buffers `BUFFER_STORAGE` com `GL_DYNAMIC_STORAGE_BIT` | **Adiada**: custo medido da realocação ≈0,15 ms/frame; o bit pode mudar o posicionamento do buffer no driver e piorar o desenho. Só com A/B de GPU | `CHANGELOG-1.0-BETA.md` |
 
 ## 3. Escopo candidato da 0.1.20 (decidir **com dados**, não por gosto)
 

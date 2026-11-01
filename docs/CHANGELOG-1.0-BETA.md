@@ -51,6 +51,25 @@ estavam na integração:
   (lado `2·⌈r/4⌉+1`, o upstream deixava o anel externo pela metade); seção com timeout sai da fila; chat na thread do servidor;
   raio máximo 16384 chunks.
 
+## Desempenho (a partir dos logs reais de 2026-10-30, renderer ativo)
+
+Sessão 0.1.19, ≈49 min com LODs: 44 FPS médio (22,5 ms), Mirai ≈3,6 ms/frame na thread principal (≈2 passes/frame por causa
+do passe de sombra do shaderpack), **80 GB de upload GL** (mediana 20 MiB/s). O congelamento de 17,6 s foi a carga do
+shaderpack pelo Angelica; os de 1–2 s, capturas de tela (F2) em 3440×1371 — nenhum dos dois é do Mirai.
+
+* **Chave de nível por mundo.** Atrás do proxy, a espera pela chave do servidor era uma só por conexão; cada troca de
+  backend/dimensão seguinte carregava o nível num **cache temporário** (6 na sessão), baixava/construía/enviava LODs e os
+  descartava quando a chave chegava 1–2 s depois — e o LOD nunca persistia entre sessões. Agora cada mundo espera a sua
+  chave (até 5 s) antes de cair no cache temporário (`LevelKeyWait`).
+* **Reloads agrupados.** Cada mudança de dado reconstruía a seção **e as 4 vizinhas** (≈73 uploads/s para ≈15 atualizações/s).
+  Pedidos repetidos agora colapsam (FIFO) e cada seção reconstrói no máximo 1×/250 ms, sempre com o dado atual — o resultado
+  final é o mesmo; uma edição isolada não espera (`SectionReloadScheduler`). Contadores novos:
+  `SECTION_RELOAD_REQUESTED`/`SECTION_RELOAD_STARTED`.
+* **Reload nunca descartado:** um pedido durante o *primeiro* build de uma seção era perdido (LOD desatualizado); agora espera.
+* **Não alterado, com motivo:** a realocação de buffer por upload (`BUFFER_STORAGE`) custa ≈0,15 ms/frame medido
+  (`GL_STORAGE_UPLOAD_WALL` 88 µs × 73/s); reaproveitar o buffer exigiria `GL_DYNAMIC_STORAGE_BIT`, que pode mover o buffer para
+  memória do sistema e piorar o desenho. A/B possível só por config: `gpuUploadMethod = SUB_DATA`.
+
 ## Absorvido do upstream (cherry-picks adaptados)
 
 Dados: downsample sem aliasing (corrompia IDs da fonte, `2c7c7864b`). Geração: tarefa que falha libera o slot (`64a225320`),
