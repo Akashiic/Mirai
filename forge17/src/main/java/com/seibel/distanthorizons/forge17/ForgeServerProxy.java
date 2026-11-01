@@ -189,17 +189,39 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy
 
     @SubscribeEvent
     public void playerLoggedInEvent(PlayerEvent.PlayerLoggedInEvent event) 
-    { ServerApi.INSTANCE.serverPlayerJoinEvent(getServerPlayerWrapper(event)); }
+    {
+        IServerPlayerWrapper serverPlayerWrapper = getServerPlayerWrapper(event);
+        if (serverPlayerWrapper == null)
+        {
+            // the player has no play connection (e.g. rejected during the mod handshake)
+            return;
+        }
+        ServerApi.INSTANCE.serverPlayerJoinEvent(serverPlayerWrapper);
+    }
 
     @SubscribeEvent
     public void playerLoggedOutEvent(PlayerEvent.PlayerLoggedOutEvent event) 
-    { ServerApi.INSTANCE.serverPlayerDisconnectEvent(getServerPlayerWrapper(event)); }
+    {
+        // a client rejected by FML's mod check logs out without a play connection (upstream 4e373c16;
+        // previously handled by the Akashic-DH-Rejected-Logout-Guard companion)
+        IServerPlayerWrapper serverPlayerWrapper = getServerPlayerWrapper(event);
+        if (serverPlayerWrapper == null)
+        {
+            return;
+        }
+        ServerApi.INSTANCE.serverPlayerDisconnectEvent(serverPlayerWrapper);
+    }
 
     @SubscribeEvent
     public void playerChangedDimensionEvent(PlayerEvent.PlayerChangedDimensionEvent event) 
     {
+        IServerPlayerWrapper serverPlayerWrapper = getServerPlayerWrapper(event);
+        if (serverPlayerWrapper == null)
+        {
+            return;
+        }
         ServerApi.INSTANCE.serverPlayerLevelChangeEvent(
-            getServerPlayerWrapper(event),
+            serverPlayerWrapper,
             getServerLevelWrapper(event.fromDim, event),
             getServerLevelWrapper(event.toDim, event));
     }

@@ -95,8 +95,19 @@ public abstract class AbstractDhServerWorld<TDhServerLevel extends AbstractDhSer
 	@Override
 	public void changePlayerLevel(IServerPlayerWrapper player, IServerLevelWrapper originLevel, IServerLevelWrapper destinationLevel)
 	{
-		this.getLevel(destinationLevel).addPlayer(player);
-		this.getLevel(originLevel).removePlayer(player);
+		// upstream d134ffeb5: some mods create a level but fire its load event only after the player entered it;
+		// get-or-load instead of an NPE. (No player name in the log: Mirai logs never contain player names.)
+		AbstractDhServerLevel dhDestinationLevel = (AbstractDhServerLevel) this.getOrLoadServerLevel(destinationLevel);
+		AbstractDhServerLevel dhOriginLevel = (AbstractDhServerLevel) this.getOrLoadServerLevel(originLevel);
+		if (dhDestinationLevel == null || dhOriginLevel == null)
+		{
+			LOGGER.error("Unable to move a player between levels [" + originLevel.getDhIdentifier() + "] -> [" + destinationLevel.getDhIdentifier() + "]: "
+				+ (dhDestinationLevel == null ? "destination" : "origin") + " level is not loaded.");
+			return;
+		}
+		
+		dhDestinationLevel.addPlayer(player);
+		dhOriginLevel.removePlayer(player);
 	}
 	
 	

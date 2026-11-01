@@ -67,6 +67,12 @@ public class ServerPlayerWrapper implements IServerPlayerWrapper
 		#if MC_VER <= MC_1_7_10
 		// 1.7.10's NetHandlerPlayServer is reached through `playerNetServerHandler`, not `connection`
 		NetHandlerPlayServer netHandler = serverPlayer.playerNetServerHandler;
+		if (netHandler == null)
+		{
+			// upstream 4e373c16: FML fires the logout event with a null handler when it rejects the client's mods
+			// during the handshake; computeIfAbsent(null) used to crash the server
+			return null;
+		}
 		return serverPlayerWrapperMap.computeIfAbsent(netHandler, ignored -> new ServerPlayerWrapper(netHandler));
 		#else
 		return serverPlayerWrapperMap.computeIfAbsent(serverPlayer.connection, ignored -> new ServerPlayerWrapper(serverPlayer.connection));

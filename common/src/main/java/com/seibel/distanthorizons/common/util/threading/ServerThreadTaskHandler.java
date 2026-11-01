@@ -118,6 +118,10 @@ public class ServerThreadTaskHandler
 
 		if (!this.deferrableTasksCanRun())
 		{
+			// Still run one deferrable task per tick (upstream 6ab427c7): a partially requested generation event
+			// keeps its chunks forced (and ticked), which can be what keeps the server unhealthy, so without this
+			// it would never finish or release them. New generation is paused meanwhile, so the backlog is bounded.
+			runQueueUntilDeadline(this.deferrableTaskQueue, Long.MIN_VALUE);
 			return;
 		}
 
