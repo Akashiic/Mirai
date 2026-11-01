@@ -16,7 +16,7 @@ e protocolo `15` **não mudam**: configs, dados LOD e servidores 0.1.x continuam
 
 ## Angelica × Mirai
 
-Auditoria GL contra Angelica 2.2.20 (pack) e 2.2.43 (atual). **Nenhuma chamada GL do Mirai escapa do GLSM**: as 171 referências
+Auditoria GL contra Angelica 2.2.20 (pack) e 2.2.43 (atual). **Nenhuma chamada GL do Mirai escapa do GLSM**: as 169 referências
 LWJGL do jar são redirecionadas, ou não mudam estado cacheado (debug output, sync objects, query results). As colisões reais
 estavam na integração:
 
@@ -70,6 +70,27 @@ shaderpack pelo Angelica; os de 1–2 s, capturas de tela (F2) em 3440×1371 —
   (`GL_STORAGE_UPLOAD_WALL` 88 µs × 73/s); reaproveitar o buffer exigiria `GL_DYNAMIC_STORAGE_BIT`, que pode mover o buffer para
   memória do sistema e piorar o desenho. A/B possível só por config: `gpuUploadMethod = SUB_DATA`.
 
+## CPU e GPU (auditoria de 2026-11-01)
+
+A partir dos mesmos logs (16 CPUs lógicas, 12 workers: picos de 12–13,7 núcleos e frame médio de 20 → 40–78 ms nos bursts).
+
+| Mudança | Efeito / prova |
+|---|---|
+| `System.gc()` ao fechar o mundo virou opt-in (`-Dakashic.mirai.explicitGcOnWorldClose=true`) | Era um GC completo síncrono a cada troca de mundo/backend; a JVM coleta sozinha |
+| Governor reage a regressão sustentada do frame (`FrameRegressionDetector`) | Nenhum frame passava dos 100 ms "lentos", então o governor nunca agia. Agora: 2 amostras de 1 s seguidas ≥ 1,5× a linha de base **e** ≥ +8 ms com todos os workers ocupados tiram 1 worker (mínimo: metade do configurado); volta só abaixo de 1,2× (histerese). Sem linha de base não faz nada. Diagnóstico: `frame_ms`/`frame_baseline_ms`. Rollback: `runtimeGovernor=false` |
+| Aviso no chat ao alternar o renderer com shaderpack | O Angelica recompila o pack inteiro quando `renderingEnabled` muda (`DHCompatInternal.checkFrame` → `Iris.reload()`, ≈20 s no log); o congelamento não é do Mirai |
+| Fila de atualização de chunks sem *busy-spin* | Enquanto o chunk mais próximo estava no debounce de 250 ms, a thread `Chunk Update Queue` tirava e recolocava o mesmo item em laço, **um núcleo a 100 %** enquanto houvesse chunk na fila. Agora estaciona (≤ 5 ms) até o debounce vencer e acorda na hora com trabalho novo. Mesma ordem de despacho; só os giros vazios saem |
+| `size()` O(1) na fila do picker (`CountedTaskDeque`) | `ConcurrentLinkedDeque.size()` percorre a fila inteira e era chamado a cada escolha de tarefa, com o lock do picker. Teste: operações aleatórias contra `ArrayDeque` (mesma ordem/tamanho) e contagem exata sob concorrência |
+| Pools do picker: listener removido no shutdown; valor igual não recria pools | Cada sessão de mundo criava um picker novo e os executores antigos ficavam registrados para sempre; qualquer evento de config (inclusive sem mudança de valor) recriava os pools de **todos**, revivendo pools de mundos mortos |
+| Upload GL sem `glIsBuffer`/`glIsVertexArray` | Cada `glIs*` é uma ida ao driver que o GLSM não responde (≈73 uploads/s). Pela especificação, nome vinculado é sempre objeto vivo e apagar um vinculado zera o vínculo; o único nome que o upload pode apagar é o anterior do próprio buffer — o resultado é idêntico ao dos `glIs*` em todos os casos |
+
+**Medir antes de mudar (sem A/B, nada):** salvar/restaurar do `GLState` (≈70 consultas por escopo), pular SSAO/névoa em frames
+sem nenhum desenho de LOD, limpeza dupla do framebuffer DH. Ver R-19/R-20.
+
+**Ajuste do jogador, não código:** com 12+ workers em CPUs de 16 threads, `threadPreset` BALANCED (ou `numberOfThreads` ≈ metade
+dos núcleos) e `threadPriority` 3–4 deixam mais folga para a thread principal; `threadRunTimeRatio` limita cada worker, não o
+total de CPU.
+
 ## Absorvido do upstream (cherry-picks adaptados)
 
 Dados: downsample sem aliasing (corrompia IDs da fonte, `2c7c7864b`). Geração: tarefa que falha libera o slot (`64a225320`),
@@ -92,7 +113,7 @@ que pausaria as threads de geração num pack pesado e travaria o `/dh pregen` (
 
 ## Gates (CI)
 
-`:core:test :api:test` (362) → `:forge17:shadeDowngradedApi` → `verify-mirai-jar.py` → SHA-256 publicado → `audit.py` contra
+`:core:test :api:test` (378) → `:forge17:shadeDowngradedApi` → `verify-mirai-jar.py` → SHA-256 publicado → `audit.py` contra
 Angelica 2.2.20 + GTNHLib 0.11.51 + Hodgepodge 2.7.189 **e** Angelica 2.2.43 + GTNHLib 0.11.54 → `detection.py` → `gl_calls.py`.
 
 ## Antes de instalar
